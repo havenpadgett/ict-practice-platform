@@ -2,10 +2,12 @@ import type { GradeResult } from "@/lib/grading";
 
 export function FeedbackPanel({
   result,
-  onTryAgain,
+  onNext,
+  nextLabel,
 }: {
   result: GradeResult;
-  onTryAgain: () => void;
+  onNext: () => void;
+  nextLabel: string;
 }) {
   const verdictColor = result.isCorrect ? "#4caf82" : "#e2685f";
 
@@ -26,10 +28,10 @@ export function FeedbackPanel({
 
       <button
         type="button"
-        onClick={onTryAgain}
-        className="mt-5 inline-flex items-center justify-center rounded-md border border-line px-6 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-background"
+        onClick={onNext}
+        className="mt-5 inline-flex items-center justify-center rounded-md bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
       >
-        Try Again
+        {nextLabel}
       </button>
     </div>
   );
