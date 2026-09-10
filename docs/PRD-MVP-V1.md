@@ -168,8 +168,8 @@ The tests above only run in the top-left cell. The other three are separate path
 
 | | User drew a box | User answered "No FVG present" |
 |---|---|---|
-| **Chart has an FVG** | Run the tests above | **Incorrect** — reveal the zone, show explanation |
-| **Chart has no FVG** | **Incorrect** — show the distractor_note explaining why the tempting area doesn't qualify | **Correct** — show the distractor_note as confirmation |
+| **Chart has an FVG** | Run the tests above | **Incorrect** — state the correct answer, reveal the zone, show explanation |
+| **Chart has no FVG** | **Incorrect** — state that no FVG exists, then the distractor_note explaining why the tempting area doesn't qualify | **Correct** — state that no FVG exists, then the distractor_note as confirmation |
 
 The bottom-left cell is the most educationally valuable moment in V1: the user was tempted by something that looked like a gap, and the app tells them precisely why it isn't one. That's why `distractor_note` is a required field, not optional flavor text.
 
@@ -200,6 +200,7 @@ PASS if |distance_from_level| ≤ tolerance
 
 #### Feedback
 Correct or incorrect, plus:
+- The correct answer stated explicitly (see 6.3).
 - The true level drawn on the chart as a second horizontal line, alongside the user's own line.
 - The written explanation.
 - When wrong: how far off and in which direction — "You were {distance} points too {high|low}."
@@ -209,8 +210,17 @@ Same shape as the zone matrix — has_answer × user_answer_type — just with t
 
 | | User placed a line | User answered "No Liquidity Level present" |
 |---|---|---|
-| **Chart has a level** | PASS if within tolerance | **Incorrect** — reveal the level, show explanation |
-| **Chart has no level** | **Incorrect** — show the distractor_note | **Correct** — show the distractor_note as confirmation |
+| **Chart has a level** | PASS if within tolerance | **Incorrect** — state the correct answer, reveal the level, show explanation |
+| **Chart has no level** | **Incorrect** — state that no level exists, then the distractor_note | **Correct** — state that no level exists, then the distractor_note as confirmation |
+
+### 6.3 Feedback must always state the correct answer explicitly
+
+Added 2026-09-10 after testing found this missing on `liq-004` (see Bug Log): feedback that only shows the distractor_note, with no plain statement of what the correct answer actually was, leaves the user to infer what they should have done. This applies to every exercise of both concepts, correct or incorrect:
+
+- **Has no valid answer** (`has_answer: false`): feedback leads with "The correct answer was: no {answerLabel} on this chart." *before* the reasoning — there's nothing to point at, so this goes first.
+- **Has a valid answer** (`has_answer: true`): feedback states "The correct answer was: a {answerLabel} between {low} and {high}" (zone) or "...a {answerLabel} level around {price}" (level) *after* the reasoning — numbers are supporting detail, not the lead.
+
+Prices in this statement are rounded to whole numbers. Feedback sentences are kept short; numbers are never stacked into the same sentence as the reasoning.
 
 ---
 
@@ -366,7 +376,7 @@ Every one of these is in the vision document and most will get built. None belon
 
 **NEXT** — 5 more FVG exercises · "no valid FVG here" exercise type · liquidity (BSL/SSL) concept · accuracy-by-concept view
 
-**LATER** — accounts + database · real historical NQ scenarios + validation process · MSS, IFVG, SMT · Guided Entry mode · analytics page · Power BI internal dashboard
+**LATER** — accounts + database · real historical NQ scenarios + validation process · MSS, IFVG, SMT · Guided Entry mode · analytics page · Power BI internal dashboard · multi-level liquidity exercises — user places multiple lines for several liquidity levels on one chart. Requires partial-credit grading design.
 
 **MAYBE** — Free Trade simulation · adaptive practice engine · AI-generated feedback · XP/streaks/leaderboards · ES and SMT pairs · native mobile
 
@@ -378,6 +388,7 @@ Every one of these is in the vision document and most will get built. None belon
 |------|-----|-------|-----|-----------------|
 | 2026-09-10 | Runtime `TypeError: Cannot read properties of undefined (reading 'title')` crashed `/practice` | `loadSession()` (`src/lib/storage.ts`) cast whatever was in localStorage to `SessionState` with `as SessionState` and no runtime validation. A session saved before the Phase 4 concept refactor had no `concept` field at all. `practice/page.tsx` then indexed `CONCEPTS[session.concept as Concept]` — indexing with `undefined` silently returned `undefined` instead of throwing there, and the crash surfaced one line later at `conceptMeta.title`. | Two layers: (1) `SessionState` gained a `version` field; `loadSession()` now runs `isValidSessionState()` and discards (removes from localStorage, returns null) anything with a missing/wrong version, an unrecognized `concept`, or any other shape mismatch — an invalid session falls back to the concept picker instead of being trusted. (2) `concepts.ts` gained `getConceptMeta()`, a safe lookup that falls back to FVG's copy instead of returning `undefined` for an unrecognized concept string, so even a bad value reaching render can't crash it. | Wrote a pre-Phase-4-shaped session object (no `concept`, no `version`) directly into localStorage and loaded `/practice`: confirmed the app discarded it and showed the concept picker, with no error reaching the UI. Ran a full 5-exercise session to completion for both FVG and Liquidity afterward — scores, session summary, and `version: 1` in the newly saved session all correct. |
 | 2026-09-10 | A zone box that failed the coverage test always said "You marked the wrong area," even when the box was correctly centered and just too small | `gradeZoneAttempt` (`src/lib/grading.ts`) only checked `coverage >= 0.60`; it never distinguished a box that missed the true zone's location from a box that was entirely *inside* the true zone but undersized — both produced the same `failureReason: "coverage"` and the same message, and the message assumed the former. | Added a containment check: when coverage fails, test whether the user's box is fully inside `[price_low, price_high]` (never sticking out past either edge). If so, it's a new `failureReason: "too_small"` with the message "Right area, but your selection was too small to cover enough of the zone." Only a box that isn't fully contained keeps `"coverage"` / "You marked the wrong area." | Drew a box fully inside fvg-001's true zone (21107.25–21139.25, drawn ~21118–21128, well under the 60% coverage threshold) and submitted: confirmed `failure_reason: "too_small"` and the new message, with `precision_ratio` well under 2.5 (as expected for an undersized box). |
+| 2026-09-10 | On `liq-004` (no-answer), feedback for submitting a level anyway only showed the distractor_note — it never stated that the correct answer was "no level here," leaving the user to infer it. Separately, prompts like "Mark the Buy-Side Liquidity." asserted a level existed even on no-answer exercises, inconsistently with exercises that had no answer. | `gradeZoneAttempt`/`gradeLevelAttempt` set `explanation` directly to `exercise.explanation` or `distractor_note`, with no leading statement of what the correct answer actually was. Prompts were hand-typed per exercise (`prompt` field) with no enforced template, so wording could — and did — vary in a way that leaked whether an answer existed. | Added `buildCorrectAnswerStatement()` + `composeExplanation()` (`src/lib/grading.ts`): every grading path now prepends "The correct answer was: no {answerLabel} on this chart." (no-answer case, stated first) or appends "...a {answerLabel} between/around {rounded price(s)}." (has-answer case, stated last, after the reasoning). Replaced the per-exercise `prompt` field with a derived `getPrompt()` (`src/data/exercises.ts`) built from a new `answerLabel` field via one template — "Identify the {answerLabel}, if there is one." — for every exercise of both concepts, so wording can't drift or leak existence. | Submitted a placed level on `liq-004`: confirmed feedback now leads with "The correct answer was: no Buy-Side Liquidity on this chart." before the distractor reasoning, for both the correct ("No Liquidity Level present") and incorrect (placed a line) responses. Confirmed every exercise of both concepts renders the identical "Identify the {X}, if there is one." template regardless of `has_answer`. |
 
 ---
 

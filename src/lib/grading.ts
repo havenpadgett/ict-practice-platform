@@ -1,5 +1,4 @@
 import type { Exercise, LevelExercise, ZoneExercise } from "@/data/exercises";
-import { CONCEPTS } from "@/lib/concepts";
 
 /** The user's drawn box, already converted from pixels into price + candle-index domain. */
 export type UserRegion = {
@@ -35,7 +34,9 @@ export type GradeResult = {
   failureReason: FailureReason | null;
   /** Names which test failed, or how far off a level answer was. */
   failureMessage: string | null;
-  /** The exercise's explanation or distractor note — always shown as feedback. */
+  /** Feedback text: reasoning plus an explicit statement of the correct
+   * answer, in the order described in composeExplanation() below. Always
+   * shown, correct or not. */
   explanation: string;
   /** Whether the feedback view should draw the true answer on the chart. */
   revealZone: boolean;
@@ -46,6 +47,54 @@ const PRECISION_THRESHOLD = 2.5;
 /** Floating-point safety margin for "is the user's box fully inside the
  * true zone" checks below. */
 const CONTAINMENT_EPSILON = 0.01;
+
+/** Rounds to a whole number for display — feedback text shouldn't stack
+ * multiple decimal values into one sentence. Grading itself still uses the
+ * exercise's full-precision stored values; only what's shown is rounded. */
+function formatPrice(value: number): string {
+  return Math.round(value).toLocaleString("en-US");
+}
+
+// Every exercise's feedback states the correct answer explicitly — this is
+// what fixed the bug where a no-zone/no-level exercise only showed the
+// distractor note, leaving the user to infer what they should have done.
+// The statement is qualitative ("no X on this chart") when nothing exists,
+// so it reads naturally leading the explanation; it carries the actual
+// coordinates when something does exist, so it reads naturally trailing
+// the reasoning (numbers last, per the feedback restructuring below).
+function buildCorrectAnswerStatement(exercise: Exercise): string {
+  if (!exercise.has_answer) {
+    return `The correct answer was: no ${exercise.answerLabel} on this chart.`;
+  }
+  if (exercise.answer_type === "zone") {
+    const answer = exercise.answer;
+    if (!answer) {
+      throw new Error(`Exercise ${exercise.exercise_id} has has_answer=true but no answer`);
+    }
+    return `The correct answer was: a ${exercise.answerLabel} between ${formatPrice(answer.price_low)} and ${formatPrice(answer.price_high)}.`;
+  }
+  const answer = exercise.answer;
+  if (!answer) {
+    throw new Error(`Exercise ${exercise.exercise_id} has has_answer=true but no answer`);
+  }
+  return `The correct answer was: a ${exercise.answerLabel} level around ${formatPrice(answer.price)}.`;
+}
+
+// Feedback structure: a plain verdict sentence and any test-specific detail
+// come first (failureMessage, rendered by the UI before this text) — this
+// composes what follows: the correct-answer statement and the reasoning,
+// ordered so numbers come last. When nothing exists, the "no X" statement
+// has no numbers of its own, so it reads naturally as the lead-in instead;
+// when something does exist, the reasoning comes first and the concrete
+// coordinates trail it.
+function composeExplanation(exercise: Exercise): string {
+  const statement = buildCorrectAnswerStatement(exercise);
+  if (!exercise.has_answer) {
+    const reasoning = exercise.distractor_note ?? exercise.explanation;
+    return `${statement} ${reasoning}`;
+  }
+  return `${exercise.explanation} ${statement}`;
+}
 
 export function gradeAttempt(exercise: Exercise, userAnswer: UserAnswer): GradeResult {
   if (exercise.answer_type === "zone") {
@@ -101,7 +150,6 @@ function includesKeyCandle(
 
 function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): GradeResult {
   const { has_answer, answer } = exercise;
-  const zoneNoun = CONCEPTS[exercise.concept].zoneNoun;
 
   if (!has_answer) {
     // Grading matrix, bottom row: "No zone present" is the correct answer
@@ -114,7 +162,7 @@ function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): Grade
       distanceFromLevel: null,
       failureReason: isCorrect ? null : "false_positive",
       failureMessage: null,
-      explanation: exercise.distractor_note ?? exercise.explanation,
+      explanation: composeExplanation(exercise),
       revealZone: false,
     };
   }
@@ -133,7 +181,7 @@ function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): Grade
       distanceFromLevel: null,
       failureReason: "missed_answer",
       failureMessage: null,
-      explanation: exercise.explanation,
+      explanation: composeExplanation(exercise),
       revealZone: true,
     };
   }
@@ -172,7 +220,7 @@ function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): Grade
       distanceFromLevel: null,
       failureReason: null,
       failureMessage: null,
-      explanation: exercise.explanation,
+      explanation: composeExplanation(exercise),
       revealZone: true,
     };
   }
@@ -202,7 +250,7 @@ function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): Grade
     }
   } else if (!precisionOk) {
     failureReason = "precision";
-    failureMessage = `You found it, but your selection was too broad — ${zoneNoun} is a specific price range.`;
+    failureMessage = `You found it, but your selection was too broad — a ${exercise.answerLabel} is a specific price range.`;
   } else {
     failureReason = "time";
     failureMessage = "Right price level, wrong candles.";
@@ -215,7 +263,7 @@ function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): Grade
     distanceFromLevel: null,
     failureReason,
     failureMessage,
-    explanation: exercise.explanation,
+    explanation: composeExplanation(exercise),
     revealZone: true,
   };
 }
@@ -238,7 +286,7 @@ function gradeLevelAttempt(exercise: LevelExercise, userAnswer: UserAnswer): Gra
       distanceFromLevel: null,
       failureReason: isCorrect ? null : "false_positive",
       failureMessage: null,
-      explanation: exercise.distractor_note ?? exercise.explanation,
+      explanation: composeExplanation(exercise),
       revealZone: false,
     };
   }
@@ -255,7 +303,7 @@ function gradeLevelAttempt(exercise: LevelExercise, userAnswer: UserAnswer): Gra
       distanceFromLevel: null,
       failureReason: "missed_answer",
       failureMessage: null,
-      explanation: exercise.explanation,
+      explanation: composeExplanation(exercise),
       revealZone: true,
     };
   }
@@ -276,13 +324,13 @@ function gradeLevelAttempt(exercise: LevelExercise, userAnswer: UserAnswer): Gra
       distanceFromLevel,
       failureReason: null,
       failureMessage: null,
-      explanation: exercise.explanation,
+      explanation: composeExplanation(exercise),
       revealZone: true,
     };
   }
 
   const direction = distanceFromLevel > 0 ? "high" : "low";
-  const failureMessage = `You were ${Math.abs(distanceFromLevel).toFixed(2)} points too ${direction}.`;
+  const failureMessage = `You were ${Math.round(Math.abs(distanceFromLevel))} points too ${direction}.`;
 
   return {
     isCorrect: false,
@@ -291,7 +339,7 @@ function gradeLevelAttempt(exercise: LevelExercise, userAnswer: UserAnswer): Gra
     distanceFromLevel,
     failureReason: "off_level",
     failureMessage,
-    explanation: exercise.explanation,
+    explanation: composeExplanation(exercise),
     revealZone: true,
   };
 }
