@@ -1,8 +1,17 @@
-// Browser-only persistence (PRD FR-16: progress persists via localStorage,
-// no login). Every function here is safe to call from server-rendered code
-// paths too — they just no-op / return empty values when `window` isn't
-// available, so callers only need to guard against hydration timing, not
-// against SSR crashing.
+// Browser-only, localStorage-backed state. Two things live here now:
+//
+// 1. SessionState — the current in-progress practice session (which
+//    exercise, running score). Stays local; it's ephemeral UI state, not a
+//    durable record, so it was never part of the Supabase move.
+// 2. StoredAttempt — the *old* attempt-recording shape, from before
+//    accounts existed. Attempts are now written straight to Supabase (see
+//    src/lib/attempts.ts); this only sticks around so a signed-in user's
+//    pre-login attempts can be read once and offered for migration (see
+//    src/components/auth/migration-prompt.tsx), then cleared.
+//
+// Every function here is safe to call from server-rendered code paths too —
+// they just no-op / return empty values when `window` isn't available, so
+// callers only need to guard against hydration timing, not SSR crashing.
 
 import { CONCEPT_LIST } from "@/lib/concepts";
 
@@ -12,7 +21,8 @@ import { CONCEPT_LIST } from "@/lib/concepts";
  * change (old sessions had no `concept` field) after the fact. */
 const SESSION_SCHEMA_VERSION = 1;
 
-/** One row per PRD Section 9 — the fields a future `attempts` table would have. */
+/** Pre-login attempt shape (PRD Section 9). Read-only now — see the module
+ * comment above. */
 export type StoredAttempt = {
   attempt_id: string;
   session_id: string;
@@ -93,25 +103,11 @@ export function loadAttempts(): StoredAttempt[] {
   }
 }
 
-function saveAttempts(attempts: StoredAttempt[]): void {
+/** Clears attempts recorded before sign-in, once they've been migrated to
+ * the user's Supabase account (see src/lib/attempts.ts). */
+export function clearLocalAttempts(): void {
   if (!isBrowser()) return;
-  window.localStorage.setItem(ATTEMPTS_KEY, JSON.stringify(attempts));
-}
-
-export function appendAttempt(attempt: StoredAttempt): StoredAttempt[] {
-  const attempts = loadAttempts();
-  attempts.push(attempt);
-  saveAttempts(attempts);
-  return attempts;
-}
-
-/** "Repeat exposure to the same exercise" (PRD Section 9) — how many times
- * this exercise_id has been attempted before, across every past session. */
-export function nextAttemptNumber(
-  attempts: StoredAttempt[],
-  exerciseId: string,
-): number {
-  return attempts.filter((a) => a.exercise_id === exerciseId).length + 1;
+  window.localStorage.removeItem(ATTEMPTS_KEY);
 }
 
 export function loadSession(): SessionState | null {
@@ -164,44 +160,6 @@ export function createSession(concept: string, exerciseIds: string[]): SessionSt
     missed_exercise_ids: [],
     completed: false,
   };
-}
-
-export function createAttemptId(): string {
-  return generateId("attempt");
-}
-
-// ---- Dashboard aggregates -------------------------------------------------
-// Overall accuracy and exercises completed are lifetime totals across every
-// attempt ever recorded, not just the current session — that's what makes
-// them feel like ongoing progress rather than a per-session score.
-
-export function getOverallAccuracy(attempts: StoredAttempt[]): number | null {
-  if (attempts.length === 0) return null;
-  const correct = attempts.filter((a) => a.is_correct).length;
-  return Math.round((correct / attempts.length) * 100);
-}
-
-export function getExercisesCompletedCount(attempts: StoredAttempt[]): number {
-  return attempts.length;
-}
-
-/** Accuracy per concept, e.g. { FVG: 80, Liquidity: 40 } — only for
- * concepts with at least one recorded attempt. */
-export function getAccuracyByConcept(
-  attempts: StoredAttempt[],
-): Record<string, number> {
-  const byConcept = new Map<string, { correct: number; total: number }>();
-  for (const attempt of attempts) {
-    const entry = byConcept.get(attempt.concept) ?? { correct: 0, total: 0 };
-    entry.total += 1;
-    if (attempt.is_correct) entry.correct += 1;
-    byConcept.set(attempt.concept, entry);
-  }
-  const result: Record<string, number> = {};
-  for (const [concept, { correct, total }] of byConcept) {
-    result[concept] = Math.round((correct / total) * 100);
-  }
-  return result;
 }
 
 /** The most recently *completed* session's score, or "—" if none yet

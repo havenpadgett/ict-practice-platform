@@ -2,32 +2,34 @@
 
 import { useEffect, useRef, useState } from "react";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
+import { LoadingState } from "@/components/loading-state";
 import { CandlestickChart } from "@/components/practice/candlestick-chart";
 import { ConceptPicker } from "@/components/practice/concept-picker";
 import { ExerciseControls } from "@/components/practice/exercise-controls";
 import { FeedbackPanel } from "@/components/practice/feedback-panel";
 import { SessionSummary } from "@/components/practice/session-summary";
 import { getExercise, getExerciseIdsByConcept } from "@/data/exercises";
+import { useRequireAuth } from "@/hooks/use-require-auth";
+import { insertAttempt, nextAttemptNumber } from "@/lib/attempts";
 import { getConceptMeta, type Concept } from "@/lib/concepts";
 import { gradeAttempt, type GradeResult, type UserAnswer, type UserRegion } from "@/lib/grading";
 import {
-  appendAttempt,
   clearSession,
-  createAttemptId,
   createSession,
-  loadAttempts,
   loadSession,
-  nextAttemptNumber,
   saveSession,
   type SessionState,
 } from "@/lib/storage";
 
 export default function PracticePage() {
+  const { user, loading: authLoading } = useRequireAuth();
   const [session, setSession] = useState<SessionState | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [userRegion, setUserRegion] = useState<UserRegion | null>(null);
   const [userLevel, setUserLevel] = useState<number | null>(null);
   const [result, setResult] = useState<GradeResult | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const exerciseStartRef = useRef<number>(0);
 
   // Resume an in-progress (or just-completed) session from a prior visit;
@@ -64,6 +66,15 @@ export default function PracticePage() {
     clearSession();
     setSession(null);
     setShowPicker(true);
+  }
+
+  if (authLoading || !user) {
+    return (
+      <div className="flex flex-1 flex-col">
+        <LoadingState />
+        <DisclaimerFooter />
+      </div>
+    );
   }
 
   if (showPicker) {
@@ -114,33 +125,19 @@ export default function PracticePage() {
   const isLastExercise = session.current_index === session.exercise_order.length - 1;
   const canSubmit = exercise.answer_type === "zone" ? userRegion !== null : userLevel !== null;
 
-  function recordAttempt(answer: UserAnswer, grade: GradeResult) {
-    if (!session) return;
-    const responseTimeMs = Date.now() - exerciseStartRef.current;
-    const isRegion = answer.type === "region";
-    const isLevel = answer.type === "level";
+  // Grading happens synchronously and the verdict shows immediately — only
+  // *saving* the attempt is async, so a slow or failed network write never
+  // blocks the user from seeing their result or moving on. Session progress
+  // (local, not the database write) still advances either way; saveError
+  // surfaces a failed save without losing the user's place.
+  async function recordAttempt(answer: UserAnswer, grade: GradeResult) {
+    if (!session || !user) return;
 
-    appendAttempt({
-      attempt_id: createAttemptId(),
-      session_id: session.session_id,
-      exercise_id: exercise!.exercise_id,
-      concept: exercise!.concept,
-      user_answer_type: answer.type,
-      user_price_low: isRegion ? answer.region.priceLow : null,
-      user_price_high: isRegion ? answer.region.priceHigh : null,
-      user_candle_start: isRegion ? answer.region.candleIndexLow : null,
-      user_candle_end: isRegion ? answer.region.candleIndexHigh : null,
-      user_price: isLevel ? answer.price : null,
-      distance_from_level: grade.distanceFromLevel,
-      is_correct: grade.isCorrect,
-      coverage: grade.coverage,
-      precision_ratio: grade.precisionRatio,
-      failure_reason: grade.failureReason,
-      response_time_ms: responseTimeMs,
-      attempt_number: nextAttemptNumber(loadAttempts(), exercise!.exercise_id),
-      timestamp: new Date().toISOString(),
-    });
-
+    // Session progress is local bookkeeping, independent of whether the
+    // Supabase write below succeeds — update it synchronously, before the
+    // async save starts, so there's no window where clicking "Next
+    // Exercise" mid-save could race with this and overwrite newer state
+    // with a stale snapshot.
     const updatedSession: SessionState = {
       ...session,
       correct_count: session.correct_count + (grade.isCorrect ? 1 : 0),
@@ -150,9 +147,43 @@ export default function PracticePage() {
     };
     saveSession(updatedSession);
     setSession(updatedSession);
+
+    setSaving(true);
+    setSaveError(null);
+    const responseTimeMs = Date.now() - exerciseStartRef.current;
+    const isRegion = answer.type === "region";
+    const isLevel = answer.type === "level";
+
+    try {
+      const attemptNumber = await nextAttemptNumber(user.id, exercise!.exercise_id);
+      await insertAttempt(user.id, {
+        exercise_id: exercise!.exercise_id,
+        concept: exercise!.concept,
+        answer_type: exercise!.answer_type,
+        user_answer_type: answer.type,
+        user_price_low: isRegion ? answer.region.priceLow : null,
+        user_price_high: isRegion ? answer.region.priceHigh : null,
+        user_candle_start: isRegion ? answer.region.candleIndexLow : null,
+        user_candle_end: isRegion ? answer.region.candleIndexHigh : null,
+        user_price: isLevel ? answer.price : null,
+        distance_from_level: grade.distanceFromLevel,
+        is_correct: grade.isCorrect,
+        coverage: grade.coverage,
+        precision_ratio: grade.precisionRatio,
+        failure_reason: grade.failureReason,
+        response_time_ms: responseTimeMs,
+        attempt_number: attemptNumber,
+      });
+    } catch (err) {
+      setSaveError(
+        err instanceof Error ? err.message : "Couldn't save this attempt — your progress in this session is unaffected.",
+      );
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (exercise!.answer_type === "zone" && !userRegion) return;
     if (exercise!.answer_type === "level" && userLevel === null) return;
     const answer: UserAnswer =
@@ -161,16 +192,16 @@ export default function PracticePage() {
         : { type: "level", price: userLevel! };
     const grade = gradeAttempt(exercise!, answer);
     setResult(grade);
-    recordAttempt(answer, grade);
+    await recordAttempt(answer, grade);
   }
 
-  function handleNoAnswer() {
+  async function handleNoAnswer() {
     setUserRegion(null);
     setUserLevel(null);
     const answer: UserAnswer = { type: "none" };
     const grade = gradeAttempt(exercise!, answer);
     setResult(grade);
-    recordAttempt(answer, grade);
+    await recordAttempt(answer, grade);
   }
 
   function handleNext() {
@@ -183,6 +214,7 @@ export default function PracticePage() {
     setUserRegion(null);
     setUserLevel(null);
     setResult(null);
+    setSaveError(null);
   }
 
   return (
@@ -220,6 +252,13 @@ export default function PracticePage() {
             />
           )}
         </div>
+
+        {saving && <p className="mt-3 text-xs text-muted">Saving…</p>}
+        {saveError && (
+          <p className="mt-3 text-xs" style={{ color: "#e2685f" }}>
+            {saveError}
+          </p>
+        )}
 
         <div className="mt-5">
           {result ? (
