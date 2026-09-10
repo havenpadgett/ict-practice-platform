@@ -179,7 +179,7 @@ export function CandlestickChart(props: ZoneProps | LevelProps) {
     <svg
       ref={svgRef}
       viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
-      className={`w-full touch-none select-none ${cursorClass}`}
+      className={`w-full touch-none select-none [-webkit-touch-callout:none] ${cursorClass}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
