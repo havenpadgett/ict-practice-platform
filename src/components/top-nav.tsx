@@ -24,6 +24,9 @@ export function TopNav() {
               <Link href="/practice" className="transition-colors hover:text-foreground">
                 Practice
               </Link>
+              <Link href="/analytics" className="transition-colors hover:text-foreground">
+                Analytics
+              </Link>
               <span className="hidden max-w-[10rem] truncate text-foreground/70 sm:inline">
                 {user.email}
               </span>

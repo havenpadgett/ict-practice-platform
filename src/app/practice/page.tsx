@@ -11,7 +11,7 @@ import { SessionSummary } from "@/components/practice/session-summary";
 import { getExercise, getExerciseIdsByConcept } from "@/data/exercises";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { insertAttempt, nextAttemptNumber } from "@/lib/attempts";
-import { getConceptMeta, type Concept } from "@/lib/concepts";
+import { CONCEPT_LIST, getConceptMeta, type Concept } from "@/lib/concepts";
 import { gradeAttempt, type GradeResult, type UserAnswer, type UserRegion } from "@/lib/grading";
 import {
   clearSession,
@@ -33,18 +33,25 @@ export default function PracticePage() {
   const exerciseStartRef = useRef<number>(0);
 
   // Resume an in-progress (or just-completed) session from a prior visit;
-  // show the concept picker if there's none yet. Either way this is a
-  // one-time sync from a browser-only store (localStorage isn't available
-  // during SSR) and can't be done in render, so the setState-in-effect here
-  // is intentional.
+  // otherwise honor a ?concept= deep link (e.g. from the analytics page's
+  // "recommended next practice" link) by starting that concept directly;
+  // otherwise show the concept picker. Reading localStorage/location is a
+  // one-time sync from browser-only state (neither is available during
+  // SSR) and can't be done in render, so the setState-in-effect here is
+  // intentional.
   useEffect(() => {
     const existing = loadSession();
     if (existing) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSession(existing);
-    } else {
-      setShowPicker(true);
+      return;
     }
+    const requestedConcept = new URLSearchParams(window.location.search).get("concept");
+    if (requestedConcept && CONCEPT_LIST.includes(requestedConcept as Concept)) {
+      handlePickConcept(requestedConcept as Concept);
+      return;
+    }
+    setShowPicker(true);
   }, []);
 
   // Reset the response-time clock whenever a new exercise becomes active.
