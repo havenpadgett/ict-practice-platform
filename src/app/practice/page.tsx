@@ -26,6 +26,7 @@ export default function PracticePage() {
   const [session, setSession] = useState<SessionState | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [userRegion, setUserRegion] = useState<UserRegion | null>(null);
+  const [userLevel, setUserLevel] = useState<number | null>(null);
   const [result, setResult] = useState<GradeResult | null>(null);
   const exerciseStartRef = useRef<number>(0);
 
@@ -55,6 +56,7 @@ export default function PracticePage() {
     setSession(fresh);
     setShowPicker(false);
     setUserRegion(null);
+    setUserLevel(null);
     setResult(null);
   }
 
@@ -110,11 +112,13 @@ export default function PracticePage() {
 
   const attemptedCount = session.correct_count + session.missed_exercise_ids.length;
   const isLastExercise = session.current_index === session.exercise_order.length - 1;
+  const canSubmit = exercise.answer_type === "zone" ? userRegion !== null : userLevel !== null;
 
   function recordAttempt(answer: UserAnswer, grade: GradeResult) {
     if (!session) return;
     const responseTimeMs = Date.now() - exerciseStartRef.current;
     const isRegion = answer.type === "region";
+    const isLevel = answer.type === "level";
 
     appendAttempt({
       attempt_id: createAttemptId(),
@@ -126,6 +130,8 @@ export default function PracticePage() {
       user_price_high: isRegion ? answer.region.priceHigh : null,
       user_candle_start: isRegion ? answer.region.candleIndexLow : null,
       user_candle_end: isRegion ? answer.region.candleIndexHigh : null,
+      user_price: isLevel ? answer.price : null,
+      distance_from_level: grade.distanceFromLevel,
       is_correct: grade.isCorrect,
       coverage: grade.coverage,
       precision_ratio: grade.precisionRatio,
@@ -147,15 +153,20 @@ export default function PracticePage() {
   }
 
   function handleSubmit() {
-    if (!userRegion) return;
-    const answer: UserAnswer = { type: "region", region: userRegion };
+    if (exercise!.answer_type === "zone" && !userRegion) return;
+    if (exercise!.answer_type === "level" && userLevel === null) return;
+    const answer: UserAnswer =
+      exercise!.answer_type === "zone"
+        ? { type: "region", region: userRegion! }
+        : { type: "level", price: userLevel! };
     const grade = gradeAttempt(exercise!, answer);
     setResult(grade);
     recordAttempt(answer, grade);
   }
 
-  function handleNoZone() {
+  function handleNoAnswer() {
     setUserRegion(null);
+    setUserLevel(null);
     const answer: UserAnswer = { type: "none" };
     const grade = gradeAttempt(exercise!, answer);
     setResult(grade);
@@ -170,6 +181,7 @@ export default function PracticePage() {
     saveSession(updatedSession);
     setSession(updatedSession);
     setUserRegion(null);
+    setUserLevel(null);
     setResult(null);
   }
 
@@ -188,13 +200,25 @@ export default function PracticePage() {
         <p className="mt-2 text-sm text-muted">{exercise.prompt}</p>
 
         <div className="mt-6 overflow-hidden rounded-lg border border-line bg-surface p-2 sm:p-3">
-          <CandlestickChart
-            candles={exercise.candles}
-            interactive={result === null}
-            userRegion={userRegion}
-            onUserRegionChange={setUserRegion}
-            correctZone={result?.revealZone ? exercise.answer : null}
-          />
+          {exercise.answer_type === "zone" ? (
+            <CandlestickChart
+              answerType="zone"
+              candles={exercise.candles}
+              interactive={result === null}
+              userRegion={userRegion}
+              onUserRegionChange={setUserRegion}
+              correctZone={result?.revealZone ? exercise.answer : null}
+            />
+          ) : (
+            <CandlestickChart
+              answerType="level"
+              candles={exercise.candles}
+              interactive={result === null}
+              userLevel={userLevel}
+              onUserLevelChange={setUserLevel}
+              correctLevel={result?.revealZone ? exercise.answer?.price ?? null : null}
+            />
+          )}
         </div>
 
         <div className="mt-5">
@@ -206,10 +230,10 @@ export default function PracticePage() {
             />
           ) : (
             <ExerciseControls
-              canSubmit={userRegion !== null}
+              canSubmit={canSubmit}
               onSubmit={handleSubmit}
-              onNoZone={handleNoZone}
-              noZoneLabel={conceptMeta.noZoneLabel}
+              onNoAnswer={handleNoAnswer}
+              noAnswerLabel={conceptMeta.noAnswerLabel}
             />
           )}
         </div>

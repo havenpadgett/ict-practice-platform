@@ -16,12 +16,15 @@ import {
 const VIEWBOX_WIDTH = 800;
 const VIEWBOX_HEIGHT = 420;
 const PRICE_TICK_COUNT = 5;
-/** Minimum drag distance (in viewBox units) before a drag counts as a box
- * instead of a stray click — keeps a zero-area click from enabling Submit. */
+/** Minimum drag distance (in viewBox units) before a box-drag counts as a
+ * box instead of a stray click — keeps a zero-area click from enabling
+ * Submit. A single click IS a complete answer for level mode, so no
+ * threshold applies there. */
 const DRAG_THRESHOLD = 5;
 
 const UP_COLOR = "#4caf82";
 const DOWN_COLOR = "#e2685f";
+const USER_MARK_COLOR = "#e9eaec";
 
 type PixelPoint = { x: number; y: number };
 
@@ -32,21 +35,30 @@ export type CorrectZone = {
   candle_end: number;
 };
 
-export function CandlestickChart({
-  candles,
-  interactive,
-  userRegion,
-  onUserRegionChange,
-  correctZone,
-}: {
+type CommonProps = {
   candles: Candle[];
   interactive: boolean;
+};
+
+type ZoneProps = CommonProps & {
+  answerType: "zone";
   userRegion: UserRegion | null;
   onUserRegionChange: (region: UserRegion | null) => void;
   correctZone?: CorrectZone | null;
-}) {
+};
+
+type LevelProps = CommonProps & {
+  answerType: "level";
+  userLevel: number | null;
+  onUserLevelChange: (price: number | null) => void;
+  correctLevel?: number | null;
+};
+
+export function CandlestickChart(props: ZoneProps | LevelProps) {
+  const { candles, interactive } = props;
   const svgRef = useRef<SVGSVGElement>(null);
   const [dragStart, setDragStart] = useState<PixelPoint | null>(null);
+  const [isPlacingLevel, setIsPlacingLevel] = useState(false);
 
   const layout = buildChartLayout(candles, VIEWBOX_WIDTH, VIEWBOX_HEIGHT);
   const bounds = plotBounds(layout);
@@ -84,24 +96,39 @@ export function CandlestickChart({
       // Continue without capture.
     }
     const point = toSvgPoint(e.clientX, e.clientY);
+    if (props.answerType === "level") {
+      // A single click already places a complete answer — no drag
+      // threshold needed, unlike a box which needs width and height.
+      setIsPlacingLevel(true);
+      props.onUserLevelChange(yToPrice(layout, point.y));
+      return;
+    }
     setDragStart(point);
-    onUserRegionChange(null); // clear the old box until the new drag clears the threshold
+    props.onUserRegionChange(null); // clear the old box until the new drag clears the threshold
   }
 
   function handlePointerMove(e: React.PointerEvent<SVGSVGElement>) {
-    if (!interactive || !dragStart) return;
+    if (!interactive) return;
     const point = toSvgPoint(e.clientX, e.clientY);
+
+    if (props.answerType === "level") {
+      if (!isPlacingLevel) return;
+      props.onUserLevelChange(yToPrice(layout, point.y));
+      return;
+    }
+
+    if (!dragStart) return;
     const box = pixelBoxFrom(dragStart, point);
     const width = box.right - box.left;
     const height = box.bottom - box.top;
     if (width < DRAG_THRESHOLD || height < DRAG_THRESHOLD) {
-      onUserRegionChange(null);
+      props.onUserRegionChange(null);
       return;
     }
     // Convert the pixel box straight into domain units on every move, so the
     // rendered box and the graded region are always the same value — there's
     // no separate "finalize" step at pointer-up.
-    onUserRegionChange({
+    props.onUserRegionChange({
       priceLow: yToPrice(layout, box.bottom),
       priceHigh: yToPrice(layout, box.top),
       candleIndexLow: xToCandleIndex(layout, box.left),
@@ -111,6 +138,7 @@ export function CandlestickChart({
 
   function handlePointerUp() {
     setDragStart(null);
+    setIsPlacingLevel(false);
   }
 
   const priceTicks = Array.from({ length: PRICE_TICK_COUNT }, (_, i) => {
@@ -118,21 +146,40 @@ export function CandlestickChart({
     return layout.priceMin + t * (layout.priceMax - layout.priceMin);
   });
 
-  const liveBoxRect = userRegion ? regionToPixelRect(layout, userRegion) : null;
-  const correctZoneRect = correctZone
-    ? regionToPixelRect(layout, {
-        priceLow: correctZone.price_low,
-        priceHigh: correctZone.price_high,
-        candleIndexLow: correctZone.candle_start,
-        candleIndexHigh: correctZone.candle_end,
-      })
-    : null;
+  const liveBoxRect =
+    props.answerType === "zone" && props.userRegion
+      ? regionToPixelRect(layout, props.userRegion)
+      : null;
+  const correctZoneRect =
+    props.answerType === "zone" && props.correctZone
+      ? regionToPixelRect(layout, {
+          priceLow: props.correctZone.price_low,
+          priceHigh: props.correctZone.price_high,
+          candleIndexLow: props.correctZone.candle_start,
+          candleIndexHigh: props.correctZone.candle_end,
+        })
+      : null;
+
+  const userLevelY =
+    props.answerType === "level" && props.userLevel !== null
+      ? priceToY(layout, props.userLevel)
+      : null;
+  const correctLevelY =
+    props.answerType === "level" && props.correctLevel !== null && props.correctLevel !== undefined
+      ? priceToY(layout, props.correctLevel)
+      : null;
+
+  const cursorClass = !interactive
+    ? ""
+    : props.answerType === "level"
+      ? "cursor-row-resize"
+      : "cursor-crosshair";
 
   return (
     <svg
       ref={svgRef}
       viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
-      className={`w-full touch-none select-none ${interactive ? "cursor-crosshair" : ""}`}
+      className={`w-full touch-none select-none ${cursorClass}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -215,7 +262,32 @@ export function CandlestickChart({
           width={liveBoxRect.right - liveBoxRect.left}
           height={liveBoxRect.bottom - liveBoxRect.top}
           fill="rgba(233, 234, 236, 0.12)"
-          stroke="#e9eaec"
+          stroke={USER_MARK_COLOR}
+          strokeWidth={1.5}
+        />
+      )}
+
+      {/* The true level, shown only after grading */}
+      {correctLevelY !== null && (
+        <line
+          x1={bounds.left}
+          x2={bounds.right}
+          y1={correctLevelY}
+          y2={correctLevelY}
+          className="stroke-accent"
+          strokeWidth={1.5}
+          strokeDasharray="4 3"
+        />
+      )}
+
+      {/* The user's placed line — live while dragging, frozen after submit */}
+      {userLevelY !== null && (
+        <line
+          x1={bounds.left}
+          x2={bounds.right}
+          y1={userLevelY}
+          y2={userLevelY}
+          stroke={USER_MARK_COLOR}
           strokeWidth={1.5}
         />
       )}

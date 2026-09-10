@@ -14,10 +14,13 @@ type ConceptMeta = {
   pickerLabel: string;
   /** One-line description shown on the concept picker. */
   pickerDescription: string;
-  /** Noun phrase for this concept's zone, used in feedback copy — e.g. "a Fair Value Gap". */
+  /** Noun phrase for this concept's zone, used in feedback copy for
+   * zone-type concepts — e.g. "a Fair Value Gap". Unused for level-type
+   * concepts (their precision test doesn't apply). */
   zoneNoun: string;
-  /** Label for the "no zone here" button, always visible regardless of whether one exists. */
-  noZoneLabel: string;
+  /** Label for the "no answer here" button, always visible regardless of
+   * whether a real zone/level exists. */
+  noAnswerLabel: string;
 };
 
 export const CONCEPTS: Record<Concept, ConceptMeta> = {
@@ -26,14 +29,14 @@ export const CONCEPTS: Record<Concept, ConceptMeta> = {
     pickerLabel: "Fair Value Gap",
     pickerDescription: "Spot unfilled imbalances left by a strong expansion candle.",
     zoneNoun: "a Fair Value Gap",
-    noZoneLabel: "No FVG present",
+    noAnswerLabel: "No FVG present",
   },
   Liquidity: {
     title: "Liquidity Practice",
     pickerLabel: "Liquidity",
     pickerDescription: "Spot resting liquidity above equal highs or below equal lows.",
     zoneNoun: "a liquidity zone",
-    noZoneLabel: "No Liquidity Zone present",
+    noAnswerLabel: "No Liquidity Level present",
   },
 };
 

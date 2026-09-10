@@ -18,13 +18,19 @@ export type StoredAttempt = {
   session_id: string;
   exercise_id: string;
   concept: string;
-  user_answer_type: "region" | "none";
-  /** Raw answer; null when user_answer_type is "none" (no box was drawn). */
+  user_answer_type: "region" | "level" | "none";
+  /** Zone (region) answers only; null otherwise. */
   user_price_low: number | null;
   user_price_high: number | null;
   user_candle_start: number | null;
   user_candle_end: number | null;
+  /** Level answers only; null otherwise. */
+  user_price: number | null;
+  /** Level answers only; null otherwise. Signed: positive = placed above
+   * the true level, negative = below. */
+  distance_from_level: number | null;
   is_correct: boolean;
+  /** Zone answers only; null otherwise. */
   coverage: number | null;
   precision_ratio: number | null;
   failure_reason: string | null;

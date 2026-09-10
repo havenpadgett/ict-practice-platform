@@ -121,16 +121,20 @@ Five hand-built, realistic-looking candle sets. **Not real market data, and labe
 
 ---
 
-## 6. FVG Grading Method
+## 6. Grading Methods
 
-This is the heart of V1 and the part worth understanding deeply.
+Every exercise carries an `answer_type` of `"zone"` or `"level"`. FVG is always `"zone"`; Liquidity is always `"level"`. They're graded by two different rules, described below — but both are built on the same principle: "correct" has to be a *rule*, not an eyeball match, and the rule has to be defensible — strict enough that guessing fails, loose enough that a genuinely correct answer isn't punished for being a few pixels off.
 
-### The problem
-The correct answer is a rectangle. The user draws a rectangle. They will never match exactly. So "correct" has to be a *rule*, and the rule has to be defensible — strict enough that guessing fails, loose enough that a genuinely correct answer isn't punished for being three pixels off.
+### 6.1 Zone Grading (FVG)
 
-### The rule (two tests, both must pass)
+This is the heart of V1's original design and the part worth understanding deeply.
 
-Grading uses **price range only** for accuracy, plus one time check.
+#### The problem
+The correct answer is a rectangle. The user draws a rectangle. They will never match exactly.
+
+#### The rule (three tests, all must pass)
+
+Grading uses **price range** for accuracy, plus one time check.
 
 **Test 1 — Coverage.** At least **60%** of the true gap's price range must fall inside the user's box.
 > *Did they actually find it?*
@@ -149,36 +153,64 @@ precision_ratio = (user_high − user_low) / (true_high − true_low)
 PASS if precision_ratio ≤ 2.5
 ```
 
-**Test 3 — Time window.** The user's box must horizontally include the middle candle of the three-candle formation.
+**Test 3 — Time window.** The user's box must horizontally include the exercise's `key_candle_index` — the middle candle of the three-candle formation.
 > *Are they pointing at the right moment in the chart?*
 
 **Correct = all three pass.** Anything else is incorrect, with feedback that names *which* test failed:
-- Failed coverage → "You marked the wrong area."
-- Passed coverage, failed precision → "You found it, but your selection was too broad — an FVG is a specific price range."
+- Failed coverage, box **not** fully inside the true zone → "You marked the wrong area."
+- Failed coverage, box **fully inside** the true zone (correctly placed, just undersized) → "Right area, but your selection was too small to cover enough of the zone." (added 2026-09-10 — see Bug Log; the box-not-fully-inside check is what tells these two apart.)
+- Passed coverage, failed precision → "You found it, but your selection was too broad — a Fair Value Gap is a specific price range."
 - Failed time → "Right price level, wrong candles."
 
-### Grading matrix (with "no FVG present" answers)
+#### Grading matrix (with "no FVG present" answers)
 
-The three tests above only run in the top-left cell. The other three are separate paths:
+The tests above only run in the top-left cell. The other three are separate paths:
 
 | | User drew a box | User answered "No FVG present" |
 |---|---|---|
-| **Chart has an FVG** | Run tests 1–3 | **Incorrect** — reveal the zone, show explanation |
+| **Chart has an FVG** | Run the tests above | **Incorrect** — reveal the zone, show explanation |
 | **Chart has no FVG** | **Incorrect** — show the distractor_note explaining why the tempting area doesn't qualify | **Correct** — show the distractor_note as confirmation |
 
 The bottom-left cell is the most educationally valuable moment in V1: the user was tempted by something that looked like a gap, and the app tells them precisely why it isn't one. That's why `distractor_note` is a required field, not optional flavor text.
 
-### Critical UX constraint
-**The "No FVG present" button appears on every exercise, always.** If it only showed up on exercise 4, its presence would give away the answer and the exercise would measure nothing. This sounds obvious and is the kind of thing that quietly breaks a study design.
+#### Critical UX constraint
+**The "No FVG present" button appears on every exercise, always.** If it only showed up on the no-FVG exercise, its presence would give away the answer and the exercise would measure nothing.
 
-### Why this design
-Without Test 2, a user could draw a box around the entire chart and score 100%. Without Test 1, a tiny box in the right neighborhood would fail unfairly. Together they measure *did you find it* and *do you know how big it is* — which are the two things the skill actually consists of.
+#### Why this design
+Without the precision test, a user could draw a box around the entire chart and score 100%. Without the coverage test, a tiny box in the right neighborhood would fail unfairly. Together they measure *did you find it* and *do you know how big it is*.
 
 **Interview answer for this (1–3 sentences):**
 > "Grading a drawn region isn't a simple equality check, so I defined it as two measurable tests: coverage — how much of the correct zone the user captured — and precision — how much larger their selection was than the real one. That prevented users from passing by selecting everything, and it let the app tell them *how* they were wrong instead of just *that* they were wrong."
 
-### Tolerance values are provisional
-60% and 2.5× are starting numbers, not truth. After the five exercises exist, we test them ourselves and tune. That tuning process — and writing down why we changed the numbers — is legitimate product analytics work and goes in the decision log.
+#### Tolerance values are provisional
+60% and 2.5× are starting numbers, not truth (see the 2026-09-09 Decision Log entry confirming them for V1 after testing).
+
+### 6.2 Level Grading (Liquidity)
+
+A liquidity level is a price, not a zone — there's no box to measure coverage or precision against, and no time-window test (a resting level isn't tied to a fixed number of candles the way an FVG's three-candle formation is). This grading path was introduced 2026-09-10 when Liquidity moved from a drawn zone to a placed line (see Decision Log).
+
+#### The rule (one test)
+
+```
+distance_from_level = user_price − true_price      // signed: positive = placed above, negative = below
+PASS if |distance_from_level| ≤ tolerance
+```
+
+`true_price` is the average of the two equal highs/lows the level rests on. `tolerance` is set explicitly per exercise (currently **6 points** for every scored Liquidity exercise) rather than computed — the same reasoning as `key_candle_index`: a value that's cheap to author by hand and easy to tune later shouldn't be re-derived by a formula every time it's used. 6 points comfortably covers realistic click/drag imprecision while staying far below the 15+ point gap to the nearest *other* swing point in every exercise's data, so it can never accidentally validate the wrong level — and it's loose enough that placing the line at either raw touch (not just the averaged level) still grades correct, matching how a person would actually read "equal highs."
+
+#### Feedback
+Correct or incorrect, plus:
+- The true level drawn on the chart as a second horizontal line, alongside the user's own line.
+- The written explanation.
+- When wrong: how far off and in which direction — "You were {distance} points too {high|low}."
+
+#### Grading matrix (with "no liquidity level present" answers)
+Same shape as the zone matrix — has_answer × user_answer_type — just with the single distance test instead of three:
+
+| | User placed a line | User answered "No Liquidity Level present" |
+|---|---|---|
+| **Chart has a level** | PASS if within tolerance | **Incorrect** — reveal the level, show explanation |
+| **Chart has no level** | **Incorrect** — show the distractor_note | **Correct** — show the distractor_note as confirmation |
 
 ---
 
@@ -324,6 +356,7 @@ Every one of these is in the vision document and most will get built. None belon
 | 2026-09-09 | Users mark the FVG by dragging a box | Mirrors real chart analysis; captures price range and time range as data instead of a single click | Click the middle candle (simpler, but teaches only location, not zone size); multiple choice (easiest to build, but recognition-from-options is a weaker skill than recall) |
 | 2026-09-09 | One of five V1 exercises has no valid FVG | Teaches that "there isn't one" is a legitimate answer, consistent with the platform's patience-over-action philosophy; front-loads a design problem we'd otherwise hit in V2 | Defer to V2 — PM recommendation, overruled by Product Owner. Accepted cost: second grading path, distractor note content per exercise |
 | 2026-09-09 | Kept grading tolerances at 60% coverage and 2.5x precision | Tested across all five exercises after Phase 3; verdicts felt fair, correct answers passed, oversized boxes failed. No adjustment needed. | Loosen or tighten after testing; rejected, no evidence supported a change |
+| 2026-09-10 | Liquidity moved from a drawn zone to a placed horizontal line (new `answer_type: "level"`) | A liquidity level is a price, not a zone — grading a drawn box against an arbitrary band height produced unfair results (see Bug Log: a correctly-placed but thinner box failed coverage with an inaccurate "wrong area" message). A single price with a tolerance is the honest shape of the answer. | Keep the box and just widen the zone band — rejected, treats a real design mismatch as a tuning problem instead of fixing the underlying model |
 
 ---
 
@@ -344,6 +377,7 @@ Every one of these is in the vision document and most will get built. None belon
 | Date | Bug | Cause | Fix | Test performed |
 |------|-----|-------|-----|-----------------|
 | 2026-09-10 | Runtime `TypeError: Cannot read properties of undefined (reading 'title')` crashed `/practice` | `loadSession()` (`src/lib/storage.ts`) cast whatever was in localStorage to `SessionState` with `as SessionState` and no runtime validation. A session saved before the Phase 4 concept refactor had no `concept` field at all. `practice/page.tsx` then indexed `CONCEPTS[session.concept as Concept]` — indexing with `undefined` silently returned `undefined` instead of throwing there, and the crash surfaced one line later at `conceptMeta.title`. | Two layers: (1) `SessionState` gained a `version` field; `loadSession()` now runs `isValidSessionState()` and discards (removes from localStorage, returns null) anything with a missing/wrong version, an unrecognized `concept`, or any other shape mismatch — an invalid session falls back to the concept picker instead of being trusted. (2) `concepts.ts` gained `getConceptMeta()`, a safe lookup that falls back to FVG's copy instead of returning `undefined` for an unrecognized concept string, so even a bad value reaching render can't crash it. | Wrote a pre-Phase-4-shaped session object (no `concept`, no `version`) directly into localStorage and loaded `/practice`: confirmed the app discarded it and showed the concept picker, with no error reaching the UI. Ran a full 5-exercise session to completion for both FVG and Liquidity afterward — scores, session summary, and `version: 1` in the newly saved session all correct. |
+| 2026-09-10 | A zone box that failed the coverage test always said "You marked the wrong area," even when the box was correctly centered and just too small | `gradeZoneAttempt` (`src/lib/grading.ts`) only checked `coverage >= 0.60`; it never distinguished a box that missed the true zone's location from a box that was entirely *inside* the true zone but undersized — both produced the same `failureReason: "coverage"` and the same message, and the message assumed the former. | Added a containment check: when coverage fails, test whether the user's box is fully inside `[price_low, price_high]` (never sticking out past either edge). If so, it's a new `failureReason: "too_small"` with the message "Right area, but your selection was too small to cover enough of the zone." Only a box that isn't fully contained keeps `"coverage"` / "You marked the wrong area." | Drew a box fully inside fvg-001's true zone (21107.25–21139.25, drawn ~21118–21128, well under the 60% coverage threshold) and submitted: confirmed `failure_reason: "too_small"` and the new message, with `precision_ratio` well under 2.5 (as expected for an undersized box). |
 
 ---
 

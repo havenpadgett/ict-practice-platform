@@ -1,13 +1,13 @@
 export function ExerciseControls({
   canSubmit,
   onSubmit,
-  onNoZone,
-  noZoneLabel,
+  onNoAnswer,
+  noAnswerLabel,
 }: {
   canSubmit: boolean;
   onSubmit: () => void;
-  onNoZone: () => void;
-  noZoneLabel: string;
+  onNoAnswer: () => void;
+  noAnswerLabel: string;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -19,14 +19,14 @@ export function ExerciseControls({
       >
         Submit
       </button>
-      {/* Visible on every exercise, has_zone or not — its presence must
+      {/* Visible on every exercise, has_answer or not — its presence must
           never hint at the answer. */}
       <button
         type="button"
-        onClick={onNoZone}
+        onClick={onNoAnswer}
         className="inline-flex items-center justify-center rounded-md border border-line px-6 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-surface"
       >
-        {noZoneLabel}
+        {noAnswerLabel}
       </button>
     </div>
   );

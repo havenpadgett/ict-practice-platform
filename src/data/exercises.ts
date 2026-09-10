@@ -14,8 +14,7 @@ export type Candle = {
 };
 
 export type ZoneAnswer = {
-  /** Direction label — meaning depends on concept: "bullish" | "bearish"
-   * for FVG, "buy_side" | "sell_side" for Liquidity. Descriptive only;
+  /** Direction label — "bullish" | "bearish" for FVG. Descriptive only;
    * grading never branches on it. */
   type: string;
   /** Bottom of the zone's price range. */
@@ -27,14 +26,24 @@ export type ZoneAnswer = {
   /** Index of the last candle that defines the zone. */
   candle_end: number;
   /** The candle the user's box must horizontally include to pass the time
-   * test. For FVG this is always candle_start + 1 (the middle candle of
-   * the three-candle formation); for Liquidity it's the candle that
-   * confirms the second touch of the level. Stored explicitly rather than
-   * assumed, since not every concept's zone has the same shape. */
+   * test — always candle_start + 1 (the middle candle of FVG's
+   * three-candle formation). Stored explicitly rather than assumed. */
   key_candle_index: number;
 };
 
-export type Exercise = {
+export type LevelAnswer = {
+  /** Direction label — "buy_side" | "sell_side" for Liquidity. Descriptive
+   * only; grading never branches on it. */
+  type: string;
+  /** The true price level (the average of the equal highs/lows it rests on). */
+  price: number;
+  /** How far the user's placed line may be from `price` and still count as
+   * correct. Set explicitly per exercise rather than computed — same
+   * reasoning as ZoneAnswer's key_candle_index. */
+  tolerance: number;
+};
+
+type ExerciseBase = {
   exercise_id: string;
   concept: Concept;
   /** Prototype data, labeled as such — not real market data. */
@@ -44,13 +53,26 @@ export type Exercise = {
   candles: Candle[];
   /** Prompt shown above the chart, e.g. "Mark the Fair Value Gap." */
   prompt: string;
-  has_zone: boolean;
-  /** null when has_zone is false. */
-  answer: ZoneAnswer | null;
   explanation: string;
-  /** Required when has_zone is false. */
+  /** Required when has_answer is false. */
   distractor_note?: string;
 };
+
+export type ZoneExercise = ExerciseBase & {
+  answer_type: "zone";
+  has_answer: boolean;
+  /** null when has_answer is false. */
+  answer: ZoneAnswer | null;
+};
+
+export type LevelExercise = ExerciseBase & {
+  answer_type: "level";
+  has_answer: boolean;
+  /** null when has_answer is false. */
+  answer: LevelAnswer | null;
+};
+
+export type Exercise = ZoneExercise | LevelExercise;
 
 // fvg-001: a single bullish FVG sits at candles[19..21]. Candle 19's high
 // (21107.25) is below candle 21's low (21139.25) — candle 20 is the large
@@ -62,11 +84,12 @@ export const exercises: Exercise[] = [
   {
     exercise_id: "fvg-001",
     concept: "FVG",
+    answer_type: "zone",
     prompt: "Mark the Fair Value Gap.",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 1,
-    has_zone: true,
+    has_answer: true,
     answer: {
       type: "bullish",
       price_low: 21107.25,
@@ -129,11 +152,12 @@ export const exercises: Exercise[] = [
   {
     exercise_id: "fvg-002",
     concept: "FVG",
+    answer_type: "zone",
     prompt: "Mark the Fair Value Gap.",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 1,
-    has_zone: true,
+    has_answer: true,
     answer: {
       type: "bullish",
       price_low: 21443,
@@ -195,11 +219,12 @@ export const exercises: Exercise[] = [
   {
     exercise_id: "fvg-003",
     concept: "FVG",
+    answer_type: "zone",
     prompt: "Mark the Fair Value Gap.",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 2,
-    has_zone: true,
+    has_answer: true,
     answer: {
       type: "bearish",
       price_low: 21546.25,
@@ -256,18 +281,19 @@ export const exercises: Exercise[] = [
       { time: "12:45", open: 21554.5, high: 21560.75, low: 21548.75, close: 21552.25 },
     ],
   },
-  // fvg-004: has_zone is false. Candles[17..19] look like a bullish FVG at a
+  // fvg-004: has_answer is false. Candles[17..19] look like a bullish FVG at a
   // glance but candle 1's high and candle 3's low overlap by 1 point, so no
   // imbalance actually exists — a deliberate near-miss. Verified: zero
   // qualifying gaps anywhere in the series.
   {
     exercise_id: "fvg-004",
     concept: "FVG",
+    answer_type: "zone",
     prompt: "Mark the Fair Value Gap.",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 2,
-    has_zone: false,
+    has_answer: false,
     answer: null,
     explanation:
       "Candles 18–20 (10:55–11:05) look like a bullish FVG at first glance, but candle 18's high (21,210.25) and candle 20's low (21,209.25) overlap by 1 point — the range isn't actually unfilled, so no imbalance exists there.",
@@ -326,11 +352,12 @@ export const exercises: Exercise[] = [
   {
     exercise_id: "fvg-005",
     concept: "FVG",
+    answer_type: "zone",
     prompt: "Mark the Fair Value Gap.",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 3,
-    has_zone: true,
+    has_answer: true,
     answer: {
       type: "bullish",
       price_low: 21425.25,
@@ -394,18 +421,17 @@ export const exercises: Exercise[] = [
   {
     exercise_id: "liq-001",
     concept: "Liquidity",
+    answer_type: "level",
     prompt: "Mark the Buy-Side Liquidity.",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 1,
-    has_zone: true,
+    has_answer: true,
     answer: {
       type: "buy_side",
-      price_low: 21146.75,
-      price_high: 21160.5,
-      candle_start: 8,
-      candle_end: 24,
-      key_candle_index: 24,
+      // Average of the two equal highs (21150.50 and 21149.75).
+      price: 21150.125,
+      tolerance: 6,
     },
     explanation:
       "Candles 9 and 25 both put in highs within a point of each other (21,150.50 and 21,149.75) — that resting pool of equal highs is where buy-side stop orders cluster, making it a Buy-Side Liquidity zone.",
@@ -460,18 +486,17 @@ export const exercises: Exercise[] = [
   {
     exercise_id: "liq-002",
     concept: "Liquidity",
+    answer_type: "level",
     prompt: "Mark the Sell-Side Liquidity.",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 1,
-    has_zone: true,
+    has_answer: true,
     answer: {
       type: "sell_side",
-      price_low: 21339.5,
-      price_high: 21353.25,
-      candle_start: 8,
-      candle_end: 24,
-      key_candle_index: 24,
+      // Average of the two equal lows (21349.50 and 21350.25).
+      price: 21349.875,
+      tolerance: 6,
     },
     explanation:
       "Candles 9 and 25 both put in lows within a point of each other (21,349.50 and 21,350.25) — that resting pool of equal lows is where sell-side stop orders cluster, making it a Sell-Side Liquidity zone.",
@@ -527,18 +552,17 @@ export const exercises: Exercise[] = [
   {
     exercise_id: "liq-003",
     concept: "Liquidity",
+    answer_type: "level",
     prompt: "Mark the Buy-Side Liquidity.",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 2,
-    has_zone: true,
+    has_answer: true,
     answer: {
       type: "buy_side",
-      price_low: 21310.25,
-      price_high: 21326.5,
-      candle_start: 6,
-      candle_end: 30,
-      key_candle_index: 30,
+      // Average of the two equal highs (21316.50 and 21313.25).
+      price: 21314.875,
+      tolerance: 6,
     },
     explanation:
       "Candles 7 and 31 put in highs about 3 points apart (21,316.50 and 21,313.25) — close enough to count as equal highs and a resting Buy-Side Liquidity pool, even with all the chop around them.",
@@ -587,18 +611,19 @@ export const exercises: Exercise[] = [
       { time: "12:45", open: 21239.25, high: 21243, low: 21226.5, close: 21230 },
     ],
   },
-  // liq-004: has_zone is false. Candles[9] and [25] look like they might be
+  // liq-004: has_answer is false. Candles[9] and [25] look like they might be
   // equal highs at a glance, but they're 16.25 points apart — too far to
   // represent resting liquidity at one level. Verified: no swing high
   // anywhere in the series is within 15 points of either.
   {
     exercise_id: "liq-004",
     concept: "Liquidity",
+    answer_type: "level",
     prompt: "Mark the Buy-Side Liquidity.",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 2,
-    has_zone: false,
+    has_answer: false,
     answer: null,
     explanation:
       "Candles 9 and 25 look like they might be equal highs, but they're 16.25 points apart (21,238.50 vs 21,222.25) — too far apart to represent orders resting at one level, so there's no real liquidity pool here.",
@@ -655,18 +680,17 @@ export const exercises: Exercise[] = [
   {
     exercise_id: "liq-005",
     concept: "Liquidity",
+    answer_type: "level",
     prompt: "Mark the Sell-Side Liquidity.",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 3,
-    has_zone: true,
+    has_answer: true,
     answer: {
       type: "sell_side",
-      price_low: 21481.5,
-      price_high: 21497.75,
-      candle_start: 6,
-      candle_end: 30,
-      key_candle_index: 30,
+      // Average of the two equal lows (21491.50 and 21494.75).
+      price: 21493.125,
+      tolerance: 6,
     },
     explanation:
       "Candles 7 and 31 put in lows about 3 points apart (21,491.50 and 21,494.75) — close enough to count as equal lows and a resting Sell-Side Liquidity pool, even with the noise around them.",
