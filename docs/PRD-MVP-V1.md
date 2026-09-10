@@ -307,7 +307,7 @@ Every one of these is in the vision document and most will get built. None belon
 |---|----------|----------------|
 | D-1 | How the user marks the FVG | ✅ **RESOLVED — drag a box.** Closest to real chart analysis, richest data, hardest to guess. |
 | D-2 | Should one exercise contain **no** valid FVG? | ✅ **RESOLVED — yes.** Product Owner overrode the recommendation to defer. Cost accepted: a second grading path and a required distractor note per Section 6. |
-| D-3 | Starting tolerance values | Open — 60% coverage, 2.5× precision, tune after building |
+| D-3 | Starting tolerance values | Confirmed for V1 — 60% coverage, 2.5× precision, tested against all five exercises (see Decision Log, 2026-09-09). **Open assumption:** this testing was done by someone who already knows what an FVG looks like. It should be re-checked against beginner attempt data once real users are practicing — a beginner's "close but wrong" boxes may cluster differently than the tester's did. |
 | D-4 | Working product name | Open — defer; not needed to build |
 
 ---
@@ -323,6 +323,7 @@ Every one of these is in the vision document and most will get built. None belon
 | 2026-09-09 | Coverage + precision grading | Prevents passing by over-selecting; produces diagnostic data | Simple overlap check — rejected, gameable |
 | 2026-09-09 | Users mark the FVG by dragging a box | Mirrors real chart analysis; captures price range and time range as data instead of a single click | Click the middle candle (simpler, but teaches only location, not zone size); multiple choice (easiest to build, but recognition-from-options is a weaker skill than recall) |
 | 2026-09-09 | One of five V1 exercises has no valid FVG | Teaches that "there isn't one" is a legitimate answer, consistent with the platform's patience-over-action philosophy; front-loads a design problem we'd otherwise hit in V2 | Defer to V2 — PM recommendation, overruled by Product Owner. Accepted cost: second grading path, distractor note content per exercise |
+| 2026-09-09 | Kept grading tolerances at 60% coverage and 2.5x precision | Tested across all five exercises after Phase 3; verdicts felt fair, correct answers passed, oversized boxes failed. No adjustment needed. | Loosen or tighten after testing; rejected, no evidence supported a change |
 
 ---
 
