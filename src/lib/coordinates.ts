@@ -101,7 +101,7 @@ export function xToCandleIndex(layout: ChartLayout, x: number): number {
 /** Converts a domain region (price range + candle-index range) back into a
  * pixel rectangle, so the same region type can be rendered as an overlay
  * regardless of whether it's the live drag box, the user's frozen answer,
- * or the true FVG zone. */
+ * or the true zone. */
 export function regionToPixelRect(
   layout: ChartLayout,
   region: {

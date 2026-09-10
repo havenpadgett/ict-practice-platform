@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { PrimaryButton } from "@/components/primary-button";
 import { StatCard } from "@/components/stat-card";
+import { CONCEPTS, type Concept } from "@/lib/concepts";
 import {
+  getAccuracyByConcept,
   getExercisesCompletedCount,
   getOverallAccuracy,
   getSessionScoreLabel,
@@ -16,6 +18,7 @@ export default function DashboardPage() {
     accuracy: string;
     completed: string;
     sessionScore: string;
+    byConcept: Record<string, number>;
   } | null>(null);
 
   // Reading localStorage is a one-time sync from a browser-only store (it
@@ -30,16 +33,23 @@ export default function DashboardPage() {
       accuracy: accuracy === null ? "—" : `${accuracy}%`,
       completed: String(getExercisesCompletedCount(attempts)),
       sessionScore: getSessionScoreLabel(session),
+      byConcept: getAccuracyByConcept(attempts),
     });
   }, []);
 
-  const display = stats ?? { accuracy: "—", completed: "—", sessionScore: "—" };
+  const display = stats ?? { accuracy: "—", completed: "—", sessionScore: "—", byConcept: {} };
 
   const STATS = [
     { label: "Overall Accuracy", value: display.accuracy },
     { label: "Exercises Completed", value: display.completed },
     { label: "Session Score", value: display.sessionScore },
   ];
+
+  const conceptStats = (Object.keys(CONCEPTS) as Concept[]).map((concept) => ({
+    concept,
+    label: CONCEPTS[concept].pickerLabel,
+    value: display.byConcept[concept],
+  }));
 
   return (
     <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-6 pb-10 sm:px-6 sm:pt-8 sm:pb-14">
@@ -56,8 +66,23 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      <div className="mt-8">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted">
+          Accuracy by Concept
+        </p>
+        <div className="mt-3 grid grid-cols-2 gap-4">
+          {conceptStats.map((stat) => (
+            <StatCard
+              key={stat.concept}
+              label={stat.label}
+              value={stat.value === undefined ? "—" : `${stat.value}%`}
+            />
+          ))}
+        </div>
+      </div>
+
       <div className="mt-10">
-        <PrimaryButton href="/practice">Start FVG Practice</PrimaryButton>
+        <PrimaryButton href="/practice">Start Practicing</PrimaryButton>
       </div>
     </div>
   );

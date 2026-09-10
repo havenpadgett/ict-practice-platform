@@ -1,6 +1,9 @@
-// Exercise data shape follows PRD-MVP-V1.md Section 5 exactly. Field names
-// are kept snake_case to match the PRD's Exercise definition so the data
-// contract is easy to cross-reference with the doc.
+// Exercise data shape follows PRD-MVP-V1.md Section 5, generalized in
+// Phase 4 to cover more than one concept. Field names are kept snake_case
+// to match the PRD's Exercise definition so the data contract is easy to
+// cross-reference with the doc.
+
+import type { Concept } from "@/lib/concepts";
 
 export type Candle = {
   time: string;
@@ -10,31 +13,42 @@ export type Candle = {
   close: number;
 };
 
-export type FvgAnswer = {
-  type: "bullish" | "bearish";
-  /** Bottom of the gap. */
+export type ZoneAnswer = {
+  /** Direction label — meaning depends on concept: "bullish" | "bearish"
+   * for FVG, "buy_side" | "sell_side" for Liquidity. Descriptive only;
+   * grading never branches on it. */
+  type: string;
+  /** Bottom of the zone's price range. */
   price_low: number;
-  /** Top of the gap. */
+  /** Top of the zone's price range. */
   price_high: number;
-  /** Index of candle 1 of the three-candle formation. */
+  /** Index of the first candle that defines the zone. */
   candle_start: number;
-  /** Index of candle 3 of the three-candle formation. */
+  /** Index of the last candle that defines the zone. */
   candle_end: number;
+  /** The candle the user's box must horizontally include to pass the time
+   * test. For FVG this is always candle_start + 1 (the middle candle of
+   * the three-candle formation); for Liquidity it's the candle that
+   * confirms the second touch of the level. Stored explicitly rather than
+   * assumed, since not every concept's zone has the same shape. */
+  key_candle_index: number;
 };
 
 export type Exercise = {
   exercise_id: string;
-  concept: "FVG";
+  concept: Concept;
   /** Prototype data, labeled as such — not real market data. */
   instrument: string;
   timeframe: string;
   difficulty: 1 | 2 | 3;
   candles: Candle[];
-  has_fvg: boolean;
-  /** null when has_fvg is false. */
-  answer: FvgAnswer | null;
+  /** Prompt shown above the chart, e.g. "Mark the Fair Value Gap." */
+  prompt: string;
+  has_zone: boolean;
+  /** null when has_zone is false. */
+  answer: ZoneAnswer | null;
   explanation: string;
-  /** Required when has_fvg is false. */
+  /** Required when has_zone is false. */
   distractor_note?: string;
 };
 
@@ -48,16 +62,18 @@ export const exercises: Exercise[] = [
   {
     exercise_id: "fvg-001",
     concept: "FVG",
+    prompt: "Mark the Fair Value Gap.",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 1,
-    has_fvg: true,
+    has_zone: true,
     answer: {
       type: "bullish",
       price_low: 21107.25,
       price_high: 21139.25,
       candle_start: 19,
       candle_end: 21,
+      key_candle_index: 20,
     },
     explanation:
       "Candle 1's high (21,107.25) sits below candle 3's low (21,139.25), leaving an unfilled imbalance across candle 2 that price has not traded back through.",
@@ -113,16 +129,18 @@ export const exercises: Exercise[] = [
   {
     exercise_id: "fvg-002",
     concept: "FVG",
+    prompt: "Mark the Fair Value Gap.",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 1,
-    has_fvg: true,
+    has_zone: true,
     answer: {
       type: "bullish",
       price_low: 21443,
       price_high: 21481,
       candle_start: 12,
       candle_end: 14,
+      key_candle_index: 13,
     },
     explanation:
       "Candle 1's high (21,443.00) sits below candle 3's low (21,481.00), leaving an unfilled imbalance across candle 2 that price has not traded back through.",
@@ -177,16 +195,18 @@ export const exercises: Exercise[] = [
   {
     exercise_id: "fvg-003",
     concept: "FVG",
+    prompt: "Mark the Fair Value Gap.",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 2,
-    has_fvg: true,
+    has_zone: true,
     answer: {
       type: "bearish",
       price_low: 21546.25,
       price_high: 21582.25,
       candle_start: 22,
       candle_end: 24,
+      key_candle_index: 23,
     },
     explanation:
       "Candle 1's low (21,582.25) sits above candle 3's high (21,546.25), leaving an unfilled imbalance across candle 2 that price has not traded back through.",
@@ -236,17 +256,18 @@ export const exercises: Exercise[] = [
       { time: "12:45", open: 21554.5, high: 21560.75, low: 21548.75, close: 21552.25 },
     ],
   },
-  // fvg-004: has_fvg is false. Candles[17..19] look like a bullish FVG at a
+  // fvg-004: has_zone is false. Candles[17..19] look like a bullish FVG at a
   // glance but candle 1's high and candle 3's low overlap by 1 point, so no
   // imbalance actually exists — a deliberate near-miss. Verified: zero
   // qualifying gaps anywhere in the series.
   {
     exercise_id: "fvg-004",
     concept: "FVG",
+    prompt: "Mark the Fair Value Gap.",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 2,
-    has_fvg: false,
+    has_zone: false,
     answer: null,
     explanation:
       "Candles 18–20 (10:55–11:05) look like a bullish FVG at first glance, but candle 18's high (21,210.25) and candle 20's low (21,209.25) overlap by 1 point — the range isn't actually unfilled, so no imbalance exists there.",
@@ -305,16 +326,18 @@ export const exercises: Exercise[] = [
   {
     exercise_id: "fvg-005",
     concept: "FVG",
+    prompt: "Mark the Fair Value Gap.",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 3,
-    has_fvg: true,
+    has_zone: true,
     answer: {
       type: "bullish",
       price_low: 21425.25,
       price_high: 21438.25,
       candle_start: 20,
       candle_end: 22,
+      key_candle_index: 21,
     },
     explanation:
       "Candle 1's high (21,425.25) sits below candle 3's low (21,438.25) — a small unfilled imbalance across candle 2 that's easy to miss in this much chop.",
@@ -364,8 +387,342 @@ export const exercises: Exercise[] = [
       { time: "12:45", open: 21449.25, high: 21455, low: 21423.5, close: 21429.25 },
     ],
   },
+  // liq-001: Buy-Side Liquidity — equal highs at candles[8] and [24] (~0.75
+  // apart), verified as the only two swing highs anywhere in the series
+  // within reach of that level. The zone frames both highs plus a buffer
+  // above, where resting buy-stop orders would cluster.
+  {
+    exercise_id: "liq-001",
+    concept: "Liquidity",
+    prompt: "Mark the Buy-Side Liquidity.",
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 1,
+    has_zone: true,
+    answer: {
+      type: "buy_side",
+      price_low: 21146.75,
+      price_high: 21160.5,
+      candle_start: 8,
+      candle_end: 24,
+      key_candle_index: 24,
+    },
+    explanation:
+      "Candles 9 and 25 both put in highs within a point of each other (21,150.50 and 21,149.75) — that resting pool of equal highs is where buy-side stop orders cluster, making it a Buy-Side Liquidity zone.",
+    candles: [
+      { time: "09:30", open: 21000, high: 21020.75, low: 20997, close: 21016 },
+      { time: "09:35", open: 21016, high: 21033, low: 21011.75, close: 21030.25 },
+      { time: "09:40", open: 21030.25, high: 21047.5, low: 21025.75, close: 21044.5 },
+      { time: "09:45", open: 21044.5, high: 21063.5, low: 21040, close: 21059.5 },
+      { time: "09:50", open: 21059.5, high: 21080.25, low: 21056.75, close: 21076.75 },
+      { time: "09:55", open: 21076.75, high: 21095.5, low: 21073, close: 21092.25 },
+      { time: "10:00", open: 21092.25, high: 21111.25, low: 21089.75, close: 21106.75 },
+      { time: "10:05", open: 21106.75, high: 21125.5, low: 21104, close: 21123.5 },
+      // Candle 9 — first equal high
+      { time: "10:10", open: 21123.5, high: 21150.5, low: 21119.75, close: 21140 },
+      { time: "10:15", open: 21140, high: 21143.5, low: 21125.5, close: 21128.25 },
+      { time: "10:20", open: 21128.25, high: 21130.25, low: 21114.75, close: 21117 },
+      { time: "10:25", open: 21117, high: 21120.75, low: 21102.25, close: 21104.5 },
+      { time: "10:30", open: 21104.5, high: 21107.75, low: 21089.25, close: 21093 },
+      { time: "10:35", open: 21093, high: 21096.5, low: 21077, close: 21080.75 },
+      { time: "10:40", open: 21080.75, high: 21084, low: 21066.25, close: 21068.75 },
+      { time: "10:45", open: 21068.75, high: 21072.25, low: 21051.25, close: 21055 },
+      { time: "10:50", open: 21055, high: 21068.25, low: 21050.75, close: 21064.75 },
+      { time: "10:55", open: 21064.75, high: 21076.25, low: 21061.25, close: 21073.75 },
+      { time: "11:00", open: 21073.75, high: 21085.75, low: 21070.25, close: 21082.5 },
+      { time: "11:05", open: 21082.5, high: 21096, low: 21080, close: 21092.75 },
+      { time: "11:10", open: 21092.75, high: 21106.75, low: 21088, close: 21102.75 },
+      { time: "11:15", open: 21102.75, high: 21115.25, low: 21100.25, close: 21111 },
+      { time: "11:20", open: 21111, high: 21124.75, low: 21108, close: 21120.25 },
+      { time: "11:25", open: 21120.25, high: 21132, low: 21115.75, close: 21128.75 },
+      // Candle 25 — second equal high, confirms the liquidity pool
+      { time: "11:30", open: 21128.75, high: 21149.75, low: 21126.5, close: 21140 },
+      { time: "11:35", open: 21140, high: 21145, low: 21129, close: 21132.5 },
+      { time: "11:40", open: 21132.5, high: 21136.5, low: 21122, close: 21125.25 },
+      { time: "11:45", open: 21125.25, high: 21129, low: 21114, close: 21117.5 },
+      { time: "11:50", open: 21117.5, high: 21119.75, low: 21106.25, close: 21110.75 },
+      { time: "11:55", open: 21110.75, high: 21114.75, low: 21101.5, close: 21103.75 },
+      { time: "12:00", open: 21103.75, high: 21107.75, low: 21093.25, close: 21097 },
+      { time: "12:05", open: 21097, high: 21100.5, low: 21085.75, close: 21090 },
+      { time: "12:10", open: 21090, high: 21093.5, low: 21078, close: 21082.75 },
+      { time: "12:15", open: 21082.75, high: 21085.75, low: 21070.75, close: 21074.75 },
+      { time: "12:20", open: 21074.75, high: 21077.5, low: 21064.75, close: 21067.5 },
+      { time: "12:25", open: 21067.5, high: 21071.75, low: 21057.25, close: 21060 },
+      { time: "12:30", open: 21060, high: 21062.25, low: 21047, close: 21052 },
+      { time: "12:35", open: 21052, high: 21056.5, low: 21040.75, close: 21045.25 },
+      { time: "12:40", open: 21045.25, high: 21048.25, low: 21035, close: 21037.75 },
+      { time: "12:45", open: 21037.75, high: 21040, low: 21025.75, close: 21030 },
+    ],
+  },
+  // liq-002: Sell-Side Liquidity — equal lows at candles[8] and [24] (~0.75
+  // apart), verified as the only two swing lows within reach of that level
+  // anywhere in the series.
+  {
+    exercise_id: "liq-002",
+    concept: "Liquidity",
+    prompt: "Mark the Sell-Side Liquidity.",
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 1,
+    has_zone: true,
+    answer: {
+      type: "sell_side",
+      price_low: 21339.5,
+      price_high: 21353.25,
+      candle_start: 8,
+      candle_end: 24,
+      key_candle_index: 24,
+    },
+    explanation:
+      "Candles 9 and 25 both put in lows within a point of each other (21,349.50 and 21,350.25) — that resting pool of equal lows is where sell-side stop orders cluster, making it a Sell-Side Liquidity zone.",
+    candles: [
+      { time: "09:30", open: 21500, high: 21502.25, low: 21480.75, close: 21483 },
+      { time: "09:35", open: 21483, high: 21486.75, low: 21463.75, close: 21467.25 },
+      { time: "09:40", open: 21467.25, high: 21471.75, low: 21446, close: 21449.75 },
+      { time: "09:45", open: 21449.75, high: 21452, low: 21431, close: 21433 },
+      { time: "09:50", open: 21433, high: 21437.25, low: 21411.5, close: 21416.5 },
+      { time: "09:55", open: 21416.5, high: 21419.5, low: 21400, close: 21402 },
+      { time: "10:00", open: 21402, high: 21404.75, low: 21382, close: 21385.25 },
+      { time: "10:05", open: 21385.25, high: 21389.75, low: 21366.5, close: 21370.75 },
+      // Candle 9 — first equal low
+      { time: "10:10", open: 21370.75, high: 21374.5, low: 21349.5, close: 21360 },
+      { time: "10:15", open: 21360, high: 21375.75, low: 21356.75, close: 21372 },
+      { time: "10:20", open: 21372, high: 21385.75, low: 21370, close: 21383.5 },
+      { time: "10:25", open: 21383.5, high: 21398.25, low: 21379.75, close: 21394.75 },
+      { time: "10:30", open: 21394.75, high: 21408.5, low: 21391.25, close: 21406 },
+      { time: "10:35", open: 21406, high: 21420.75, low: 21402, close: 21417 },
+      { time: "10:40", open: 21417, high: 21430.5, low: 21413, close: 21428 },
+      { time: "10:45", open: 21428, high: 21448.25, low: 21425.75, close: 21445 },
+      { time: "10:50", open: 21445, high: 21448.25, low: 21430, close: 21435 },
+      { time: "10:55", open: 21435, high: 21437.5, low: 21420.75, close: 21425 },
+      { time: "11:00", open: 21425, high: 21427.5, low: 21412.5, close: 21414.5 },
+      { time: "11:05", open: 21414.5, high: 21419.25, low: 21402, close: 21404.5 },
+      { time: "11:10", open: 21404.5, high: 21408.75, low: 21392.25, close: 21396 },
+      { time: "11:15", open: 21396, high: 21398.75, low: 21383.25, close: 21387 },
+      { time: "11:20", open: 21387, high: 21391, low: 21372.25, close: 21376.75 },
+      { time: "11:25", open: 21376.75, high: 21380, low: 21363.5, close: 21367 },
+      // Candle 25 — second equal low, confirms the liquidity pool
+      { time: "11:30", open: 21367, high: 21369, low: 21350.25, close: 21360 },
+      { time: "11:35", open: 21360, high: 21371.5, low: 21357.5, close: 21367 },
+      { time: "11:40", open: 21367, high: 21377.5, low: 21362, close: 21374.75 },
+      { time: "11:45", open: 21374.75, high: 21386.75, low: 21369.75, close: 21382.5 },
+      { time: "11:50", open: 21382.5, high: 21394.75, low: 21378.75, close: 21390.25 },
+      { time: "11:55", open: 21390.25, high: 21401.25, low: 21387.75, close: 21397.5 },
+      { time: "12:00", open: 21397.5, high: 21409.5, low: 21394.75, close: 21405 },
+      { time: "12:05", open: 21405, high: 21416, low: 21402.5, close: 21412 },
+      { time: "12:10", open: 21412, high: 21423.5, low: 21408.75, close: 21419.25 },
+      { time: "12:15", open: 21419.25, high: 21429.75, low: 21416.5, close: 21427 },
+      { time: "12:20", open: 21427, high: 21439, low: 21424.25, close: 21434.5 },
+      { time: "12:25", open: 21434.5, high: 21445.75, low: 21430, close: 21441.5 },
+      { time: "12:30", open: 21441.5, high: 21452, low: 21438.75, close: 21448.5 },
+      { time: "12:35", open: 21448.5, high: 21458.75, low: 21446.25, close: 21455.25 },
+      { time: "12:40", open: 21455.25, high: 21464.25, low: 21451.25, close: 21462 },
+      { time: "12:45", open: 21462, high: 21474, low: 21458.75, close: 21470 },
+    ],
+  },
+  // liq-003: Buy-Side Liquidity, harder — equal highs at candles[6] and [30]
+  // are 3.25 apart (less obvious than liq-001) inside busier price action.
+  // Verified: no other swing high anywhere else in the series comes close
+  // to that level.
+  {
+    exercise_id: "liq-003",
+    concept: "Liquidity",
+    prompt: "Mark the Buy-Side Liquidity.",
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 2,
+    has_zone: true,
+    answer: {
+      type: "buy_side",
+      price_low: 21310.25,
+      price_high: 21326.5,
+      candle_start: 6,
+      candle_end: 30,
+      key_candle_index: 30,
+    },
+    explanation:
+      "Candles 7 and 31 put in highs about 3 points apart (21,316.50 and 21,313.25) — close enough to count as equal highs and a resting Buy-Side Liquidity pool, even with all the chop around them.",
+    candles: [
+      { time: "09:30", open: 21200, high: 21219.75, low: 21194.5, close: 21215.75 },
+      { time: "09:35", open: 21215.75, high: 21236.25, low: 21212.5, close: 21233.25 },
+      { time: "09:40", open: 21233.25, high: 21254.25, low: 21228.75, close: 21250.5 },
+      { time: "09:45", open: 21250.5, high: 21272.5, low: 21247, close: 21268.25 },
+      { time: "09:50", open: 21268.25, high: 21290.25, low: 21263.25, close: 21284.25 },
+      { time: "09:55", open: 21284.25, high: 21302, low: 21280, close: 21298.5 },
+      // Candle 7 — first equal high
+      { time: "10:00", open: 21298.5, high: 21316.5, low: 21293, close: 21310 },
+      { time: "10:05", open: 21310, high: 21314.75, low: 21295.5, close: 21299 },
+      { time: "10:10", open: 21299, high: 21303.75, low: 21284.5, close: 21287.75 },
+      { time: "10:15", open: 21287.75, high: 21293.75, low: 21269, close: 21274.75 },
+      { time: "10:20", open: 21274.75, high: 21278.25, low: 21257.75, close: 21263.75 },
+      { time: "10:25", open: 21263.75, high: 21268.75, low: 21244.75, close: 21250 },
+      { time: "10:30", open: 21250, high: 21266.5, low: 21245, close: 21261 },
+      { time: "10:35", open: 21261, high: 21275.5, low: 21257.5, close: 21272.5 },
+      { time: "10:40", open: 21272.5, high: 21288.5, low: 21267.5, close: 21283.25 },
+      { time: "10:45", open: 21283.25, high: 21298, low: 21278.75, close: 21293.75 },
+      { time: "10:50", open: 21293.75, high: 21309.75, low: 21290.25, close: 21305.75 },
+      { time: "10:55", open: 21305.75, high: 21315, low: 21302.5, close: 21315 },
+      { time: "11:00", open: 21315, high: 21315, low: 21300.25, close: 21305 },
+      { time: "11:05", open: 21305, high: 21309.25, low: 21290, close: 21293.25 },
+      { time: "11:10", open: 21293.25, high: 21298.75, low: 21277, close: 21280.5 },
+      { time: "11:15", open: 21280.5, high: 21285.75, low: 21265.5, close: 21268.75 },
+      { time: "11:20", open: 21268.75, high: 21273, low: 21254.5, close: 21258.25 },
+      { time: "11:25", open: 21258.25, high: 21262.5, low: 21241.5, close: 21245 },
+      { time: "11:30", open: 21245, high: 21256.5, low: 21241.25, close: 21253.5 },
+      { time: "11:35", open: 21253.5, high: 21266.75, low: 21247.75, close: 21261.5 },
+      { time: "11:40", open: 21261.5, high: 21277, low: 21257, close: 21271.25 },
+      { time: "11:45", open: 21271.25, high: 21283.5, low: 21266.75, close: 21280.5 },
+      { time: "11:50", open: 21280.5, high: 21294.5, low: 21276.5, close: 21290 },
+      { time: "11:55", open: 21290, high: 21305.25, low: 21286.25, close: 21300.25 },
+      // Candle 31 — second equal high, confirms the liquidity pool
+      { time: "12:00", open: 21300.25, high: 21313.25, low: 21294.5, close: 21308 },
+      { time: "12:05", open: 21308, high: 21311.25, low: 21295.25, close: 21300.25 },
+      { time: "12:10", open: 21300.25, high: 21305.75, low: 21285.5, close: 21291 },
+      { time: "12:15", open: 21291, high: 21294.75, low: 21276.75, close: 21282.25 },
+      { time: "12:20", open: 21282.25, high: 21286.5, low: 21270.25, close: 21274 },
+      { time: "12:25", open: 21274, high: 21279.25, low: 21260.5, close: 21264.5 },
+      { time: "12:30", open: 21264.5, high: 21270, low: 21251.5, close: 21256 },
+      { time: "12:35", open: 21256, high: 21259.25, low: 21243.25, close: 21247 },
+      { time: "12:40", open: 21247, high: 21252.25, low: 21236, close: 21239.25 },
+      { time: "12:45", open: 21239.25, high: 21243, low: 21226.5, close: 21230 },
+    ],
+  },
+  // liq-004: has_zone is false. Candles[9] and [25] look like they might be
+  // equal highs at a glance, but they're 16.25 points apart — too far to
+  // represent resting liquidity at one level. Verified: no swing high
+  // anywhere in the series is within 15 points of either.
+  {
+    exercise_id: "liq-004",
+    concept: "Liquidity",
+    prompt: "Mark the Buy-Side Liquidity.",
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 2,
+    has_zone: false,
+    answer: null,
+    explanation:
+      "Candles 9 and 25 look like they might be equal highs, but they're 16.25 points apart (21,238.50 vs 21,222.25) — too far apart to represent orders resting at one level, so there's no real liquidity pool here.",
+    distractor_note:
+      "Candles 9 and 25 look like they might be equal highs, but they're 16.25 points apart (21,238.50 vs 21,222.25) — too far apart to represent orders resting at one level, so there's no real liquidity pool here.",
+    candles: [
+      { time: "09:30", open: 21100, high: 21119.5, low: 21096.25, close: 21116 },
+      { time: "09:35", open: 21116, high: 21132.75, low: 21111.5, close: 21129.5 },
+      { time: "09:40", open: 21129.5, high: 21148.75, low: 21126.5, close: 21144.5 },
+      { time: "09:45", open: 21144.5, high: 21164.25, low: 21141.5, close: 21159.75 },
+      { time: "09:50", open: 21159.75, high: 21178, low: 21156.5, close: 21175.5 },
+      { time: "09:55", open: 21175.5, high: 21192.25, low: 21171, close: 21190 },
+      { time: "10:00", open: 21190, high: 21207.75, low: 21187.5, close: 21202.75 },
+      { time: "10:05", open: 21202.75, high: 21221.25, low: 21198.75, close: 21218.25 },
+      // Candle 9 — first high (not actually equal to the second)
+      { time: "10:10", open: 21218.25, high: 21238.5, low: 21213.5, close: 21230 },
+      { time: "10:15", open: 21230, high: 21232.25, low: 21217.5, close: 21219.75 },
+      { time: "10:20", open: 21219.75, high: 21222.25, low: 21203.75, close: 21207.5 },
+      { time: "10:25", open: 21207.5, high: 21210.75, low: 21192.75, close: 21196 },
+      { time: "10:30", open: 21196, high: 21198.75, low: 21182.25, close: 21185.5 },
+      { time: "10:35", open: 21185.5, high: 21188, low: 21171, close: 21173.75 },
+      { time: "10:40", open: 21173.75, high: 21176.25, low: 21160.5, close: 21163.25 },
+      { time: "10:45", open: 21163.25, high: 21165.75, low: 21146.25, close: 21150 },
+      { time: "10:50", open: 21150, high: 21159.75, low: 21147, close: 21156.75 },
+      { time: "10:55", open: 21156.75, high: 21165.25, low: 21154, close: 21163.25 },
+      { time: "11:00", open: 21163.25, high: 21174.75, low: 21161, close: 21170.5 },
+      { time: "11:05", open: 21170.5, high: 21182.75, low: 21168.5, close: 21178 },
+      { time: "11:10", open: 21178, high: 21189.5, low: 21173.75, close: 21184.75 },
+      { time: "11:15", open: 21184.75, high: 21194, low: 21181.25, close: 21191.25 },
+      { time: "11:20", open: 21191.25, high: 21201, low: 21187, close: 21198.25 },
+      { time: "11:25", open: 21198.25, high: 21208.75, low: 21193.5, close: 21205.75 },
+      // Candle 25 — second high, only ~16 points from candle 9 (too far)
+      { time: "11:30", open: 21205.75, high: 21222.25, low: 21202.5, close: 21212 },
+      { time: "11:35", open: 21212, high: 21215.75, low: 21203.75, close: 21207.5 },
+      { time: "11:40", open: 21207.5, high: 21211, low: 21201.5, close: 21203.75 },
+      { time: "11:45", open: 21203.75, high: 21206.5, low: 21197.25, close: 21199.25 },
+      { time: "11:50", open: 21199.25, high: 21201.75, low: 21193.25, close: 21195.25 },
+      { time: "11:55", open: 21195.25, high: 21199.25, low: 21188, close: 21191.25 },
+      { time: "12:00", open: 21191.25, high: 21193.75, low: 21183, close: 21187 },
+      { time: "12:05", open: 21187, high: 21189.5, low: 21180.5, close: 21182.75 },
+      { time: "12:10", open: 21182.75, high: 21187.75, low: 21175.5, close: 21178.5 },
+      { time: "12:15", open: 21178.5, high: 21180.75, low: 21170.5, close: 21174 },
+      { time: "12:20", open: 21174, high: 21178.75, low: 21167.25, close: 21170 },
+      { time: "12:25", open: 21170, high: 21174.5, low: 21161, close: 21165.5 },
+      { time: "12:30", open: 21165.5, high: 21168.25, low: 21157.25, close: 21161.75 },
+      { time: "12:35", open: 21161.75, high: 21165.75, low: 21154, close: 21157.75 },
+      { time: "12:40", open: 21157.75, high: 21160.75, low: 21150.25, close: 21153.5 },
+      { time: "12:45", open: 21153.5, high: 21158.25, low: 21145.5, close: 21150 },
+    ],
+  },
+  // liq-005: Sell-Side Liquidity, harder — equal lows at candles[6] and [30]
+  // are 3.25 apart inside busier price action. Verified: no other swing low
+  // anywhere else in the series comes close to that level.
+  {
+    exercise_id: "liq-005",
+    concept: "Liquidity",
+    prompt: "Mark the Sell-Side Liquidity.",
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 3,
+    has_zone: true,
+    answer: {
+      type: "sell_side",
+      price_low: 21481.5,
+      price_high: 21497.75,
+      candle_start: 6,
+      candle_end: 30,
+      key_candle_index: 30,
+    },
+    explanation:
+      "Candles 7 and 31 put in lows about 3 points apart (21,491.50 and 21,494.75) — close enough to count as equal lows and a resting Sell-Side Liquidity pool, even with the noise around them.",
+    candles: [
+      { time: "09:30", open: 21600, high: 21605, low: 21581.5, close: 21585.25 },
+      { time: "09:35", open: 21585.25, high: 21591, low: 21566.75, close: 21571.25 },
+      { time: "09:40", open: 21571.25, high: 21575, low: 21553.5, close: 21557 },
+      { time: "09:45", open: 21557, high: 21560.75, low: 21538.25, close: 21542.75 },
+      { time: "09:50", open: 21542.75, high: 21547, low: 21524, close: 21527.25 },
+      { time: "09:55", open: 21527.25, high: 21533, low: 21510.75, close: 21514.5 },
+      // Candle 7 — first equal low
+      { time: "10:00", open: 21514.5, high: 21518.75, low: 21491.5, close: 21500 },
+      { time: "10:05", open: 21500, high: 21515.5, low: 21496.75, close: 21512 },
+      { time: "10:10", open: 21512, high: 21529.5, low: 21507.25, close: 21524.5 },
+      { time: "10:15", open: 21524.5, high: 21540, low: 21520.25, close: 21536.5 },
+      { time: "10:20", open: 21536.5, high: 21552, low: 21530.75, close: 21548 },
+      { time: "10:25", open: 21548, high: 21559.5, low: 21543.5, close: 21555 },
+      { time: "10:30", open: 21555, high: 21558, low: 21540.25, close: 21545 },
+      { time: "10:35", open: 21545, high: 21549, low: 21531.75, close: 21536.75 },
+      { time: "10:40", open: 21536.75, high: 21542.25, low: 21523.5, close: 21526.5 },
+      { time: "10:45", open: 21526.5, high: 21529.75, low: 21514.5, close: 21518 },
+      { time: "10:50", open: 21518, high: 21522, low: 21502.25, close: 21507 },
+      { time: "10:55", open: 21507, high: 21513, low: 21492.25, close: 21497 },
+      { time: "11:00", open: 21497, high: 21512.75, low: 21492.25, close: 21508 },
+      { time: "11:05", open: 21508, high: 21521.5, low: 21505, close: 21517.25 },
+      { time: "11:10", open: 21517.25, high: 21531.5, low: 21513.25, close: 21528.25 },
+      { time: "11:15", open: 21528.25, high: 21545.75, low: 21522.5, close: 21540.25 },
+      { time: "11:20", open: 21540.25, high: 21553.5, low: 21536.75, close: 21550.25 },
+      { time: "11:25", open: 21550.25, high: 21564, low: 21545.5, close: 21560 },
+      { time: "11:30", open: 21560, high: 21563, low: 21548.25, close: 21552.5 },
+      { time: "11:35", open: 21552.5, high: 21557, low: 21539, close: 21543 },
+      { time: "11:40", open: 21543, high: 21546.25, low: 21530.75, close: 21535.5 },
+      { time: "11:45", open: 21535.5, high: 21539.75, low: 21523.25, close: 21528 },
+      { time: "11:50", open: 21528, high: 21533.5, low: 21514.25, close: 21519.5 },
+      { time: "11:55", open: 21519.5, high: 21524.5, low: 21505.5, close: 21510 },
+      // Candle 31 — second equal low, confirms the liquidity pool
+      { time: "12:00", open: 21510, high: 21514, low: 21494.75, close: 21500 },
+      { time: "12:05", open: 21500, high: 21514.5, low: 21495.25, close: 21510.25 },
+      { time: "12:10", open: 21510.25, high: 21521.25, low: 21505, close: 21518 },
+      { time: "12:15", open: 21518, high: 21530.75, low: 21514.75, close: 21527.75 },
+      { time: "12:20", open: 21527.75, high: 21541.5, low: 21524.25, close: 21537 },
+      { time: "12:25", open: 21537, high: 21552.75, low: 21533, close: 21547.25 },
+      { time: "12:30", open: 21547.25, high: 21560.5, low: 21544, close: 21555.5 },
+      { time: "12:35", open: 21555.5, high: 21569, low: 21550.25, close: 21565.25 },
+      { time: "12:40", open: 21565.25, high: 21576.25, low: 21560, close: 21573 },
+      { time: "12:45", open: 21573, high: 21584.5, low: 21568.5, close: 21580 },
+    ],
+  },
 ];
 
 export function getExercise(exerciseId: string): Exercise | undefined {
   return exercises.find((exercise) => exercise.exercise_id === exerciseId);
+}
+
+export function getExerciseIdsByConcept(concept: Concept): string[] {
+  return exercises
+    .filter((exercise) => exercise.concept === concept)
+    .map((exercise) => exercise.exercise_id);
 }

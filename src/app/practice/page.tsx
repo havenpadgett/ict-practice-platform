@@ -3,13 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { CandlestickChart } from "@/components/practice/candlestick-chart";
+import { ConceptPicker } from "@/components/practice/concept-picker";
 import { ExerciseControls } from "@/components/practice/exercise-controls";
 import { FeedbackPanel } from "@/components/practice/feedback-panel";
 import { SessionSummary } from "@/components/practice/session-summary";
-import { exercises, getExercise } from "@/data/exercises";
+import { getExercise, getExerciseIdsByConcept } from "@/data/exercises";
+import { CONCEPTS, type Concept } from "@/lib/concepts";
 import { gradeAttempt, type GradeResult, type UserAnswer, type UserRegion } from "@/lib/grading";
 import {
   appendAttempt,
+  clearSession,
   createAttemptId,
   createSession,
   loadAttempts,
@@ -19,27 +22,25 @@ import {
   type SessionState,
 } from "@/lib/storage";
 
-const EXERCISE_IDS = exercises.map((exercise) => exercise.exercise_id);
-
 export default function PracticePage() {
   const [session, setSession] = useState<SessionState | null>(null);
+  const [showPicker, setShowPicker] = useState(false);
   const [userRegion, setUserRegion] = useState<UserRegion | null>(null);
   const [result, setResult] = useState<GradeResult | null>(null);
   const exerciseStartRef = useRef<number>(0);
 
-  // Resume an in-progress (or just-completed) session from a prior visit,
-  // or create one; either way this is a one-time sync from a browser-only
-  // store (localStorage isn't available during SSR) and can't be done in
-  // render, so the setState-in-effect here is intentional.
+  // Resume an in-progress (or just-completed) session from a prior visit;
+  // show the concept picker if there's none yet. Either way this is a
+  // one-time sync from a browser-only store (localStorage isn't available
+  // during SSR) and can't be done in render, so the setState-in-effect here
+  // is intentional.
   useEffect(() => {
     const existing = loadSession();
     if (existing) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSession(existing);
     } else {
-      const fresh = createSession(EXERCISE_IDS);
-      saveSession(fresh);
-      setSession(fresh);
+      setShowPicker(true);
     }
   }, []);
 
@@ -47,6 +48,32 @@ export default function PracticePage() {
   useEffect(() => {
     exerciseStartRef.current = Date.now();
   }, [session?.session_id, session?.current_index]);
+
+  function handlePickConcept(concept: Concept) {
+    const fresh = createSession(concept, getExerciseIdsByConcept(concept));
+    saveSession(fresh);
+    setSession(fresh);
+    setShowPicker(false);
+    setUserRegion(null);
+    setResult(null);
+  }
+
+  function handleBackToPicker() {
+    clearSession();
+    setSession(null);
+    setShowPicker(true);
+  }
+
+  if (showPicker) {
+    return (
+      <div className="flex flex-1 flex-col">
+        <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-14">
+          <ConceptPicker onPick={handlePickConcept} />
+        </div>
+        <DisclaimerFooter />
+      </div>
+    );
+  }
 
   if (!session) {
     return (
@@ -57,15 +84,17 @@ export default function PracticePage() {
     );
   }
 
+  const conceptMeta = CONCEPTS[session.concept as Concept];
+
   if (session.completed) {
     return (
       <div className="flex flex-1 flex-col">
         <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-14">
           <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-            FVG Practice
+            {conceptMeta.title}
           </h1>
           <div className="mt-6">
-            <SessionSummary session={session} onPracticeAgain={handlePracticeAgain} />
+            <SessionSummary session={session} onPracticeAgain={handleBackToPicker} />
           </div>
         </div>
         <DisclaimerFooter />
@@ -125,7 +154,7 @@ export default function PracticePage() {
     recordAttempt(answer, grade);
   }
 
-  function handleNoFvg() {
+  function handleNoZone() {
     setUserRegion(null);
     const answer: UserAnswer = { type: "none" };
     const grade = gradeAttempt(exercise!, answer);
@@ -144,27 +173,19 @@ export default function PracticePage() {
     setResult(null);
   }
 
-  function handlePracticeAgain() {
-    const fresh = createSession(EXERCISE_IDS);
-    saveSession(fresh);
-    setSession(fresh);
-    setUserRegion(null);
-    setResult(null);
-  }
-
   return (
     <div className="flex flex-1 flex-col">
       <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-14">
         <div className="flex items-baseline justify-between">
           <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-            FVG Practice
+            {conceptMeta.title}
           </h1>
           <p className="text-sm text-muted">
             Exercise {session.current_index + 1} of {session.exercise_order.length} · Score{" "}
             {session.correct_count}/{attemptedCount}
           </p>
         </div>
-        <p className="mt-2 text-sm text-muted">Mark the Fair Value Gap.</p>
+        <p className="mt-2 text-sm text-muted">{exercise.prompt}</p>
 
         <div className="mt-6 overflow-hidden rounded-lg border border-line bg-surface p-2 sm:p-3">
           <CandlestickChart
@@ -187,7 +208,8 @@ export default function PracticePage() {
             <ExerciseControls
               canSubmit={userRegion !== null}
               onSubmit={handleSubmit}
-              onNoFvg={handleNoFvg}
+              onNoZone={handleNoZone}
+              noZoneLabel={conceptMeta.noZoneLabel}
             />
           )}
         </div>

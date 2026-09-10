@@ -194,7 +194,7 @@ export function CandlestickChart({
         );
       })}
 
-      {/* True FVG zone, shown only after grading */}
+      {/* The true zone, shown only after grading */}
       {correctZoneRect && (
         <rect
           x={correctZoneRect.left}

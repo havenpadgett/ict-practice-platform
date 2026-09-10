@@ -28,6 +28,7 @@ export type StoredAttempt = {
 
 export type SessionState = {
   session_id: string;
+  concept: string;
   exercise_order: string[];
   /** Index into exercise_order of the exercise currently being shown. Equal
    * to exercise_order.length once the session is complete. */
@@ -92,6 +93,13 @@ export function saveSession(session: SessionState): void {
   window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 }
 
+/** Clears the persisted session so the next visit shows the concept picker
+ * instead of resuming a completed session. */
+export function clearSession(): void {
+  if (!isBrowser()) return;
+  window.localStorage.removeItem(SESSION_KEY);
+}
+
 function generateId(prefix: string): string {
   if (isBrowser() && window.crypto && "randomUUID" in window.crypto) {
     return `${prefix}_${window.crypto.randomUUID()}`;
@@ -99,9 +107,10 @@ function generateId(prefix: string): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 }
 
-export function createSession(exerciseIds: string[]): SessionState {
+export function createSession(concept: string, exerciseIds: string[]): SessionState {
   return {
     session_id: generateId("session"),
+    concept,
     exercise_order: exerciseIds,
     current_index: 0,
     correct_count: 0,
@@ -127,6 +136,25 @@ export function getOverallAccuracy(attempts: StoredAttempt[]): number | null {
 
 export function getExercisesCompletedCount(attempts: StoredAttempt[]): number {
   return attempts.length;
+}
+
+/** Accuracy per concept, e.g. { FVG: 80, Liquidity: 40 } — only for
+ * concepts with at least one recorded attempt. */
+export function getAccuracyByConcept(
+  attempts: StoredAttempt[],
+): Record<string, number> {
+  const byConcept = new Map<string, { correct: number; total: number }>();
+  for (const attempt of attempts) {
+    const entry = byConcept.get(attempt.concept) ?? { correct: 0, total: 0 };
+    entry.total += 1;
+    if (attempt.is_correct) entry.correct += 1;
+    byConcept.set(attempt.concept, entry);
+  }
+  const result: Record<string, number> = {};
+  for (const [concept, { correct, total }] of byConcept) {
+    result[concept] = Math.round((correct / total) * 100);
+  }
+  return result;
 }
 
 /** The most recently *completed* session's score, or "—" if none yet

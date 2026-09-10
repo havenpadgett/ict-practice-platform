@@ -1,11 +1,13 @@
 export function ExerciseControls({
   canSubmit,
   onSubmit,
-  onNoFvg,
+  onNoZone,
+  noZoneLabel,
 }: {
   canSubmit: boolean;
   onSubmit: () => void;
-  onNoFvg: () => void;
+  onNoZone: () => void;
+  noZoneLabel: string;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -17,14 +19,14 @@ export function ExerciseControls({
       >
         Submit
       </button>
-      {/* Visible on every exercise, has_fvg or not — its presence must never
-          hint at the answer. */}
+      {/* Visible on every exercise, has_zone or not — its presence must
+          never hint at the answer. */}
       <button
         type="button"
-        onClick={onNoFvg}
+        onClick={onNoZone}
         className="inline-flex items-center justify-center rounded-md border border-line px-6 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-surface"
       >
-        No FVG present
+        {noZoneLabel}
       </button>
     </div>
   );
