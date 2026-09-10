@@ -4,23 +4,12 @@
 
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
-
-function requireEnv(name: string, value: string | undefined): string {
-  if (!value) {
-    throw new Error(`Missing ${name}. Set it in .env.local.`);
-  }
-  return value;
-}
+import { getSupabaseKey, getSupabaseUrl } from "@/lib/supabase/env";
 
 export async function createClient() {
-  const supabaseUrl = requireEnv("NEXT_PUBLIC_SUPABASE_URL", process.env.NEXT_PUBLIC_SUPABASE_URL);
-  const supabaseAnonKey = requireEnv(
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  );
   const cookieStore = await cookies();
 
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
+  return createServerClient(getSupabaseUrl(), getSupabaseKey(), {
     cookies: {
       getAll() {
         return cookieStore.getAll();

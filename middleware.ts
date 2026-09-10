@@ -1,14 +1,21 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getSupabaseKey, getSupabaseUrl } from "@/lib/supabase/env";
 
 const PROTECTED_PATHS = ["/dashboard", "/practice"];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!supabaseUrl || !supabaseAnonKey) {
+  let supabaseUrl: string;
+  let supabaseAnonKey: string;
+  try {
+    supabaseUrl = getSupabaseUrl();
+    supabaseAnonKey = getSupabaseKey();
+  } catch {
+    // Missing env vars — let the request through unprotected rather than
+    // breaking every route; AuthProvider surfaces the same misconfiguration
+    // as an in-app message instead of a crash.
     return response;
   }
 

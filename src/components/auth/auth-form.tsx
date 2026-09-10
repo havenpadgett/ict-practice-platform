@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
+import { GOOGLE_AUTH_ENABLED } from "@/lib/auth-flags";
 import { createClient } from "@/lib/supabase/client";
 
 type Mode = "sign_in" | "sign_up";
@@ -126,15 +127,19 @@ export function AuthForm() {
         </button>
       </form>
 
-      <div className="mt-4 flex items-center gap-3">
-        <div className="h-px flex-1 bg-line" />
-        <span className="text-xs text-muted">or</span>
-        <div className="h-px flex-1 bg-line" />
-      </div>
+      {GOOGLE_AUTH_ENABLED && (
+        <>
+          <div className="mt-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-line" />
+            <span className="text-xs text-muted">or</span>
+            <div className="h-px flex-1 bg-line" />
+          </div>
 
-      <div className="mt-4">
-        <GoogleSignInButton onClick={handleGoogleSignIn} disabled={submitting} />
-      </div>
+          <div className="mt-4">
+            <GoogleSignInButton onClick={handleGoogleSignIn} disabled={submitting} />
+          </div>
+        </>
+      )}
 
       <p className="mt-6 text-center text-sm text-muted">
         {mode === "sign_in" ? "Don't have an account?" : "Already have an account?"}{" "}
