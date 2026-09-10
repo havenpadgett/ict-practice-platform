@@ -339,4 +339,12 @@ Every one of these is in the vision document and most will get built. None belon
 
 ---
 
+## 16. Bug Log
+
+| Date | Bug | Cause | Fix | Test performed |
+|------|-----|-------|-----|-----------------|
+| 2026-09-10 | Runtime `TypeError: Cannot read properties of undefined (reading 'title')` crashed `/practice` | `loadSession()` (`src/lib/storage.ts`) cast whatever was in localStorage to `SessionState` with `as SessionState` and no runtime validation. A session saved before the Phase 4 concept refactor had no `concept` field at all. `practice/page.tsx` then indexed `CONCEPTS[session.concept as Concept]` — indexing with `undefined` silently returned `undefined` instead of throwing there, and the crash surfaced one line later at `conceptMeta.title`. | Two layers: (1) `SessionState` gained a `version` field; `loadSession()` now runs `isValidSessionState()` and discards (removes from localStorage, returns null) anything with a missing/wrong version, an unrecognized `concept`, or any other shape mismatch — an invalid session falls back to the concept picker instead of being trusted. (2) `concepts.ts` gained `getConceptMeta()`, a safe lookup that falls back to FVG's copy instead of returning `undefined` for an unrecognized concept string, so even a bad value reaching render can't crash it. | Wrote a pre-Phase-4-shaped session object (no `concept`, no `version`) directly into localStorage and loaded `/practice`: confirmed the app discarded it and showed the concept picker, with no error reaching the UI. Ran a full 5-exercise session to completion for both FVG and Liquidity afterward — scores, session summary, and `version: 1` in the newly saved session all correct. |
+
+---
+
 *For educational and practice purposes only. Not financial advice.*

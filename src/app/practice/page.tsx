@@ -8,7 +8,7 @@ import { ExerciseControls } from "@/components/practice/exercise-controls";
 import { FeedbackPanel } from "@/components/practice/feedback-panel";
 import { SessionSummary } from "@/components/practice/session-summary";
 import { getExercise, getExerciseIdsByConcept } from "@/data/exercises";
-import { CONCEPTS, type Concept } from "@/lib/concepts";
+import { getConceptMeta, type Concept } from "@/lib/concepts";
 import { gradeAttempt, type GradeResult, type UserAnswer, type UserRegion } from "@/lib/grading";
 import {
   appendAttempt,
@@ -84,7 +84,7 @@ export default function PracticePage() {
     );
   }
 
-  const conceptMeta = CONCEPTS[session.concept as Concept];
+  const conceptMeta = getConceptMeta(session.concept);
 
   if (session.completed) {
     return (

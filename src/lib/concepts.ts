@@ -36,3 +36,12 @@ export const CONCEPTS: Record<Concept, ConceptMeta> = {
     noZoneLabel: "No Liquidity Zone present",
   },
 };
+
+/** Safe lookup for a concept value of unknown provenance (e.g. read back
+ * from storage) — an unrecognized string falls back to FVG's copy instead
+ * of producing undefined and crashing whatever reads .title off the
+ * result. Prefer indexing CONCEPTS directly when the value is already
+ * known to be a Concept. */
+export function getConceptMeta(concept: string): ConceptMeta {
+  return CONCEPTS[concept as Concept] ?? CONCEPTS.FVG;
+}

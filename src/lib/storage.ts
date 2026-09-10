@@ -4,6 +4,14 @@
 // available, so callers only need to guard against hydration timing, not
 // against SSR crashing.
 
+import { CONCEPT_LIST } from "@/lib/concepts";
+
+/** Bump this whenever SessionState's shape changes. loadSession() discards
+ * anything saved under an older (or missing/mismatched) version instead of
+ * trusting it — this is what caught the Phase 3 -> Phase 4 session shape
+ * change (old sessions had no `concept` field) after the fact. */
+const SESSION_SCHEMA_VERSION = 1;
+
 /** One row per PRD Section 9 — the fields a future `attempts` table would have. */
 export type StoredAttempt = {
   attempt_id: string;
@@ -27,6 +35,7 @@ export type StoredAttempt = {
 };
 
 export type SessionState = {
+  version: number;
   session_id: string;
   concept: string;
   exercise_order: string[];
@@ -37,6 +46,27 @@ export type SessionState = {
   missed_exercise_ids: string[];
   completed: boolean;
 };
+
+/** Runtime check that stored session data is actually usable — catches
+ * both a schema-version mismatch and an unrecognized/missing concept, so
+ * a bad shape is discarded instead of reaching the concept picker's caller
+ * as an assumed-valid SessionState. */
+function isValidSessionState(value: unknown): value is SessionState {
+  if (typeof value !== "object" || value === null) return false;
+  const v = value as Record<string, unknown>;
+  return (
+    v.version === SESSION_SCHEMA_VERSION &&
+    typeof v.session_id === "string" &&
+    typeof v.concept === "string" &&
+    CONCEPT_LIST.includes(v.concept as (typeof CONCEPT_LIST)[number]) &&
+    Array.isArray(v.exercise_order) &&
+    v.exercise_order.every((id) => typeof id === "string") &&
+    typeof v.current_index === "number" &&
+    typeof v.correct_count === "number" &&
+    Array.isArray(v.missed_exercise_ids) &&
+    typeof v.completed === "boolean"
+  );
+}
 
 const ATTEMPTS_KEY = "ict-practice:attempts";
 const SESSION_KEY = "ict-practice:session";
@@ -82,7 +112,17 @@ export function loadSession(): SessionState | null {
   if (!isBrowser()) return null;
   try {
     const raw = window.localStorage.getItem(SESSION_KEY);
-    return raw ? (JSON.parse(raw) as SessionState) : null;
+    if (!raw) return null;
+    const parsed: unknown = JSON.parse(raw);
+    if (!isValidSessionState(parsed)) {
+      // Stale/incompatible data (e.g. saved before a SessionState shape
+      // change) — discard it rather than handing back something that
+      // looks valid but isn't, so callers never see the picker skipped
+      // with garbage data behind it.
+      window.localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }
@@ -109,6 +149,7 @@ function generateId(prefix: string): string {
 
 export function createSession(concept: string, exerciseIds: string[]): SessionState {
   return {
+    version: SESSION_SCHEMA_VERSION,
     session_id: generateId("session"),
     concept,
     exercise_order: exerciseIds,
