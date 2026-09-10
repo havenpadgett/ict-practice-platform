@@ -7,7 +7,7 @@ import { ConceptPicker } from "@/components/practice/concept-picker";
 import { ExerciseControls } from "@/components/practice/exercise-controls";
 import { FeedbackPanel } from "@/components/practice/feedback-panel";
 import { SessionSummary } from "@/components/practice/session-summary";
-import { getExercise, getExerciseIdsByConcept, getPrompt } from "@/data/exercises";
+import { getExercise, getExerciseIdsByConcept } from "@/data/exercises";
 import { getConceptMeta, type Concept } from "@/lib/concepts";
 import { gradeAttempt, type GradeResult, type UserAnswer, type UserRegion } from "@/lib/grading";
 import {
@@ -116,10 +116,6 @@ export default function PracticePage() {
 
   function recordAttempt(answer: UserAnswer, grade: GradeResult) {
     if (!session) return;
-    // recordAttempt only ever runs from handleSubmit/handleNoAnswer (click
-    // handlers), never during render — the purity rule can't see that
-    // through this file's call graph.
-    // eslint-disable-next-line react-hooks/purity
     const responseTimeMs = Date.now() - exerciseStartRef.current;
     const isRegion = answer.type === "region";
     const isLevel = answer.type === "level";
@@ -201,7 +197,7 @@ export default function PracticePage() {
             {session.correct_count}/{attemptedCount}
           </p>
         </div>
-        <p className="mt-2 text-sm text-muted">{getPrompt(exercise)}</p>
+        <p className="mt-2 text-sm text-muted">{exercise.prompt}</p>
 
         <div className="mt-6 overflow-hidden rounded-lg border border-line bg-surface p-2 sm:p-3">
           {exercise.answer_type === "zone" ? (
@@ -237,7 +233,7 @@ export default function PracticePage() {
               canSubmit={canSubmit}
               onSubmit={handleSubmit}
               onNoAnswer={handleNoAnswer}
-              noAnswerLabel={conceptMeta.noAnswerLabel}
+              noAnswerLabel={exercise.noAnswerLabel}
             />
           )}
         </div>

@@ -14,9 +14,6 @@ type ConceptMeta = {
   pickerLabel: string;
   /** One-line description shown on the concept picker. */
   pickerDescription: string;
-  /** Label for the "no answer here" button, always visible regardless of
-   * whether a real zone/level exists. */
-  noAnswerLabel: string;
 };
 
 export const CONCEPTS: Record<Concept, ConceptMeta> = {
@@ -24,13 +21,11 @@ export const CONCEPTS: Record<Concept, ConceptMeta> = {
     title: "FVG Practice",
     pickerLabel: "Fair Value Gap",
     pickerDescription: "Spot unfilled imbalances left by a strong expansion candle.",
-    noAnswerLabel: "No FVG present",
   },
   Liquidity: {
     title: "Liquidity Practice",
     pickerLabel: "Liquidity",
-    pickerDescription: "Spot resting liquidity above equal highs or below equal lows.",
-    noAnswerLabel: "No Liquidity Level present",
+    pickerDescription: "Spot the strongest resting liquidity above highs or below lows.",
   },
 };
 

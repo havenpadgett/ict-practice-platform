@@ -51,12 +51,23 @@ type ExerciseBase = {
   timeframe: string;
   difficulty: 1 | 2 | 3;
   candles: Candle[];
-  /** Human-readable name of what this exercise asks the user to find, e.g.
-   * "Fair Value Gap" or "Buy-Side Liquidity" — used to build both the
-   * prompt (via getPrompt) and the "no X" / "the correct answer was X"
-   * feedback statements, so the two can never drift out of sync or leak
-   * whether an answer actually exists through inconsistent wording. */
+  /** Prompt shown above the chart. Written per exercise rather than derived
+   * from a single template — different exercises within the same concept
+   * can genuinely ask different questions (e.g. Liquidity's "strongest X"
+   * exercises vs. its "are there equal highs" one), so one rigid template
+   * can't cover them. Every prompt must still be worded so it never reveals
+   * whether a valid answer exists — that discipline has to be applied by
+   * hand here, checked on every new prompt. */
+  prompt: string;
+  /** Human-readable name of what this exercise's answer actually is, e.g.
+   * "Fair Value Gap" or "Buy-Side Liquidity" — used to build the "no X" /
+   * "the correct answer was X" feedback statements in grading.ts. */
   answerLabel: string;
+  /** Label for the "no answer here" button. Written per exercise (not
+   * derived from answerLabel) since it must match whatever this specific
+   * exercise is asking about — e.g. liq-004 asks about equal highs
+   * specifically, not "a liquidity level" generally. */
+  noAnswerLabel: string;
   /** Reasoning shown as feedback — qualitative only, no coordinates (the
    * grader appends those). */
   explanation: string;
@@ -82,15 +93,6 @@ export type LevelExercise = ExerciseBase & {
 
 export type Exercise = ZoneExercise | LevelExercise;
 
-/** Every exercise's prompt follows the same template regardless of concept
- * or whether a valid answer exists — deriving it from answerLabel instead
- * of hand-typing it per exercise guarantees that, since inconsistent
- * wording (e.g. one exercise asserting existence, another not) would leak
- * the answer. */
-export function getPrompt(exercise: Exercise): string {
-  return `Identify the ${exercise.answerLabel}, if there is one.`;
-}
-
 // fvg-001: a single bullish FVG sits at candles[19..21]. Candle 19's high
 // (21107.25) is below candle 21's low (21139.25) — candle 20 is the large
 // expansion candle that leaves that range unfilled. Every other 3-candle
@@ -103,6 +105,8 @@ export const exercises: Exercise[] = [
     concept: "FVG",
     answer_type: "zone",
     answerLabel: "Fair Value Gap",
+    prompt: "Identify the Fair Value Gap, if there is one.",
+    noAnswerLabel: "No FVG present",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 1,
@@ -171,6 +175,8 @@ export const exercises: Exercise[] = [
     concept: "FVG",
     answer_type: "zone",
     answerLabel: "Fair Value Gap",
+    prompt: "Identify the Fair Value Gap, if there is one.",
+    noAnswerLabel: "No FVG present",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 1,
@@ -238,6 +244,8 @@ export const exercises: Exercise[] = [
     concept: "FVG",
     answer_type: "zone",
     answerLabel: "Fair Value Gap",
+    prompt: "Identify the Fair Value Gap, if there is one.",
+    noAnswerLabel: "No FVG present",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 2,
@@ -307,6 +315,8 @@ export const exercises: Exercise[] = [
     concept: "FVG",
     answer_type: "zone",
     answerLabel: "Fair Value Gap",
+    prompt: "Identify the Fair Value Gap, if there is one.",
+    noAnswerLabel: "No FVG present",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 2,
@@ -371,6 +381,8 @@ export const exercises: Exercise[] = [
     concept: "FVG",
     answer_type: "zone",
     answerLabel: "Fair Value Gap",
+    prompt: "Identify the Fair Value Gap, if there is one.",
+    noAnswerLabel: "No FVG present",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 3,
@@ -431,15 +443,18 @@ export const exercises: Exercise[] = [
       { time: "12:45", open: 21449.25, high: 21455, low: 21423.5, close: 21429.25 },
     ],
   },
-  // liq-001: Buy-Side Liquidity — equal highs at candles[8] and [24] (~0.75
-  // apart), verified as the only two swing highs anywhere in the series
-  // within reach of that level. The zone frames both highs plus a buffer
-  // above, where resting buy-stop orders would cluster.
+  // liq-001: the strongest Buy-Side Liquidity on this chart — equal highs
+  // at candles[8] and [24] (~0.75 apart), verified as the only two swing
+  // highs anywhere in the series within reach of that level. Per
+  // docs/CURRICULUM.md, liquidity rests above ANY swing high; this is the
+  // strongest pool here because two touches cluster at the same price.
   {
     exercise_id: "liq-001",
     concept: "Liquidity",
     answer_type: "level",
+    prompt: "Mark the strongest Buy-Side Liquidity, if there is one.",
     answerLabel: "Buy-Side Liquidity",
+    noAnswerLabel: "No Buy-Side Liquidity present",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 1,
@@ -451,7 +466,7 @@ export const exercises: Exercise[] = [
       tolerance: 6,
     },
     explanation:
-      "Candles 9 and 25 both put in highs within a point of each other — a resting pool of equal highs where buy-side stop orders cluster.",
+      "Candles 9 and 25 both put in highs within a point of each other. Two touches resting at the same price make this a strong pool of Buy-Side Liquidity — stronger than any single untested wick.",
     candles: [
       { time: "09:30", open: 21000, high: 21020.75, low: 20997, close: 21016 },
       { time: "09:35", open: 21016, high: 21033, low: 21011.75, close: 21030.25 },
@@ -497,14 +512,16 @@ export const exercises: Exercise[] = [
       { time: "12:45", open: 21037.75, high: 21040, low: 21025.75, close: 21030 },
     ],
   },
-  // liq-002: Sell-Side Liquidity — equal lows at candles[8] and [24] (~0.75
-  // apart), verified as the only two swing lows within reach of that level
-  // anywhere in the series.
+  // liq-002: the strongest Sell-Side Liquidity on this chart — equal lows
+  // at candles[8] and [24] (~0.75 apart), verified as the only two swing
+  // lows within reach of that level anywhere in the series.
   {
     exercise_id: "liq-002",
     concept: "Liquidity",
     answer_type: "level",
+    prompt: "Mark the strongest Sell-Side Liquidity, if there is one.",
     answerLabel: "Sell-Side Liquidity",
+    noAnswerLabel: "No Sell-Side Liquidity present",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 1,
@@ -516,7 +533,7 @@ export const exercises: Exercise[] = [
       tolerance: 6,
     },
     explanation:
-      "Candles 9 and 25 both put in lows within a point of each other — a resting pool of equal lows where sell-side stop orders cluster.",
+      "Candles 9 and 25 both put in lows within a point of each other. Two touches resting at the same price make this a strong pool of Sell-Side Liquidity — stronger than any single untested wick.",
     candles: [
       { time: "09:30", open: 21500, high: 21502.25, low: 21480.75, close: 21483 },
       { time: "09:35", open: 21483, high: 21486.75, low: 21463.75, close: 21467.25 },
@@ -562,15 +579,17 @@ export const exercises: Exercise[] = [
       { time: "12:45", open: 21462, high: 21474, low: 21458.75, close: 21470 },
     ],
   },
-  // liq-003: Buy-Side Liquidity, harder — equal highs at candles[6] and [30]
-  // are 3.25 apart (less obvious than liq-001) inside busier price action.
-  // Verified: no other swing high anywhere else in the series comes close
-  // to that level.
+  // liq-003: the strongest Buy-Side Liquidity, harder — equal highs at
+  // candles[6] and [30] are 3.25 apart (less obvious than liq-001) inside
+  // busier price action. Verified: no other swing high anywhere else in
+  // the series comes close to that level.
   {
     exercise_id: "liq-003",
     concept: "Liquidity",
     answer_type: "level",
+    prompt: "Mark the strongest Buy-Side Liquidity, if there is one.",
     answerLabel: "Buy-Side Liquidity",
+    noAnswerLabel: "No Buy-Side Liquidity present",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 2,
@@ -582,7 +601,7 @@ export const exercises: Exercise[] = [
       tolerance: 6,
     },
     explanation:
-      "Candles 7 and 31 put in highs a few points apart — close enough to count as equal highs, even with all the chop around them.",
+      "Candles 7 and 31 put in highs a few points apart, close enough to count as equal highs even with all the chop around them. Two touches at roughly the same price still make this the strongest Buy-Side Liquidity here.",
     candles: [
       { time: "09:30", open: 21200, high: 21219.75, low: 21194.5, close: 21215.75 },
       { time: "09:35", open: 21215.75, high: 21236.25, low: 21212.5, close: 21233.25 },
@@ -628,24 +647,28 @@ export const exercises: Exercise[] = [
       { time: "12:45", open: 21239.25, high: 21243, low: 21226.5, close: 21230 },
     ],
   },
-  // liq-004: has_answer is false. Candles[9] and [25] look like they might be
-  // equal highs at a glance, but they're 16.25 points apart — too far to
-  // represent resting liquidity at one level. Verified: no swing high
-  // anywhere in the series is within 15 points of either.
+  // liq-004: has_answer is false — the question here is specifically "are
+  // there equal highs", not "is there liquidity" (there always is, per
+  // docs/CURRICULUM.md — above candles[8] and [24] individually, just as
+  // two separate small pools rather than one reinforced pool). Those two
+  // highs are 16.25 points apart, too far to count as equal. Verified: no
+  // swing high anywhere in the series is within 15 points of either.
   {
     exercise_id: "liq-004",
     concept: "Liquidity",
     answer_type: "level",
-    answerLabel: "Buy-Side Liquidity",
+    prompt: "Mark the equal highs, if there are any.",
+    answerLabel: "equal highs",
+    noAnswerLabel: "No equal highs present",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 2,
     has_answer: false,
     answer: null,
     explanation:
-      "Candles 9 and 25 look like they might be equal highs, but they're too far apart to represent one resting level. Candle 9's high: 21,239. Candle 25's high: 21,222. That's a gap of about 16 points.",
+      "Candles 9 and 25 put in highs at clearly different levels — not equal highs. There's still a small pool of resting liquidity above each wick individually, but without a second touch at the same price, neither pool is reinforced the way equal highs would be. Candle 9's high: 21,239. Candle 25's high: 21,222 — about 16 points apart.",
     distractor_note:
-      "Candles 9 and 25 look like they might be equal highs, but they're too far apart to represent one resting level. Candle 9's high: 21,239. Candle 25's high: 21,222. That's a gap of about 16 points.",
+      "Candles 9 and 25 put in highs at clearly different levels — not equal highs. There's still a small pool of resting liquidity above each wick individually, but without a second touch at the same price, neither pool is reinforced the way equal highs would be. Candle 9's high: 21,239. Candle 25's high: 21,222 — about 16 points apart.",
     candles: [
       { time: "09:30", open: 21100, high: 21119.5, low: 21096.25, close: 21116 },
       { time: "09:35", open: 21116, high: 21132.75, low: 21111.5, close: 21129.5 },
@@ -691,14 +714,17 @@ export const exercises: Exercise[] = [
       { time: "12:45", open: 21153.5, high: 21158.25, low: 21145.5, close: 21150 },
     ],
   },
-  // liq-005: Sell-Side Liquidity, harder — equal lows at candles[6] and [30]
-  // are 3.25 apart inside busier price action. Verified: no other swing low
-  // anywhere else in the series comes close to that level.
+  // liq-005: the strongest Sell-Side Liquidity, harder — equal lows at
+  // candles[6] and [30] are 3.25 apart inside busier price action.
+  // Verified: no other swing low anywhere else in the series comes close
+  // to that level.
   {
     exercise_id: "liq-005",
     concept: "Liquidity",
     answer_type: "level",
+    prompt: "Mark the strongest Sell-Side Liquidity, if there is one.",
     answerLabel: "Sell-Side Liquidity",
+    noAnswerLabel: "No Sell-Side Liquidity present",
     instrument: "NQ (prototype data)",
     timeframe: "5m",
     difficulty: 3,
@@ -710,7 +736,7 @@ export const exercises: Exercise[] = [
       tolerance: 6,
     },
     explanation:
-      "Candles 7 and 31 put in lows a few points apart — close enough to count as equal lows, even with the noise around them.",
+      "Candles 7 and 31 put in lows a few points apart, close enough to count as equal lows even with the noise around them. Two touches at roughly the same price still make this the strongest Sell-Side Liquidity here.",
     candles: [
       { time: "09:30", open: 21600, high: 21605, low: 21581.5, close: 21585.25 },
       { time: "09:35", open: 21585.25, high: 21591, low: 21566.75, close: 21571.25 },
