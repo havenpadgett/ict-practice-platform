@@ -782,6 +782,387 @@ export const exercises: Exercise[] = [
       { time: "12:45", open: 21573, high: 21584.5, low: 21568.5, close: 21580 },
     ],
   },
+  // mss-001: clear bullish-to-bearish shift. Uptrend makes HH1 (candle 6,
+  // 21,120), HL1 (candle 10, 21,055), HH2 (candle 16, 21,205), HL2 (candle
+  // 21, 21,145). Candle 26 fails to exceed HH2 (21,178 < 21,205) — a lower
+  // high. Candle 31 then closes at 21,075, a clean body close below HL2's
+  // 21,145 — the KEY LEVEL. Verified: every low from candle 21 through
+  // candle 30 stays at or above 21,145 (no premature break), and the
+  // 21,205 high is the highest point anywhere in the series (the lower
+  // high genuinely fails to exceed it).
+  {
+    exercise_id: "mss-001",
+    concept: "MSS",
+    answer_type: "level",
+    answerLabel: "Market Structure Shift",
+    prompt: "Mark the swing level whose break confirmed the Market Structure Shift, if one occurred.",
+    noAnswerLabel: "No Market Structure Shift present",
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 1,
+    has_answer: true,
+    answer: {
+      type: "bearish",
+      price: 21145,
+      tolerance: 6,
+    },
+    explanation:
+      "Candle 21's low (21,145) is the most recent higher low in the uptrend, which had been making higher highs and higher lows up through candle 16's high of 21,205. Candle 26 fails to exceed that high — a lower high. Candle 31 then closes at 21,075, well below candle 21's low, confirming the shift from bullish to bearish structure.",
+    candles: [
+      { time: "09:30", open: 20985, high: 21003, low: 20982, close: 21000 },
+      { time: "09:35", open: 21000, high: 21026.25, low: 20997, close: 21023.25 },
+      { time: "09:40", open: 21023.25, high: 21050.5, low: 21020.25, close: 21047.5 },
+      { time: "09:45", open: 21047.5, high: 21074.25, low: 21044.5, close: 21071.25 },
+      { time: "09:50", open: 21071.25, high: 21098.75, low: 21068.25, close: 21095.75 },
+      // Candle 6 — HH1
+      { time: "09:55", open: 21095.75, high: 21120, low: 21092.75, close: 21120 },
+      { time: "10:00", open: 21120, high: 21123, low: 21101, close: 21104 },
+      { time: "10:05", open: 21104, high: 21107, low: 21085.5, close: 21088.5 },
+      { time: "10:10", open: 21088.5, high: 21091.5, low: 21068.5, close: 21071.5 },
+      // Candle 10 — HL1
+      { time: "10:15", open: 21071.5, high: 21074.5, low: 21055, close: 21055 },
+      { time: "10:20", open: 21055, high: 21083.75, low: 21052, close: 21080.75 },
+      { time: "10:25", open: 21080.75, high: 21108.25, low: 21077.75, close: 21105.25 },
+      { time: "10:30", open: 21105.25, high: 21132.75, low: 21102.25, close: 21129.75 },
+      { time: "10:35", open: 21129.75, high: 21157.25, low: 21126.75, close: 21154.25 },
+      { time: "10:40", open: 21154.25, high: 21182.25, low: 21151.25, close: 21179.25 },
+      // Candle 16 — HH2, the highest point on the chart
+      { time: "10:45", open: 21179.25, high: 21205, low: 21176.25, close: 21205 },
+      { time: "10:50", open: 21205, high: 21205, low: 21190.25, close: 21193.25 },
+      { time: "10:55", open: 21193.25, high: 21196.25, low: 21178, close: 21181 },
+      { time: "11:00", open: 21181, high: 21184, low: 21166.75, close: 21169.75 },
+      { time: "11:05", open: 21169.75, high: 21172.75, low: 21154.25, close: 21157.25 },
+      // Candle 21 — HL2, the higher low whose break confirms the shift (KEY LEVEL 21,145)
+      { time: "11:10", open: 21157.25, high: 21160.25, low: 21145, close: 21145 },
+      { time: "11:15", open: 21145, high: 21154.75, low: 21145, close: 21151.75 },
+      { time: "11:20", open: 21151.75, high: 21161, low: 21148.75, close: 21158 },
+      { time: "11:25", open: 21158, high: 21168.25, low: 21155, close: 21165.25 },
+      { time: "11:30", open: 21165.25, high: 21175.25, low: 21162.25, close: 21172.25 },
+      // Candle 26 — lower high; fails to exceed candle 16's 21,205
+      { time: "11:35", open: 21172.25, high: 21178, low: 21169.25, close: 21178 },
+      { time: "11:40", open: 21178, high: 21181, low: 21169.75, close: 21172.75 },
+      { time: "11:45", open: 21172.75, high: 21175.75, low: 21164.5, close: 21167.5 },
+      { time: "11:50", open: 21167.5, high: 21170.5, low: 21159, close: 21162 },
+      { time: "11:55", open: 21162, high: 21171, low: 21159, close: 21168 },
+      // Candle 31 — displacement candle; body closes at 21,075, well below candle 21's low
+      { time: "12:00", open: 21168, high: 21172, low: 21067, close: 21075 },
+      { time: "12:05", open: 21075, high: 21078, low: 21057.75, close: 21060.75 },
+      { time: "12:10", open: 21060.75, high: 21063.75, low: 21044.75, close: 21047.75 },
+      { time: "12:15", open: 21047.75, high: 21050.75, low: 21030.75, close: 21033.75 },
+      { time: "12:20", open: 21033.75, high: 21036.75, low: 21017, close: 21020 },
+      { time: "12:25", open: 21020, high: 21023, low: 21006.25, close: 21009.25 },
+      { time: "12:30", open: 21009.25, high: 21012.25, low: 20997, close: 21000 },
+      { time: "12:35", open: 21000, high: 21003, low: 20987.5, close: 20990.5 },
+      { time: "12:40", open: 20990.5, high: 20993.5, low: 20977, close: 20980 },
+      { time: "12:45", open: 20980, high: 20983, low: 20967, close: 20970 },
+    ],
+  },
+  // mss-002: clear bearish-to-bullish shift — the mirror of mss-001.
+  // Downtrend makes LL1 (candle 6, 21,080), LH1 (candle 10, 21,145), LL2
+  // (candle 16, 20,995), LH2 (candle 21, 21,055). Candle 26 fails to
+  // undercut LL2 (21,022 > 20,995) — a higher low. Candle 31 then closes
+  // at 21,135, a clean body close above LH2's 21,055 — the KEY LEVEL.
+  // Verified: every high from candle 21 through candle 30 stays at or
+  // below 21,055, and 20,995 is the lowest point anywhere in the series.
+  {
+    exercise_id: "mss-002",
+    concept: "MSS",
+    answer_type: "level",
+    answerLabel: "Market Structure Shift",
+    prompt: "Mark the swing level whose break confirmed the Market Structure Shift, if one occurred.",
+    noAnswerLabel: "No Market Structure Shift present",
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 1,
+    has_answer: true,
+    answer: {
+      type: "bullish",
+      price: 21055,
+      tolerance: 6,
+    },
+    explanation:
+      "Candle 21's high (21,055) is the most recent lower high in the downtrend, which had been making lower highs and lower lows down through candle 16's low of 20,995. Candle 26 fails to undercut that low — a higher low. Candle 31 then closes at 21,135, well above candle 21's high, confirming the shift from bearish to bullish structure.",
+    candles: [
+      { time: "09:30", open: 21215, high: 21218, low: 21197, close: 21200 },
+      { time: "09:35", open: 21200, high: 21203, low: 21172.5, close: 21175.5 },
+      { time: "09:40", open: 21175.5, high: 21178.5, low: 21150, close: 21153 },
+      { time: "09:45", open: 21153, high: 21156, low: 21125.75, close: 21128.75 },
+      { time: "09:50", open: 21128.75, high: 21131.75, low: 21100.5, close: 21103.5 },
+      // Candle 6 — LL1
+      { time: "09:55", open: 21103.5, high: 21106.5, low: 21080, close: 21080 },
+      { time: "10:00", open: 21080, high: 21100, low: 21077, close: 21097 },
+      { time: "10:05", open: 21097, high: 21116.25, low: 21094, close: 21113.25 },
+      { time: "10:10", open: 21113.25, high: 21130.75, low: 21110.25, close: 21127.75 },
+      // Candle 10 — LH1
+      { time: "10:15", open: 21127.75, high: 21145, low: 21124.75, close: 21145 },
+      { time: "10:20", open: 21145, high: 21148, low: 21117.5, close: 21120.5 },
+      { time: "10:25", open: 21120.5, high: 21123.5, low: 21092.5, close: 21095.5 },
+      { time: "10:30", open: 21095.5, high: 21098.5, low: 21066.25, close: 21069.25 },
+      { time: "10:35", open: 21069.25, high: 21072.25, low: 21043, close: 21046 },
+      { time: "10:40", open: 21046, high: 21049, low: 21017, close: 21020 },
+      // Candle 16 — LL2, the lowest point on the chart
+      { time: "10:45", open: 21020, high: 21023, low: 20995, close: 20995 },
+      { time: "10:50", open: 20995, high: 21010, low: 20995, close: 21007 },
+      { time: "10:55", open: 21007, high: 21023, low: 21004, close: 21020 },
+      { time: "11:00", open: 21020, high: 21033.25, low: 21017, close: 21030.25 },
+      { time: "11:05", open: 21030.25, high: 21045.75, low: 21027.25, close: 21042.75 },
+      // Candle 21 — LH2, the lower high whose break confirms the shift (KEY LEVEL 21,055)
+      { time: "11:10", open: 21042.75, high: 21055, low: 21039.75, close: 21055 },
+      { time: "11:15", open: 21055, high: 21055, low: 21045.75, close: 21048.75 },
+      { time: "11:20", open: 21048.75, high: 21051.75, low: 21038, close: 21041 },
+      { time: "11:25", open: 21041, high: 21044, low: 21032.75, close: 21035.75 },
+      { time: "11:30", open: 21035.75, high: 21038.75, low: 21026, close: 21029 },
+      // Candle 26 — higher low; fails to undercut candle 16's 20,995
+      { time: "11:35", open: 21029, high: 21032, low: 21022, close: 21022 },
+      { time: "11:40", open: 21022, high: 21032.5, low: 21019, close: 21029.5 },
+      { time: "11:45", open: 21029.5, high: 21037.75, low: 21026.5, close: 21034.75 },
+      { time: "11:50", open: 21034.75, high: 21045, low: 21031.75, close: 21042 },
+      { time: "11:55", open: 21042, high: 21045, low: 21035, close: 21038 },
+      // Candle 31 — displacement candle; body closes at 21,135, well above candle 21's high
+      { time: "12:00", open: 21038, high: 21143, low: 21034, close: 21135 },
+      { time: "12:05", open: 21135, high: 21151.25, low: 21132, close: 21148.25 },
+      { time: "12:10", open: 21148.25, high: 21165.5, low: 21145.25, close: 21162.5 },
+      { time: "12:15", open: 21162.5, high: 21179.25, low: 21159.5, close: 21176.25 },
+      { time: "12:20", open: 21176.25, high: 21193, low: 21173.25, close: 21190 },
+      { time: "12:25", open: 21190, high: 21202.25, low: 21187, close: 21199.25 },
+      { time: "12:30", open: 21199.25, high: 21212, low: 21196.25, close: 21209 },
+      { time: "12:35", open: 21209, high: 21222.75, low: 21206, close: 21219.75 },
+      { time: "12:40", open: 21219.75, high: 21233.5, low: 21216.75, close: 21230.5 },
+      { time: "12:45", open: 21230.5, high: 21243, low: 21227.5, close: 21240 },
+    ],
+  },
+  // mss-003: harder — three legs of higher highs/higher lows instead of
+  // two (HH1 candle 5: 21,060; HL1 candle 8: 21,025; HH2 candle 12:
+  // 21,095; HL2 candle 15: 21,055; HH3 candle 19: 21,130; HL3 candle 22:
+  // 21,085) before candle 26 fails to exceed HH3 (21,110 < 21,130) and
+  // candle 31 closes at 21,040, below HL3. The KEY LEVEL is HL3 (21,085)
+  // — the most recent higher low, not either of the two earlier ones.
+  // Verified: every low from candle 22 through candle 30 stays at or
+  // above 21,085, and 21,130 is the highest point anywhere in the series.
+  {
+    exercise_id: "mss-003",
+    concept: "MSS",
+    answer_type: "level",
+    answerLabel: "Market Structure Shift",
+    prompt: "Mark the swing level whose break confirmed the Market Structure Shift, if one occurred.",
+    noAnswerLabel: "No Market Structure Shift present",
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 3,
+    has_answer: true,
+    answer: {
+      type: "bearish",
+      price: 21085,
+      tolerance: 6,
+    },
+    explanation:
+      "This chart has three higher lows before the shift — candle 8 (21,025), candle 15 (21,055), and candle 22 (21,085) — each one higher than the last. Candle 22's low is the most recent one, and the one whose break matters. Candle 26 fails to exceed candle 19's high (21,130) — a lower high. Candle 31 then closes at 21,040, well below candle 22's low, confirming the shift. The two earlier higher lows get passed through once price falls this far, but they aren't what confirms the shift — only the most recent structural low is.",
+    candles: [
+      { time: "09:30", open: 20985, high: 21003, low: 20982, close: 21000 },
+      { time: "09:35", open: 21000, high: 21017.75, low: 20997, close: 21014.75 },
+      { time: "09:40", open: 21014.75, high: 21032.25, low: 21011.75, close: 21029.25 },
+      // Candle 5 — HH1
+      { time: "09:45", open: 21029.25, high: 21049, low: 21026.25, close: 21046 },
+      { time: "09:50", open: 21046, high: 21060, low: 21043, close: 21060 },
+      { time: "09:55", open: 21060, high: 21063, low: 21045.5, close: 21048.5 },
+      { time: "10:00", open: 21048.5, high: 21051.5, low: 21032.75, close: 21035.75 },
+      // Candle 8 — HL1
+      { time: "10:05", open: 21035.75, high: 21038.75, low: 21025, close: 21025 },
+      { time: "10:10", open: 21025, high: 21046, low: 21022, close: 21043 },
+      { time: "10:15", open: 21043, high: 21063.5, low: 21040, close: 21060.5 },
+      { time: "10:20", open: 21060.5, high: 21079.5, low: 21057.5, close: 21076.5 },
+      // Candle 12 — HH2
+      { time: "10:25", open: 21076.5, high: 21095, low: 21073.5, close: 21095 },
+      { time: "10:30", open: 21095, high: 21098, low: 21079.75, close: 21082.75 },
+      { time: "10:35", open: 21082.75, high: 21085.75, low: 21065, close: 21068 },
+      // Candle 15 — HL2
+      { time: "10:40", open: 21068, high: 21071, low: 21055, close: 21055 },
+      { time: "10:45", open: 21055, high: 21078, low: 21052, close: 21075 },
+      { time: "10:50", open: 21075, high: 21095.75, low: 21072, close: 21092.75 },
+      { time: "10:55", open: 21092.75, high: 21113.25, low: 21089.75, close: 21110.25 },
+      // Candle 19 — HH3, the highest point on the chart
+      { time: "11:00", open: 21110.25, high: 21130, low: 21107.25, close: 21130 },
+      { time: "11:05", open: 21130, high: 21130, low: 21112.75, close: 21115.75 },
+      { time: "11:10", open: 21115.75, high: 21118.75, low: 21097, close: 21100 },
+      // Candle 22 — HL3, the higher low whose break confirms the shift (KEY LEVEL 21,085)
+      { time: "11:15", open: 21100, high: 21103, low: 21085, close: 21085 },
+      { time: "11:20", open: 21085, high: 21093.25, low: 21085, close: 21090.25 },
+      { time: "11:25", open: 21090.25, high: 21099.75, low: 21087.25, close: 21096.75 },
+      { time: "11:30", open: 21096.75, high: 21105.75, low: 21093.75, close: 21102.75 },
+      // Candle 26 — lower high; fails to exceed candle 19's 21,130
+      { time: "11:35", open: 21102.75, high: 21110, low: 21099.75, close: 21110 },
+      { time: "11:40", open: 21110, high: 21113, low: 21101.5, close: 21104.5 },
+      { time: "11:45", open: 21104.5, high: 21107.5, low: 21094.25, close: 21097.25 },
+      { time: "11:50", open: 21097.25, high: 21100.25, low: 21089, close: 21092 },
+      { time: "11:55", open: 21092, high: 21099, low: 21089, close: 21096 },
+      // Candle 31 — displacement candle; body closes at 21,040, well below candle 22's low
+      { time: "12:00", open: 21096, high: 21100, low: 21032, close: 21040 },
+      { time: "12:05", open: 21040, high: 21043, low: 21025.75, close: 21028.75 },
+      { time: "12:10", open: 21028.75, high: 21031.75, low: 21015, close: 21018 },
+      { time: "12:15", open: 21018, high: 21021, low: 21003.5, close: 21006.5 },
+      { time: "12:20", open: 21006.5, high: 21009.5, low: 20992, close: 20995 },
+      { time: "12:25", open: 20995, high: 20998, low: 20984, close: 20987 },
+      { time: "12:30", open: 20987, high: 20990, low: 20974.75, close: 20977.75 },
+      { time: "12:35", open: 20977.75, high: 20980.75, low: 20964, close: 20967 },
+      { time: "12:40", open: 20967, high: 20970, low: 20955.75, close: 20958.75 },
+      { time: "12:45", open: 20958.75, high: 20961.75, low: 20947, close: 20950 },
+    ],
+  },
+  // mss-004: has_answer is false. A pure uptrend that never shifts — every
+  // high (candle 5: 21,060; candle 15: 21,112; candle 24: 21,150; candle
+  // 33: 21,190) is higher than the last, and every low (candle 9: 21,030;
+  // candle 19: 21,080; candle 28: 21,105) is higher than the last, all the
+  // way to the end of the chart. Candle 15 is the deliberate distractor:
+  // it closes decisively above candle 5's high, which looks like a
+  // significant break — but it's a break in the *same* direction as the
+  // trend (continuation), not against it, so it isn't an MSS. Verified:
+  // no candle's low ever closes below the prior higher low anywhere in
+  // the series (checked window by window between each pair of swing lows).
+  {
+    exercise_id: "mss-004",
+    concept: "MSS",
+    answer_type: "level",
+    answerLabel: "Market Structure Shift",
+    prompt: "Mark the swing level whose break confirmed the Market Structure Shift, if one occurred.",
+    noAnswerLabel: "No Market Structure Shift present",
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 2,
+    has_answer: false,
+    answer: null,
+    explanation:
+      "There's no Market Structure Shift on this chart. Candle 15 closes at 21,112, breaking above candle 5's high (21,060) — but that's the uptrend continuing, not a shift. A Market Structure Shift requires a break against the prevailing direction: price failing to make a new high, then closing below the most recent higher low. That never happens here — every low (candle 9, candle 19, candle 28) is higher than the one before it, and every high (candle 5, candle 15, candle 24, candle 33) is higher than the one before it, all the way to the end of the chart.",
+    distractor_note:
+      "Candle 15 closes at 21,112, breaking above candle 5's high (21,060) — but that's the uptrend continuing, not a shift. A Market Structure Shift requires a break against the prevailing direction: price failing to make a new high, then closing below the most recent higher low. That never happens here — every low (candle 9, candle 19, candle 28) is higher than the one before it, and every high (candle 5, candle 15, candle 24, candle 33) is higher than the one before it, all the way to the end of the chart.",
+    candles: [
+      { time: "09:30", open: 20985, high: 21003, low: 20982, close: 21000 },
+      { time: "09:35", open: 21000, high: 21018.75, low: 20997, close: 21015.75 },
+      { time: "09:40", open: 21015.75, high: 21033.25, low: 21012.75, close: 21030.25 },
+      { time: "09:45", open: 21030.25, high: 21047.25, low: 21027.25, close: 21044.25 },
+      // Candle 5 — HH1
+      { time: "09:50", open: 21044.25, high: 21060, low: 21041.25, close: 21060 },
+      { time: "09:55", open: 21060, high: 21063, low: 21048.5, close: 21051.5 },
+      { time: "10:00", open: 21051.5, high: 21054.5, low: 21041.75, close: 21044.75 },
+      { time: "10:05", open: 21044.75, high: 21047.75, low: 21034.5, close: 21037.5 },
+      // Candle 9 — HL1
+      { time: "10:10", open: 21037.5, high: 21040.5, low: 21030, close: 21030 },
+      { time: "10:15", open: 21030, high: 21037, low: 21030, close: 21034 },
+      { time: "10:20", open: 21034, high: 21043, low: 21031, close: 21040 },
+      { time: "10:25", open: 21040, high: 21046, low: 21037, close: 21043 },
+      { time: "10:30", open: 21043, high: 21051, low: 21040, close: 21048 },
+      { time: "10:35", open: 21048, high: 21061, low: 21045, close: 21058 },
+      // Candle 15 — closes above candle 5's high; the uptrend continuing, not a shift
+      { time: "10:40", open: 21058, high: 21112, low: 21055, close: 21112 },
+      { time: "10:45", open: 21112, high: 21112, low: 21100, close: 21103 },
+      { time: "10:50", open: 21103, high: 21106, low: 21093.25, close: 21096.25 },
+      { time: "10:55", open: 21096.25, high: 21099.25, low: 21085.25, close: 21088.25 },
+      // Candle 19 — HL2, higher than candle 9's HL1
+      { time: "11:00", open: 21088.25, high: 21091.25, low: 21080, close: 21080 },
+      { time: "11:05", open: 21080, high: 21097.75, low: 21080, close: 21094.75 },
+      { time: "11:10", open: 21094.75, high: 21109.75, low: 21091.75, close: 21106.75 },
+      { time: "11:15", open: 21106.75, high: 21124, low: 21103.75, close: 21121 },
+      { time: "11:20", open: 21121, high: 21138.5, low: 21118, close: 21135.5 },
+      // Candle 24 — HH3, another new high
+      { time: "11:25", open: 21135.5, high: 21150, low: 21132.5, close: 21150 },
+      { time: "11:30", open: 21150, high: 21153, low: 21137, close: 21140 },
+      { time: "11:35", open: 21140, high: 21143, low: 21124.75, close: 21127.75 },
+      { time: "11:40", open: 21127.75, high: 21130.75, low: 21112.5, close: 21115.5 },
+      // Candle 28 — HL3, higher than candle 19's HL2
+      { time: "11:45", open: 21115.5, high: 21118.5, low: 21105, close: 21105 },
+      { time: "11:50", open: 21105, high: 21125.25, low: 21105, close: 21122.25 },
+      { time: "11:55", open: 21122.25, high: 21141, low: 21119.25, close: 21138 },
+      { time: "12:00", open: 21138, high: 21158.75, low: 21135, close: 21155.75 },
+      { time: "12:05", open: 21155.75, high: 21176.5, low: 21152.75, close: 21173.5 },
+      // Candle 33 — HH4, still no shift anywhere on this chart
+      { time: "12:10", open: 21173.5, high: 21190, low: 21170.5, close: 21190 },
+      { time: "12:15", open: 21190, high: 21193, low: 21177.75, close: 21180.75 },
+      { time: "12:20", open: 21180.75, high: 21183.75, low: 21168, close: 21171 },
+      { time: "12:25", open: 21171, high: 21174, low: 21157.5, close: 21160.5 },
+      { time: "12:30", open: 21160.5, high: 21163.5, low: 21147, close: 21150 },
+      { time: "12:35", open: 21150, high: 21159, low: 21147, close: 21156 },
+      { time: "12:40", open: 21156, high: 21162.5, low: 21153, close: 21159.5 },
+      { time: "12:45", open: 21159.5, high: 21168, low: 21156.5, close: 21165 },
+    ],
+  },
+  // mss-005: has_answer is true — a real MSS exists, but a wick-only false
+  // break sits earlier on the same level as a decoy. Uptrend makes HH1
+  // (candle 5, 21,070), HL1 (candle 9, 21,035), HH2 (candle 14, 21,130),
+  // HL2 (candle 18, 21,085 — the KEY LEVEL). Candle 22 fails to exceed HH2
+  // (21,118 < 21,130). Candle 26's wick dips to 21,058 — well below HL2 —
+  // but its body closes back at 21,096, above the level: a wick-only
+  // break, per docs/CURRICULUM.md not confirmation. The real break is
+  // candle 34, which closes at 21,035, well below HL2. Verified: every
+  // low from candle 18 through candle 33 stays at or above 21,085 *except*
+  // candle 26's wick (its body stays above 21,085), and 21,130 is the
+  // highest point anywhere in the series.
+  {
+    exercise_id: "mss-005",
+    concept: "MSS",
+    answer_type: "level",
+    answerLabel: "Market Structure Shift",
+    prompt: "Mark the swing level whose break confirmed the Market Structure Shift, if one occurred.",
+    noAnswerLabel: "No Market Structure Shift present",
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 2,
+    has_answer: true,
+    answer: {
+      type: "bearish",
+      price: 21085,
+      tolerance: 6,
+    },
+    explanation:
+      "Candle 26's low wicks down to 21,058, well below candle 18's low (21,085) — but its body closes back at 21,096, above the level. A wick poking through isn't enough; confirmation needs a candle body to close beyond the swing point, and this one doesn't. The real shift comes later: candle 34 closes at 21,035, a clean body close below candle 18's low, confirming the break. Candle 18's low is the level to mark — not the wick at candle 26.",
+    candles: [
+      { time: "09:30", open: 20985, high: 21003, low: 20982, close: 21000 },
+      { time: "09:35", open: 21000, high: 21020.75, low: 20997, close: 21017.75 },
+      { time: "09:40", open: 21017.75, high: 21038, low: 21014.75, close: 21035 },
+      { time: "09:45", open: 21035, high: 21056, low: 21032, close: 21053 },
+      // Candle 5 — HH1
+      { time: "09:50", open: 21053, high: 21070, low: 21050, close: 21070 },
+      { time: "09:55", open: 21070, high: 21073, low: 21059.5, close: 21062.5 },
+      { time: "10:00", open: 21062.5, high: 21065.5, low: 21050.25, close: 21053.25 },
+      { time: "10:05", open: 21053.25, high: 21056.25, low: 21039.75, close: 21042.75 },
+      // Candle 9 — HL1
+      { time: "10:10", open: 21042.75, high: 21045.75, low: 21035, close: 21035 },
+      { time: "10:15", open: 21035, high: 21056.5, low: 21032, close: 21053.5 },
+      { time: "10:20", open: 21053.5, high: 21076.75, low: 21050.5, close: 21073.75 },
+      { time: "10:25", open: 21073.75, high: 21095, low: 21070.75, close: 21092 },
+      { time: "10:30", open: 21092, high: 21114.75, low: 21089, close: 21111.75 },
+      // Candle 14 — HH2, the highest point on the chart
+      { time: "10:35", open: 21111.75, high: 21130, low: 21108.75, close: 21130 },
+      { time: "10:40", open: 21130, high: 21130, low: 21116.75, close: 21119.75 },
+      { time: "10:45", open: 21119.75, high: 21122.75, low: 21104.25, close: 21107.25 },
+      // Candle 18 — HL2, the higher low whose break confirms the shift (KEY LEVEL 21,085)
+      { time: "10:50", open: 21107.25, high: 21110.25, low: 21094.25, close: 21097.25 },
+      { time: "10:55", open: 21097.25, high: 21100.25, low: 21085, close: 21085 },
+      { time: "11:00", open: 21085, high: 21097, low: 21085, close: 21094 },
+      { time: "11:05", open: 21094, high: 21104.75, low: 21091, close: 21101.75 },
+      { time: "11:10", open: 21101.75, high: 21113.25, low: 21098.75, close: 21110.25 },
+      // Candle 22 — lower high; fails to exceed candle 14's 21,130
+      { time: "11:15", open: 21110.25, high: 21118, low: 21107.25, close: 21118 },
+      { time: "11:20", open: 21118, high: 21121, low: 21108.5, close: 21111.5 },
+      { time: "11:25", open: 21111.5, high: 21114.5, low: 21104.75, close: 21107.75 },
+      { time: "11:30", open: 21107.75, high: 21110.75, low: 21098.25, close: 21101.25 },
+      // Candle 26 — wick to 21,058, well below HL2, but the body closes at 21,096, above it — wick-only, doesn't qualify
+      { time: "11:35", open: 21101.25, high: 21104.25, low: 21058, close: 21096 },
+      { time: "11:40", open: 21096, high: 21102, low: 21093, close: 21099 },
+      { time: "11:45", open: 21099, high: 21103.75, low: 21096, close: 21100.75 },
+      { time: "11:50", open: 21100.75, high: 21107.25, low: 21097.75, close: 21104.25 },
+      { time: "11:55", open: 21104.25, high: 21111, low: 21101.25, close: 21108 },
+      { time: "12:00", open: 21108, high: 21111, low: 21101.25, close: 21104.25 },
+      { time: "12:05", open: 21104.25, high: 21107.25, low: 21100.5, close: 21103.5 },
+      { time: "12:10", open: 21103.5, high: 21106.5, low: 21097, close: 21100 },
+      // Candle 34 — displacement candle; body closes at 21,035, well below candle 18's low — the real break
+      { time: "12:15", open: 21100, high: 21104, low: 21027, close: 21035 },
+      { time: "12:20", open: 21035, high: 21038, low: 21021.75, close: 21024.75 },
+      { time: "12:25", open: 21024.75, high: 21027.75, low: 21012.75, close: 21015.75 },
+      { time: "12:30", open: 21015.75, high: 21018.75, low: 21002.5, close: 21005.5 },
+      { time: "12:35", open: 21005.5, high: 21008.5, low: 20992, close: 20995 },
+      { time: "12:40", open: 20995, high: 20998, low: 20978.5, close: 20981.5 },
+      { time: "12:45", open: 20981.5, high: 20984.5, low: 20967, close: 20970 },
+    ],
+  },
 ];
 
 export function getExercise(exerciseId: string): Exercise | undefined {
