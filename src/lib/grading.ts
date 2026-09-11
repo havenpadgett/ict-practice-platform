@@ -1,4 +1,4 @@
-import type { Exercise, LevelExercise, ZoneExercise } from "@/data/exercises";
+import type { ChoiceExercise, Exercise, LevelExercise, ZoneExercise } from "@/data/exercises";
 
 /** The user's drawn box, already converted from pixels into price + candle-index domain. */
 export type UserRegion = {
@@ -11,6 +11,7 @@ export type UserRegion = {
 export type UserAnswer =
   | { type: "region"; region: UserRegion }
   | { type: "level"; price: number }
+  | { type: "choice"; choice: string }
   | { type: "none" };
 
 export type FailureReason =
@@ -19,6 +20,7 @@ export type FailureReason =
   | "precision"
   | "time"
   | "off_level"
+  | "wrong_choice"
   | "missed_answer"
   | "false_positive";
 
@@ -63,6 +65,14 @@ function formatPrice(value: number): string {
 // coordinates when something does exist, so it reads naturally trailing
 // the reasoning (numbers last, per the feedback restructuring below).
 function buildCorrectAnswerStatement(exercise: Exercise): string {
+  // Choice exercises (FVG respected/disrespected) always have a definite
+  // correct option among the choices offered — there's no "no X on this
+  // chart" case the way zone/level exercises have, so this branches before
+  // the has_answer check below, which doesn't apply to this type.
+  if (exercise.answer_type === "choice") {
+    const correctOption = exercise.options.find((o) => o.value === exercise.answer.correct_choice);
+    return `The correct answer was: ${correctOption?.label ?? exercise.answer.correct_choice}.`;
+  }
   if (!exercise.has_answer) {
     return `The correct answer was: no ${exercise.answerLabel} on this chart.`;
   }
@@ -89,7 +99,7 @@ function buildCorrectAnswerStatement(exercise: Exercise): string {
 // coordinates trail it.
 function composeExplanation(exercise: Exercise): string {
   const statement = buildCorrectAnswerStatement(exercise);
-  if (!exercise.has_answer) {
+  if (exercise.answer_type !== "choice" && !exercise.has_answer) {
     const reasoning = exercise.distractor_note ?? exercise.explanation;
     return `${statement} ${reasoning}`;
   }
@@ -100,7 +110,10 @@ export function gradeAttempt(exercise: Exercise, userAnswer: UserAnswer): GradeR
   if (exercise.answer_type === "zone") {
     return gradeZoneAttempt(exercise, userAnswer);
   }
-  return gradeLevelAttempt(exercise, userAnswer);
+  if (exercise.answer_type === "level") {
+    return gradeLevelAttempt(exercise, userAnswer);
+  }
+  return gradeChoiceAttempt(exercise, userAnswer);
 }
 
 // ---- Zone grading (FVG) ---------------------------------------------------
@@ -340,6 +353,34 @@ function gradeLevelAttempt(exercise: LevelExercise, userAnswer: UserAnswer): Gra
     failureReason: "off_level",
     failureMessage,
     explanation: composeExplanation(exercise),
+    revealZone: true,
+  };
+}
+
+// ---- Choice grading (FVG respected vs. disrespected) ----------------------
+// The user picks one of a fixed set of options instead of drawing — there's
+// nothing to measure coverage, precision, or distance against. Correctness
+// is a single equality check against the exercise's correct_choice.
+
+function gradeChoiceAttempt(exercise: ChoiceExercise, userAnswer: UserAnswer): GradeResult {
+  if (userAnswer.type !== "choice") {
+    throw new Error(`Choice exercise ${exercise.exercise_id} received a non-choice answer`);
+  }
+
+  const isCorrect = userAnswer.choice === exercise.answer.correct_choice;
+
+  return {
+    isCorrect,
+    coverage: null,
+    precisionRatio: null,
+    distanceFromLevel: null,
+    failureReason: isCorrect ? null : "wrong_choice",
+    failureMessage: null,
+    explanation: composeExplanation(exercise),
+    // Always reveal the FVG zone — it's shown on the chart from the start
+    // for this exercise type (see ChoiceAnswer's fvg_zone comment in
+    // exercises.ts), so this just keeps that overlay in place through
+    // feedback rather than toggling it.
     revealZone: true,
   };
 }

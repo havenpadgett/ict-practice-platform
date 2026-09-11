@@ -12,8 +12,8 @@ export type DbAttempt = {
   user_id: string;
   exercise_id: string;
   concept: string;
-  answer_type: "zone" | "level";
-  user_answer_type: "region" | "level" | "none";
+  answer_type: "zone" | "level" | "choice";
+  user_answer_type: "region" | "level" | "choice" | "none";
   user_price_low: number | null;
   user_price_high: number | null;
   user_candle_start: number | null;
@@ -22,6 +22,8 @@ export type DbAttempt = {
   precision_ratio: number | null;
   user_price: number | null;
   distance_from_level: number | null;
+  user_choice: string | null;
+  correct_choice: string | null;
   is_correct: boolean;
   failure_reason: string | null;
   response_time_ms: number;
@@ -95,6 +97,11 @@ export async function migrateLocalAttempts(
       precision_ratio: a.precision_ratio,
       user_price: a.user_price,
       distance_from_level: a.distance_from_level,
+      // StoredAttempt (the pre-login localStorage shape) predates the
+      // "choice" answer type entirely — nothing migrated through it could
+      // have been a choice attempt.
+      user_choice: null,
+      correct_choice: null,
       is_correct: a.is_correct,
       failure_reason: a.failure_reason,
       response_time_ms: a.response_time_ms,

@@ -43,6 +43,28 @@ export type LevelAnswer = {
   tolerance: number;
 };
 
+export type ChoiceOption = {
+  /** Stored on the attempt and compared against correct_choice — stable
+   * per option, independent of display wording. */
+  value: string;
+  label: string;
+};
+
+export type ChoiceAnswer = {
+  correct_choice: string;
+  /** The Fair Value Gap this exercise is asking about. Unlike zone
+   * grading's revealed-after-submit answer, this is shown on the chart from
+   * the start — the exercise isn't testing whether the user can find the
+   * gap, only whether they can read what price did after it, so hiding it
+   * would just make the chart harder to read for no pedagogical reason. */
+  fvg_zone: {
+    price_low: number;
+    price_high: number;
+    candle_start: number;
+    candle_end: number;
+  };
+};
+
 type ExerciseBase = {
   exercise_id: string;
   concept: Concept;
@@ -63,11 +85,6 @@ type ExerciseBase = {
    * "Fair Value Gap" or "Buy-Side Liquidity" — used to build the "no X" /
    * "the correct answer was X" feedback statements in grading.ts. */
   answerLabel: string;
-  /** Label for the "no answer here" button. Written per exercise (not
-   * derived from answerLabel) since it must match whatever this specific
-   * exercise is asking about — e.g. liq-004 asks about equal highs
-   * specifically, not "a liquidity level" generally. */
-  noAnswerLabel: string;
   /** Reasoning shown as feedback — qualitative only, no coordinates (the
    * grader appends those). */
   explanation: string;
@@ -77,21 +94,38 @@ type ExerciseBase = {
   distractor_note?: string;
 };
 
-export type ZoneExercise = ExerciseBase & {
+/** Zone and level exercises always carry a "no answer exists" button —
+ * its label is written per exercise (not derived from answerLabel) since
+ * it must match whatever this specific exercise is asking about, e.g.
+ * liq-004 asks about equal highs specifically, not "a liquidity level"
+ * generally. Choice exercises have no such button: every one of them has
+ * a definite correct option among the choices offered, so there's nothing
+ * for "no answer" to mean. */
+type DrawableExerciseBase = ExerciseBase & {
+  noAnswerLabel: string;
+};
+
+export type ZoneExercise = DrawableExerciseBase & {
   answer_type: "zone";
   has_answer: boolean;
   /** null when has_answer is false. */
   answer: ZoneAnswer | null;
 };
 
-export type LevelExercise = ExerciseBase & {
+export type LevelExercise = DrawableExerciseBase & {
   answer_type: "level";
   has_answer: boolean;
   /** null when has_answer is false. */
   answer: LevelAnswer | null;
 };
 
-export type Exercise = ZoneExercise | LevelExercise;
+export type ChoiceExercise = ExerciseBase & {
+  answer_type: "choice";
+  options: ChoiceOption[];
+  answer: ChoiceAnswer;
+};
+
+export type Exercise = ZoneExercise | LevelExercise | ChoiceExercise;
 
 // fvg-001: a single bullish FVG sits at candles[19..21]. Candle 19's high
 // (21107.25) is below candle 21's low (21139.25) — candle 20 is the large
@@ -1161,6 +1195,374 @@ export const exercises: Exercise[] = [
       { time: "12:35", open: 21005.5, high: 21008.5, low: 20992, close: 20995 },
       { time: "12:40", open: 20995, high: 20998, low: 20978.5, close: 20981.5 },
       { time: "12:45", open: 20981.5, high: 20984.5, low: 20967, close: 20970 },
+    ],
+  },
+  // fvg-resp-001: clearly respected (bullish). The FVG at candles 9-11
+  // (21,065-21,105) forms, price rallies away, then pulls back — candle 28
+  // wicks into the gap and candle 29 closes back above it, confirming a
+  // reaction. Verified: no candle between the gap and the return (12-27)
+  // dips back into the zone.
+  {
+    exercise_id: "fvg-resp-001",
+    concept: "FVG",
+    answer_type: "choice",
+    answerLabel: "Respected vs. Disrespected",
+    prompt:
+      "This chart shows a Fair Value Gap (shaded) and the price action after it. Was the gap respected or disrespected?",
+    options: [
+      { value: "respected", label: "Respected" },
+      { value: "disrespected", label: "Disrespected" },
+    ],
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 1,
+    answer: {
+      correct_choice: "respected",
+      fvg_zone: { price_low: 21065, price_high: 21105, candle_start: 8, candle_end: 10 },
+    },
+    explanation:
+      "Price rallies away from the gap, then pulls back and wicks down into it — candle 28's low reaches 21,075, inside the 21,065-21,105 zone. Candle 29 closes back above 21,105, confirming price reacted from within the gap and reversed away. That's a respected FVG.",
+    candles: [
+      { time: "09:30", open: 20985, high: 21003.5, low: 20981.5, close: 21000 },
+      { time: "09:35", open: 21000, high: 21010.5, low: 20996.5, close: 21007 },
+      { time: "09:40", open: 21007, high: 21020, low: 21003.5, close: 21016.5 },
+      { time: "09:45", open: 21016.5, high: 21024.75, low: 21013, close: 21021.25 },
+      { time: "09:50", open: 21021.25, high: 21033.5, low: 21017.75, close: 21030 },
+      { time: "09:55", open: 21030, high: 21040.5, low: 21026.5, close: 21037 },
+      { time: "10:00", open: 21037, high: 21047, low: 21033.5, close: 21043.5 },
+      { time: "10:05", open: 21043.5, high: 21054.5, low: 21040, close: 21051 },
+      // Candle 9 — candle 1 of the FVG
+      { time: "10:10", open: 21051, high: 21065, low: 21047.5, close: 21058 },
+      // Candle 10 — expansion candle
+      { time: "10:15", open: 21058, high: 21149, low: 21054.5, close: 21145 },
+      // Candle 11 — candle 3, confirms the gap (21,065-21,105)
+      { time: "10:20", open: 21145, high: 21163.5, low: 21105, close: 21160 },
+      { time: "10:25", open: 21160, high: 21178.5, low: 21156.5, close: 21175 },
+      { time: "10:30", open: 21175, high: 21190.5, low: 21171.5, close: 21187 },
+      { time: "10:35", open: 21187, high: 21206.5, low: 21183.5, close: 21203 },
+      { time: "10:40", open: 21203, high: 21218.5, low: 21199.5, close: 21215 },
+      { time: "10:45", open: 21215, high: 21233.5, low: 21211.5, close: 21230 },
+      { time: "10:50", open: 21230, high: 21239.75, low: 21226.5, close: 21236.25 },
+      { time: "10:55", open: 21236.25, high: 21248.75, low: 21232.75, close: 21245.25 },
+      { time: "11:00", open: 21245.25, high: 21256.75, low: 21241.75, close: 21253.25 },
+      { time: "11:05", open: 21253.25, high: 21263.5, low: 21249.75, close: 21260 },
+      { time: "11:10", open: 21260, high: 21263.5, low: 21237, close: 21240.5 },
+      { time: "11:15", open: 21240.5, high: 21244, low: 21215.75, close: 21219.25 },
+      { time: "11:20", open: 21219.25, high: 21222.75, low: 21197.5, close: 21201 },
+      { time: "11:25", open: 21201, high: 21204.5, low: 21176.5, close: 21180 },
+      { time: "11:30", open: 21180, high: 21183.5, low: 21155.25, close: 21158.75 },
+      { time: "11:35", open: 21158.75, high: 21162.25, low: 21132, close: 21135.5 },
+      { time: "11:40", open: 21135.5, high: 21139, low: 21111.5, close: 21115 },
+      // Candle 28 — price returns, wicks into the gap, closes back inside it near the top
+      { time: "11:45", open: 21115, high: 21118, low: 21075, close: 21095 },
+      // Candle 29 — reverses back up and out the top of the gap — RESPECTED
+      { time: "11:50", open: 21095, high: 21128.5, low: 21091.5, close: 21125 },
+      { time: "11:55", open: 21125, high: 21141.5, low: 21121.5, close: 21138 },
+      { time: "12:00", open: 21138, high: 21154.25, low: 21134.5, close: 21150.75 },
+      { time: "12:05", open: 21150.75, high: 21164.5, low: 21147.25, close: 21161 },
+      { time: "12:10", open: 21161, high: 21179.75, low: 21157.5, close: 21176.25 },
+      { time: "12:15", open: 21176.25, high: 21190.75, low: 21172.75, close: 21187.25 },
+      { time: "12:20", open: 21187.25, high: 21203.5, low: 21183.75, close: 21200 },
+      { time: "12:25", open: 21200, high: 21212.25, low: 21196.5, close: 21208.75 },
+      { time: "12:30", open: 21208.75, high: 21220.5, low: 21205.25, close: 21217 },
+      { time: "12:35", open: 21217, high: 21227.5, low: 21213.5, close: 21224 },
+      { time: "12:40", open: 21224, high: 21236.75, low: 21220.5, close: 21233.25 },
+      { time: "12:45", open: 21233.25, high: 21243.5, low: 21229.75, close: 21240 },
+    ],
+  },
+  // fvg-resp-002: clearly respected (bearish) — the mirror of fvg-resp-001.
+  // The FVG at candles 9-11 (21,080-21,120) forms, price falls away, then
+  // rallies back — candle 28 wicks into the gap and candle 29 closes back
+  // below it, confirming a reaction. Verified: no candle between the gap
+  // and the return (12-27) rallies back into the zone.
+  {
+    exercise_id: "fvg-resp-002",
+    concept: "FVG",
+    answer_type: "choice",
+    answerLabel: "Respected vs. Disrespected",
+    prompt:
+      "This chart shows a Fair Value Gap (shaded) and the price action after it. Was the gap respected or disrespected?",
+    options: [
+      { value: "respected", label: "Respected" },
+      { value: "disrespected", label: "Disrespected" },
+    ],
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 1,
+    answer: {
+      correct_choice: "respected",
+      fvg_zone: { price_low: 21080, price_high: 21120, candle_start: 8, candle_end: 10 },
+    },
+    explanation:
+      "Price falls away from the gap, then rallies back up into it — candle 28's high reaches 21,110, inside the 21,080-21,120 zone. Candle 29 closes back below 21,080, confirming price reacted from within the gap and reversed away. That's a respected FVG.",
+    candles: [
+      { time: "09:30", open: 21215, high: 21218.5, low: 21196.5, close: 21200 },
+      { time: "09:35", open: 21200, high: 21203.5, low: 21189, close: 21192.5 },
+      { time: "09:40", open: 21192.5, high: 21196, low: 21180, close: 21183.5 },
+      { time: "09:45", open: 21183.5, high: 21187, low: 21173, close: 21176.5 },
+      { time: "09:50", open: 21176.5, high: 21180, low: 21166.5, close: 21170 },
+      { time: "09:55", open: 21170, high: 21173.5, low: 21160.5, close: 21164 },
+      { time: "10:00", open: 21164, high: 21167.5, low: 21152.75, close: 21156.25 },
+      { time: "10:05", open: 21156.25, high: 21159.75, low: 21142.75, close: 21146.25 },
+      // Candle 9 — candle 1 of the FVG
+      { time: "10:10", open: 21146.25, high: 21149.75, low: 21120, close: 21140 },
+      // Candle 10 — expansion candle
+      { time: "10:15", open: 21140, high: 21143.5, low: 21051, close: 21055 },
+      // Candle 11 — candle 3, confirms the gap (21,080-21,120)
+      { time: "10:20", open: 21055, high: 21080, low: 21036.5, close: 21040 },
+      { time: "10:25", open: 21040, high: 21043.5, low: 21026.5, close: 21030 },
+      { time: "10:30", open: 21030, high: 21033.5, low: 21014.25, close: 21017.75 },
+      { time: "10:35", open: 21017.75, high: 21021.25, low: 21002.5, close: 21006 },
+      { time: "10:40", open: 21006, high: 21009.5, low: 20991.5, close: 20995 },
+      { time: "10:45", open: 20995, high: 20998.5, low: 20981.5, close: 20985 },
+      { time: "10:50", open: 20985, high: 20988.5, low: 20973.5, close: 20977 },
+      { time: "10:55", open: 20977, high: 20980.5, low: 20967.25, close: 20970.75 },
+      { time: "11:00", open: 20970.75, high: 20974.25, low: 20958.75, close: 20962.25 },
+      { time: "11:05", open: 20962.25, high: 20965.75, low: 20951.5, close: 20955 },
+      { time: "11:10", open: 20955, high: 20973.25, low: 20951.5, close: 20969.75 },
+      { time: "11:15", open: 20969.75, high: 20989.25, low: 20966.25, close: 20985.75 },
+      { time: "11:20", open: 20985.75, high: 21004, low: 20982.25, close: 21000.5 },
+      { time: "11:25", open: 21000.5, high: 21018.5, low: 20997, close: 21015 },
+      { time: "11:30", open: 21015, high: 21038.5, low: 21011.5, close: 21035 },
+      { time: "11:35", open: 21035, high: 21058.5, low: 21031.5, close: 21055 },
+      { time: "11:40", open: 21055, high: 21078.5, low: 21051.5, close: 21075 },
+      // Candle 28 — price returns, wicks into the gap, closes back inside it near the bottom
+      { time: "11:45", open: 21075, high: 21110, low: 21072, close: 21100 },
+      // Candle 29 — reverses back down and out the bottom of the gap — RESPECTED
+      { time: "11:50", open: 21100, high: 21103.5, low: 21056.5, close: 21060 },
+      { time: "11:55", open: 21060, high: 21063.5, low: 21046.25, close: 21049.75 },
+      { time: "12:00", open: 21049.75, high: 21053.25, low: 21033, close: 21036.5 },
+      { time: "12:05", open: 21036.5, high: 21040, low: 21022.25, close: 21025.75 },
+      { time: "12:10", open: 21025.75, high: 21029.25, low: 21009.75, close: 21013.25 },
+      { time: "12:15", open: 21013.25, high: 21016.75, low: 20999.5, close: 21003 },
+      { time: "12:20", open: 21003, high: 21006.5, low: 20986.5, close: 20990 },
+      { time: "12:25", open: 20990, high: 20993.5, low: 20978.25, close: 20981.75 },
+      { time: "12:30", open: 20981.75, high: 20985.25, low: 20970.5, close: 20974 },
+      { time: "12:35", open: 20974, high: 20977.5, low: 20962.5, close: 20966 },
+      { time: "12:40", open: 20966, high: 20969.5, low: 20954.75, close: 20958.25 },
+      { time: "12:45", open: 20958.25, high: 20961.75, low: 20946.5, close: 20950 },
+    ],
+  },
+  // fvg-resp-003: clearly disrespected (bullish). The same gap shape as
+  // fvg-resp-001 (21,065-21,105), but the later decline doesn't react —
+  // candle 28 opens above the zone and closes below it in a single candle,
+  // continuing lower with no reversal. Verified: no candle between the gap
+  // and the break (12-27) dips back into the zone before candle 28.
+  {
+    exercise_id: "fvg-resp-003",
+    concept: "FVG",
+    answer_type: "choice",
+    answerLabel: "Respected vs. Disrespected",
+    prompt:
+      "This chart shows a Fair Value Gap (shaded) and the price action after it. Was the gap respected or disrespected?",
+    options: [
+      { value: "respected", label: "Respected" },
+      { value: "disrespected", label: "Disrespected" },
+    ],
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 2,
+    answer: {
+      correct_choice: "disrespected",
+      fvg_zone: { price_low: 21065, price_high: 21105, candle_start: 8, candle_end: 10 },
+    },
+    explanation:
+      "Price rallies away from the gap, then declines back toward it. Candle 28 opens above the zone at 21,120 and closes at 21,050 — a single candle trading straight through the entire 21,065-21,105 range and continuing lower. There's no reaction and no reversal, just continuation through the level. That's a disrespected FVG.",
+    candles: [
+      { time: "09:30", open: 20985, high: 21003.5, low: 20981.5, close: 21000 },
+      { time: "09:35", open: 21000, high: 21011.75, low: 20996.5, close: 21008.25 },
+      { time: "09:40", open: 21008.25, high: 21018, low: 21004.75, close: 21014.5 },
+      { time: "09:45", open: 21014.5, high: 21026.5, low: 21011, close: 21023 },
+      { time: "09:50", open: 21023, high: 21033.5, low: 21019.5, close: 21030 },
+      { time: "09:55", open: 21030, high: 21039.25, low: 21026.5, close: 21035.75 },
+      { time: "10:00", open: 21035.75, high: 21047.25, low: 21032.25, close: 21043.75 },
+      { time: "10:05", open: 21043.75, high: 21055.5, low: 21040.25, close: 21052 },
+      // Candle 9 — candle 1 of the FVG
+      { time: "10:10", open: 21052, high: 21065, low: 21048.5, close: 21058 },
+      // Candle 10 — expansion candle
+      { time: "10:15", open: 21058, high: 21149, low: 21054.5, close: 21145 },
+      // Candle 11 — candle 3, confirms the gap (21,065-21,105)
+      { time: "10:20", open: 21145, high: 21163.5, low: 21105, close: 21160 },
+      { time: "10:25", open: 21160, high: 21172.5, low: 21156.5, close: 21169 },
+      { time: "10:30", open: 21169, high: 21180.75, low: 21165.5, close: 21177.25 },
+      { time: "10:35", open: 21177.25, high: 21186.75, low: 21173.75, close: 21183.25 },
+      { time: "10:40", open: 21183.25, high: 21195.25, low: 21179.75, close: 21191.75 },
+      { time: "10:45", open: 21191.75, high: 21203.5, low: 21188.25, close: 21200 },
+      { time: "10:50", open: 21200, high: 21203.5, low: 21192.75, close: 21196.25 },
+      { time: "10:55", open: 21196.25, high: 21199.75, low: 21192, close: 21195.5 },
+      { time: "11:00", open: 21195.5, high: 21199, low: 21189.5, close: 21193 },
+      { time: "11:05", open: 21193, high: 21196.5, low: 21186.5, close: 21190 },
+      { time: "11:10", open: 21190, high: 21193.5, low: 21173.75, close: 21177.25 },
+      { time: "11:15", open: 21177.25, high: 21180.75, low: 21162.25, close: 21165.75 },
+      { time: "11:20", open: 21165.75, high: 21169.25, low: 21149.5, close: 21153 },
+      { time: "11:25", open: 21153, high: 21156.5, low: 21136.5, close: 21140 },
+      { time: "11:30", open: 21140, high: 21143.5, low: 21131.25, close: 21134.75 },
+      { time: "11:35", open: 21134.75, high: 21138.25, low: 21121.75, close: 21125.25 },
+      // Candle 27 — still above the gap
+      { time: "11:40", open: 21125.25, high: 21128.75, low: 21116.5, close: 21120 },
+      // Candle 28 — trades straight through the entire gap and closes below it — DISRESPECTED
+      { time: "11:45", open: 21120, high: 21122, low: 21044, close: 21050 },
+      { time: "11:50", open: 21050, high: 21053.5, low: 21016.5, close: 21020 },
+      { time: "11:55", open: 21020, high: 21023.5, low: 21007.75, close: 21011.25 },
+      { time: "12:00", open: 21011.25, high: 21014.75, low: 20997.75, close: 21001.25 },
+      { time: "12:05", open: 21001.25, high: 21004.75, low: 20987.75, close: 20991.25 },
+      { time: "12:10", open: 20991.25, high: 20994.75, low: 20975.5, close: 20979 },
+      { time: "12:15", open: 20979, high: 20982.5, low: 20965.75, close: 20969.25 },
+      { time: "12:20", open: 20969.25, high: 20972.75, low: 20956.5, close: 20960 },
+      { time: "12:25", open: 20960, high: 20963.5, low: 20947.25, close: 20950.75 },
+      { time: "12:30", open: 20950.75, high: 20954.25, low: 20941.75, close: 20945.25 },
+      { time: "12:35", open: 20945.25, high: 20948.75, low: 20932.5, close: 20936 },
+      { time: "12:40", open: 20936, high: 20939.5, low: 20925.75, close: 20929.25 },
+      { time: "12:45", open: 20929.25, high: 20932.75, low: 20916.5, close: 20920 },
+    ],
+  },
+  // fvg-resp-004: clearly disrespected (bearish) — the mirror of
+  // fvg-resp-003. The gap at 21,080-21,120, but the later rally doesn't
+  // react — candle 28 opens below the zone and closes above it in a
+  // single candle, continuing higher with no reversal. Verified: no
+  // candle between the gap and the break (12-27) rallies back into the
+  // zone before candle 28.
+  {
+    exercise_id: "fvg-resp-004",
+    concept: "FVG",
+    answer_type: "choice",
+    answerLabel: "Respected vs. Disrespected",
+    prompt:
+      "This chart shows a Fair Value Gap (shaded) and the price action after it. Was the gap respected or disrespected?",
+    options: [
+      { value: "respected", label: "Respected" },
+      { value: "disrespected", label: "Disrespected" },
+    ],
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 2,
+    answer: {
+      correct_choice: "disrespected",
+      fvg_zone: { price_low: 21080, price_high: 21120, candle_start: 8, candle_end: 10 },
+    },
+    explanation:
+      "Price falls away from the gap, then rallies back toward it. Candle 28 opens below the zone at 21,050 and closes at 21,150 — a single candle trading straight through the entire 21,080-21,120 range and continuing higher. There's no reaction and no reversal, just continuation through the level. That's a disrespected FVG.",
+    candles: [
+      { time: "09:30", open: 21215, high: 21218.5, low: 21196.5, close: 21200 },
+      { time: "09:35", open: 21200, high: 21203.5, low: 21188.5, close: 21192 },
+      { time: "09:40", open: 21192, high: 21195.5, low: 21180.5, close: 21184 },
+      { time: "09:45", open: 21184, high: 21187.5, low: 21175.25, close: 21178.75 },
+      { time: "09:50", open: 21178.75, high: 21182.25, low: 21166.5, close: 21170 },
+      { time: "09:55", open: 21170, high: 21173.5, low: 21157.5, close: 21161 },
+      { time: "10:00", open: 21161, high: 21164.5, low: 21152.25, close: 21155.75 },
+      { time: "10:05", open: 21155.75, high: 21159.25, low: 21144.5, close: 21148 },
+      // Candle 9 — candle 1 of the FVG
+      { time: "10:10", open: 21148, high: 21151.5, low: 21120, close: 21140 },
+      // Candle 10 — expansion candle
+      { time: "10:15", open: 21140, high: 21143.5, low: 21051, close: 21055 },
+      // Candle 11 — candle 3, confirms the gap (21,080-21,120)
+      { time: "10:20", open: 21055, high: 21080, low: 21036.5, close: 21040 },
+      { time: "10:25", open: 21040, high: 21043.5, low: 21026.5, close: 21030 },
+      { time: "10:30", open: 21030, high: 21033.5, low: 21013.25, close: 21016.75 },
+      { time: "10:35", open: 21016.75, high: 21020.25, low: 21004.25, close: 21007.75 },
+      { time: "10:40", open: 21007.75, high: 21011.25, low: 20991.25, close: 20994.75 },
+      { time: "10:45", open: 20994.75, high: 20998.25, low: 20981.5, close: 20985 },
+      { time: "10:50", open: 20985, high: 20988.5, low: 20973.25, close: 20976.75 },
+      { time: "10:55", open: 20976.75, high: 20980.25, low: 20965.5, close: 20969 },
+      { time: "11:00", open: 20969, high: 20972.5, low: 20959.75, close: 20963.25 },
+      { time: "11:05", open: 20963.25, high: 20966.75, low: 20951.5, close: 20955 },
+      { time: "11:10", open: 20955, high: 20973.75, low: 20951.5, close: 20970.25 },
+      { time: "11:15", open: 20970.25, high: 20989.25, low: 20966.75, close: 20985.75 },
+      { time: "11:20", open: 20985.75, high: 21004.75, low: 20982.25, close: 21001.25 },
+      { time: "11:25", open: 21001.25, high: 21018.5, low: 20997.75, close: 21015 },
+      { time: "11:30", open: 21015, high: 21028.75, low: 21011.5, close: 21025.25 },
+      { time: "11:35", open: 21025.25, high: 21040.5, low: 21021.75, close: 21037 },
+      // Candle 27 — still below the gap
+      { time: "11:40", open: 21037, high: 21053.5, low: 21033.5, close: 21050 },
+      // Candle 28 — trades straight through the entire gap and closes above it — DISRESPECTED
+      { time: "11:45", open: 21050, high: 21156, low: 21048, close: 21150 },
+      { time: "11:50", open: 21150, high: 21183.5, low: 21146.5, close: 21180 },
+      { time: "11:55", open: 21180, high: 21192, low: 21176.5, close: 21188.5 },
+      { time: "12:00", open: 21188.5, high: 21199.5, low: 21185, close: 21196 },
+      { time: "12:05", open: 21196, high: 21209.5, low: 21192.5, close: 21206 },
+      { time: "12:10", open: 21206, high: 21217.75, low: 21202.5, close: 21214.25 },
+      { time: "12:15", open: 21214.25, high: 21224, low: 21210.75, close: 21220.5 },
+      { time: "12:20", open: 21220.5, high: 21233.5, low: 21217, close: 21230 },
+      { time: "12:25", open: 21230, high: 21240.5, low: 21226.5, close: 21237 },
+      { time: "12:30", open: 21237, high: 21245.25, low: 21233.5, close: 21241.75 },
+      { time: "12:35", open: 21241.75, high: 21252, low: 21238.25, close: 21248.5 },
+      { time: "12:40", open: 21248.5, high: 21256.5, low: 21245, close: 21253 },
+      { time: "12:45", open: 21253, high: 21263.5, low: 21249.5, close: 21260 },
+    ],
+  },
+  // fvg-resp-005: harder / ambiguous. The gap at 21,065-21,105, but this
+  // time price returns and spends two candles chopping inside the zone
+  // (candles 28-29) before a third candle (30) closes through the bottom
+  // and continues — DISRESPECTED, despite the pause. Teaches that a pause
+  // inside the gap isn't itself a reaction; what matters is whether price
+  // leaves the zone by reversing back out or by closing through it.
+  {
+    exercise_id: "fvg-resp-005",
+    concept: "FVG",
+    answer_type: "choice",
+    answerLabel: "Respected vs. Disrespected",
+    prompt:
+      "This chart shows a Fair Value Gap (shaded) and the price action after it. Was the gap respected or disrespected?",
+    options: [
+      { value: "respected", label: "Respected" },
+      { value: "disrespected", label: "Disrespected" },
+    ],
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 3,
+    answer: {
+      correct_choice: "disrespected",
+      fvg_zone: { price_low: 21065, price_high: 21105, candle_start: 8, candle_end: 10 },
+    },
+    explanation:
+      "Price returns to the gap and spends two candles inside it — candle 28 and candle 29 both close within the 21,065-21,105 zone, which can look like a reaction. But pausing inside the gap isn't the same as reacting from it. Candle 30 then closes at 21,040, through the bottom of the zone, and price keeps falling from there. What decides respected vs. disrespected is how price leaves the zone — reversing back out counts as respected, closing through and continuing counts as disrespected — not whether it paused first. That's a disrespected FVG.",
+    candles: [
+      { time: "09:30", open: 20985, high: 21003, low: 20982, close: 21000 },
+      { time: "09:35", open: 21000, high: 21010, low: 20997, close: 21007 },
+      { time: "09:40", open: 21007, high: 21017.75, low: 21004, close: 21014.75 },
+      { time: "09:45", open: 21014.75, high: 21025.5, low: 21011.75, close: 21022.5 },
+      { time: "09:50", open: 21022.5, high: 21033, low: 21019.5, close: 21030 },
+      { time: "09:55", open: 21030, high: 21041, low: 21027, close: 21038 },
+      { time: "10:00", open: 21038, high: 21048, low: 21035, close: 21045 },
+      { time: "10:05", open: 21045, high: 21054.75, low: 21042, close: 21051.75 },
+      // Candle 9 — candle 1 of the FVG
+      { time: "10:10", open: 21051.75, high: 21065, low: 21048.75, close: 21058 },
+      // Candle 10 — expansion candle
+      { time: "10:15", open: 21058, high: 21149, low: 21054.5, close: 21145 },
+      // Candle 11 — candle 3, confirms the gap (21,065-21,105)
+      { time: "10:20", open: 21145, high: 21163, low: 21105, close: 21160 },
+      { time: "10:25", open: 21160, high: 21172, low: 21157, close: 21169 },
+      { time: "10:30", open: 21169, high: 21183.75, low: 21166, close: 21180.75 },
+      { time: "10:35", open: 21180.75, high: 21192.5, low: 21177.75, close: 21189.5 },
+      { time: "10:40", open: 21189.5, high: 21202.75, low: 21186.5, close: 21199.75 },
+      { time: "10:45", open: 21199.75, high: 21213, low: 21196.75, close: 21210 },
+      { time: "10:50", open: 21210, high: 21217, low: 21207, close: 21214 },
+      { time: "10:55", open: 21214, high: 21223.25, low: 21211, close: 21220.25 },
+      { time: "11:00", open: 21220.25, high: 21227, low: 21217.25, close: 21224 },
+      { time: "11:05", open: 21224, high: 21233, low: 21221, close: 21230 },
+      { time: "11:10", open: 21230, high: 21233, low: 21212.5, close: 21215.5 },
+      { time: "11:15", open: 21215.5, high: 21218.5, low: 21197.5, close: 21200.5 },
+      { time: "11:20", open: 21200.5, high: 21203.5, low: 21181, close: 21184 },
+      { time: "11:25", open: 21184, high: 21187, low: 21167, close: 21170 },
+      { time: "11:30", open: 21170, high: 21173, low: 21147.75, close: 21150.75 },
+      { time: "11:35", open: 21150.75, high: 21153.75, low: 21129.75, close: 21132.75 },
+      { time: "11:40", open: 21132.75, high: 21135.75, low: 21112, close: 21115 },
+      // Candle 28 — price re-enters the gap
+      { time: "11:45", open: 21115, high: 21118, low: 21085, close: 21090 },
+      // Candle 29 — chops inside the gap; looks like a pause, not yet a verdict
+      { time: "11:50", open: 21090, high: 21093, low: 21082, close: 21085 },
+      // Candle 30 — closes through the bottom and continues — DISRESPECTED, despite pausing first
+      { time: "11:55", open: 21085, high: 21087, low: 21034, close: 21040 },
+      { time: "12:00", open: 21040, high: 21043, low: 21025.5, close: 21028.5 },
+      { time: "12:05", open: 21028.5, high: 21031.5, low: 21013, close: 21016 },
+      { time: "12:10", open: 21016, high: 21019, low: 21000.75, close: 21003.75 },
+      { time: "12:15", open: 21003.75, high: 21006.75, low: 20989.25, close: 20992.25 },
+      { time: "12:20", open: 20992.25, high: 20995.25, low: 20977, close: 20980 },
+      { time: "12:25", open: 20980, high: 20983, low: 20968, close: 20971 },
+      { time: "12:30", open: 20971, high: 20974, low: 20960.25, close: 20963.25 },
+      { time: "12:35", open: 20963.25, high: 20966.25, low: 20952.75, close: 20955.75 },
+      { time: "12:40", open: 20955.75, high: 20958.75, low: 20946, close: 20949 },
+      { time: "12:45", open: 20949, high: 20952, low: 20937, close: 20940 },
     ],
   },
 ];

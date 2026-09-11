@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { LoadingState } from "@/components/loading-state";
 import { CandlestickChart } from "@/components/practice/candlestick-chart";
+import { ChoiceControls } from "@/components/practice/choice-controls";
 import { ConceptPicker } from "@/components/practice/concept-picker";
 import { ExerciseControls } from "@/components/practice/exercise-controls";
 import { FeedbackPanel } from "@/components/practice/feedback-panel";
@@ -27,6 +28,7 @@ export default function PracticePage() {
   const [showPicker, setShowPicker] = useState(false);
   const [userRegion, setUserRegion] = useState<UserRegion | null>(null);
   const [userLevel, setUserLevel] = useState<number | null>(null);
+  const [userChoice, setUserChoice] = useState<string | null>(null);
   const [result, setResult] = useState<GradeResult | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -66,6 +68,7 @@ export default function PracticePage() {
     setShowPicker(false);
     setUserRegion(null);
     setUserLevel(null);
+    setUserChoice(null);
     setResult(null);
   }
 
@@ -130,7 +133,12 @@ export default function PracticePage() {
 
   const attemptedCount = session.correct_count + session.missed_exercise_ids.length;
   const isLastExercise = session.current_index === session.exercise_order.length - 1;
-  const canSubmit = exercise.answer_type === "zone" ? userRegion !== null : userLevel !== null;
+  const canSubmit =
+    exercise.answer_type === "zone"
+      ? userRegion !== null
+      : exercise.answer_type === "level"
+        ? userLevel !== null
+        : userChoice !== null;
 
   // Grading happens synchronously and the verdict shows immediately — only
   // *saving* the attempt is async, so a slow or failed network write never
@@ -160,6 +168,7 @@ export default function PracticePage() {
     const responseTimeMs = Date.now() - exerciseStartRef.current;
     const isRegion = answer.type === "region";
     const isLevel = answer.type === "level";
+    const isChoice = answer.type === "choice";
 
     try {
       const attemptNumber = await nextAttemptNumber(user.id, exercise!.exercise_id);
@@ -174,6 +183,8 @@ export default function PracticePage() {
         user_candle_end: isRegion ? answer.region.candleIndexHigh : null,
         user_price: isLevel ? answer.price : null,
         distance_from_level: grade.distanceFromLevel,
+        user_choice: isChoice ? answer.choice : null,
+        correct_choice: exercise!.answer_type === "choice" ? exercise!.answer.correct_choice : null,
         is_correct: grade.isCorrect,
         coverage: grade.coverage,
         precision_ratio: grade.precisionRatio,
@@ -193,10 +204,13 @@ export default function PracticePage() {
   async function handleSubmit() {
     if (exercise!.answer_type === "zone" && !userRegion) return;
     if (exercise!.answer_type === "level" && userLevel === null) return;
+    if (exercise!.answer_type === "choice" && userChoice === null) return;
     const answer: UserAnswer =
       exercise!.answer_type === "zone"
         ? { type: "region", region: userRegion! }
-        : { type: "level", price: userLevel! };
+        : exercise!.answer_type === "level"
+          ? { type: "level", price: userLevel! }
+          : { type: "choice", choice: userChoice! };
     const grade = gradeAttempt(exercise!, answer);
     setResult(grade);
     await recordAttempt(answer, grade);
@@ -220,6 +234,7 @@ export default function PracticePage() {
     setSession(updatedSession);
     setUserRegion(null);
     setUserLevel(null);
+    setUserChoice(null);
     setResult(null);
     setSaveError(null);
   }
@@ -248,7 +263,7 @@ export default function PracticePage() {
               onUserRegionChange={setUserRegion}
               correctZone={result?.revealZone ? exercise.answer : null}
             />
-          ) : (
+          ) : exercise.answer_type === "level" ? (
             <CandlestickChart
               answerType="level"
               candles={exercise.candles}
@@ -256,6 +271,13 @@ export default function PracticePage() {
               userLevel={userLevel}
               onUserLevelChange={setUserLevel}
               correctLevel={result?.revealZone ? exercise.answer?.price ?? null : null}
+            />
+          ) : (
+            <CandlestickChart
+              answerType="choice"
+              candles={exercise.candles}
+              interactive={false}
+              fvgZone={exercise.answer.fvg_zone}
             />
           )}
         </div>
@@ -273,6 +295,14 @@ export default function PracticePage() {
               result={result}
               onNext={handleNext}
               nextLabel={isLastExercise ? "See Results" : "Next Exercise"}
+            />
+          ) : exercise.answer_type === "choice" ? (
+            <ChoiceControls
+              options={exercise.options}
+              selected={userChoice}
+              onSelect={setUserChoice}
+              onSubmit={handleSubmit}
+              canSubmit={canSubmit}
             />
           ) : (
             <ExerciseControls

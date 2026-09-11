@@ -30,6 +30,12 @@ Source of truth for concept definitions. Every exercise's answer key is written 
 - **Not an MSS:** a break in the same direction as the trend — that is continuation, not a shift.
 - **Terminology:** this project uses MSS. Do not introduce BOS or CHoCH terminology.
 
+## Fair Value Gap — Respected vs. Disrespected **(PROVISIONAL — pending Haven's validation)**
+
+**What it is:** after an FVG forms, price may later trade back into it. If price reacts from within the gap — reversing back out the side it came in from — the gap is **respected**. If price instead closes through the far side of the gap and continues, the gap is **disrespected**. A brief pause or a shallow wick inside the gap isn't itself the deciding factor — what matters is which way price leaves the zone.
+
+**Applies to:** FVG and IFVG only — not Liquidity or MSS, which don't have a "gap" for price to return to. IFVG exercises are not yet built; only FVG's respected/disrespected exercises exist so far.
+
 ## Liquidity — Time-Based Levels (defined, not yet examinable)
 
 **⚠️ Blocked.** These definitions exist so they aren't lost, but they cannot be turned into exercises yet — the chart currently shows no time context at all (no dates, session boundaries, or day separators), so there's no way for a user to tell where a "day" or "session" begins or ends on a static 40-candle chart. Unblocked when Phase 7 introduces real historical data with timestamps.

@@ -54,7 +54,16 @@ type LevelProps = CommonProps & {
   correctLevel?: number | null;
 };
 
-export function CandlestickChart(props: ZoneProps | LevelProps) {
+/** No drawing at all — the chart is purely observational. Choice exercises
+ * (FVG respected/disrespected) test whether the user can read price action
+ * after a gap that's already shown, not whether they can find it, so the
+ * gap is highlighted from the start rather than revealed after grading. */
+type ChoiceProps = CommonProps & {
+  answerType: "choice";
+  fvgZone: CorrectZone;
+};
+
+export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps) {
   const { candles, interactive } = props;
   const svgRef = useRef<SVGSVGElement>(null);
   const [dragStart, setDragStart] = useState<PixelPoint | null>(null);
@@ -85,7 +94,7 @@ export function CandlestickChart(props: ZoneProps | LevelProps) {
   }
 
   function handlePointerDown(e: React.PointerEvent<SVGSVGElement>) {
-    if (!interactive) return;
+    if (!interactive || props.answerType === "choice") return;
     // Pointer capture keeps the drag going even if the pointer slips past
     // the SVG's edge mid-drag. It can throw in some browsers/devices when
     // there's no "active pointer" session to capture — that's not fatal,
@@ -108,7 +117,7 @@ export function CandlestickChart(props: ZoneProps | LevelProps) {
   }
 
   function handlePointerMove(e: React.PointerEvent<SVGSVGElement>) {
-    if (!interactive) return;
+    if (!interactive || props.answerType === "choice") return;
     const point = toSvgPoint(e.clientX, e.clientY);
 
     if (props.answerType === "level") {
@@ -150,15 +159,16 @@ export function CandlestickChart(props: ZoneProps | LevelProps) {
     props.answerType === "zone" && props.userRegion
       ? regionToPixelRect(layout, props.userRegion)
       : null;
-  const correctZoneRect =
-    props.answerType === "zone" && props.correctZone
-      ? regionToPixelRect(layout, {
-          priceLow: props.correctZone.price_low,
-          priceHigh: props.correctZone.price_high,
-          candleIndexLow: props.correctZone.candle_start,
-          candleIndexHigh: props.correctZone.candle_end,
-        })
-      : null;
+  const zoneToShow =
+    props.answerType === "zone" ? props.correctZone : props.answerType === "choice" ? props.fvgZone : null;
+  const correctZoneRect = zoneToShow
+    ? regionToPixelRect(layout, {
+        priceLow: zoneToShow.price_low,
+        priceHigh: zoneToShow.price_high,
+        candleIndexLow: zoneToShow.candle_start,
+        candleIndexHigh: zoneToShow.candle_end,
+      })
+    : null;
 
   const userLevelY =
     props.answerType === "level" && props.userLevel !== null
@@ -169,17 +179,23 @@ export function CandlestickChart(props: ZoneProps | LevelProps) {
       ? priceToY(layout, props.correctLevel)
       : null;
 
-  const cursorClass = !interactive
-    ? ""
-    : props.answerType === "level"
-      ? "cursor-row-resize"
-      : "cursor-crosshair";
+  const cursorClass =
+    !interactive || props.answerType === "choice"
+      ? ""
+      : props.answerType === "level"
+        ? "cursor-row-resize"
+        : "cursor-crosshair";
+
+  // Choice charts have nothing to drag, so the page should still scroll
+  // normally when a touch starts on the chart — touch-action: none is only
+  // needed to keep a drawing gesture from also panning the page.
+  const touchClass = props.answerType === "choice" ? "" : "touch-none [-webkit-touch-callout:none]";
 
   return (
     <svg
       ref={svgRef}
       viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
-      className={`w-full touch-none select-none [-webkit-touch-callout:none] ${cursorClass}`}
+      className={`w-full select-none ${touchClass} ${cursorClass}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
