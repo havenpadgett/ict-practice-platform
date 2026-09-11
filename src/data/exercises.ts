@@ -154,7 +154,7 @@ export const exercises: Exercise[] = [
       key_candle_index: 20,
     },
     explanation:
-      "Candle 1's high sits below candle 3's low, leaving an unfilled imbalance across candle 2 that price hasn't traded back through.",
+      "This is a real Fair Value Gap. A strong up move jumps straight through a price range without any trading inside it, and price hasn't come back to trade through that range since. No trading in a range means it's still empty — that's what makes it a Fair Value Gap.",
     candles: [
       { time: "09:30", open: 21050, high: 21068.5, low: 21041.25, close: 21060.75 },
       { time: "09:35", open: 21060.75, high: 21074.25, low: 21053.75, close: 21068.25 },
@@ -224,7 +224,7 @@ export const exercises: Exercise[] = [
       key_candle_index: 13,
     },
     explanation:
-      "Candle 1's high sits below candle 3's low, leaving an unfilled imbalance across candle 2 that price hasn't traded back through.",
+      "This is a real Fair Value Gap. A strong up move jumps straight through a price range without any trading inside it, and price hasn't come back to trade through that range since. No trading in a range means it's still empty — that's what makes it a Fair Value Gap.",
     candles: [
       { time: "09:30", open: 21400, high: 21402.75, low: 21386.25, close: 21393.75 },
       { time: "09:35", open: 21393.75, high: 21398, low: 21388, close: 21392.75 },
@@ -293,7 +293,7 @@ export const exercises: Exercise[] = [
       key_candle_index: 23,
     },
     explanation:
-      "Candle 1's low sits above candle 3's high, leaving an unfilled imbalance across candle 2 that price hasn't traded back through.",
+      "This is a real Fair Value Gap. A strong down move drops straight through a price range without any trading inside it, and price hasn't come back to trade through that range since. Bearish gaps like this work the same as the bullish kind, just upside down: the empty range sits above where price ended up instead of below it.",
     candles: [
       { time: "09:30", open: 21600, high: 21605.5, low: 21591, close: 21594.25 },
       { time: "09:35", open: 21594.25, high: 21602, low: 21579.25, close: 21586.5 },
@@ -357,9 +357,9 @@ export const exercises: Exercise[] = [
     has_answer: false,
     answer: null,
     explanation:
-      "Candles 18 and 20 look like a bullish FVG at first glance, but they overlap slightly instead of leaving a gap. Candle 18's high: 21,210. Candle 20's low: 21,209. That's an overlap of about 1 point.",
+      "Two candles here look like they might form a bullish Fair Value Gap at a glance. But the high right before the rally and the low right after it actually overlap by about a point instead of leaving a gap between them. Since price did trade through that tiny overlapping range, there's no empty space left behind — no Fair Value Gap.",
     distractor_note:
-      "Candles 18 and 20 look like a bullish FVG at first glance, but they overlap slightly instead of leaving a gap. Candle 18's high: 21,210. Candle 20's low: 21,209. That's an overlap of about 1 point.",
+      "Two candles here look like they might form a bullish Fair Value Gap at a glance. But the high right before the rally and the low right after it actually overlap by about a point instead of leaving a gap between them. Since price did trade through that tiny overlapping range, there's no empty space left behind — no Fair Value Gap.",
     candles: [
       { time: "09:30", open: 21200, high: 21208, low: 21189.5, close: 21195 },
       { time: "09:35", open: 21195, high: 21209.5, low: 21191.5, close: 21204.5 },
@@ -430,7 +430,7 @@ export const exercises: Exercise[] = [
       key_candle_index: 21,
     },
     explanation:
-      "Candle 1's high sits below candle 3's low — a small imbalance across candle 2 that's easy to miss in this much chop.",
+      "This is a real Fair Value Gap, just a small one. A strong up move skips over a narrow price range without any trading inside it, and even with all the choppy back-and-forth around it, price never actually trades back through that range. Small gaps like this are easy to miss in a busy chart, but the same rule applies: no trading in a range means it's still empty.",
     candles: [
       { time: "09:30", open: 21500, high: 21506.75, low: 21481.25, close: 21492.75 },
       { time: "09:35", open: 21492.75, high: 21501, low: 21484, close: 21497 },
@@ -500,7 +500,7 @@ export const exercises: Exercise[] = [
       tolerance: 6,
     },
     explanation:
-      "Candles 9 and 25 both put in highs within a point of each other. Two touches resting at the same price make this a strong pool of Buy-Side Liquidity — stronger than any single untested wick.",
+      "This is the strongest Buy-Side Liquidity on the chart. Two separate highs land within a point of each other. Every high has some resting stop orders waiting just above it, but two highs landing at almost the same price stack those waiting orders into one bigger pool — bigger than any single high nearby has on its own.",
     candles: [
       { time: "09:30", open: 21000, high: 21020.75, low: 20997, close: 21016 },
       { time: "09:35", open: 21016, high: 21033, low: 21011.75, close: 21030.25 },
@@ -567,7 +567,7 @@ export const exercises: Exercise[] = [
       tolerance: 6,
     },
     explanation:
-      "Candles 9 and 25 both put in lows within a point of each other. Two touches resting at the same price make this a strong pool of Sell-Side Liquidity — stronger than any single untested wick.",
+      "This is the strongest Sell-Side Liquidity on the chart. Two separate lows land within a point of each other. Every low has some resting stop orders waiting just below it, but two lows landing at almost the same price stack those waiting orders into one bigger pool — bigger than any single low nearby has on its own.",
     candles: [
       { time: "09:30", open: 21500, high: 21502.25, low: 21480.75, close: 21483 },
       { time: "09:35", open: 21483, high: 21486.75, low: 21463.75, close: 21467.25 },
@@ -635,7 +635,7 @@ export const exercises: Exercise[] = [
       tolerance: 6,
     },
     explanation:
-      "Candles 7 and 31 put in highs a few points apart, close enough to count as equal highs even with all the chop around them. Two touches at roughly the same price still make this the strongest Buy-Side Liquidity here.",
+      "This is the strongest Buy-Side Liquidity on the chart. Two highs land close enough together, just a few points apart, to count as the same level even with all the choppy price action around them. Two highs stacked at roughly one price still make a bigger pool of waiting orders than any single high nearby — it's just harder to spot in the noise.",
     candles: [
       { time: "09:30", open: 21200, high: 21219.75, low: 21194.5, close: 21215.75 },
       { time: "09:35", open: 21215.75, high: 21236.25, low: 21212.5, close: 21233.25 },
@@ -700,9 +700,9 @@ export const exercises: Exercise[] = [
     has_answer: false,
     answer: null,
     explanation:
-      "Candles 9 and 25 put in highs at clearly different levels — not equal highs. There's still a small pool of resting liquidity above each wick individually, but without a second touch at the same price, neither pool is reinforced the way equal highs would be. Candle 9's high: 21,239. Candle 25's high: 21,222 — about 16 points apart.",
+      "Two highs on this chart land at clearly different prices, about 16 points apart — too far apart to call them equal. Each one still has a small pool of resting orders waiting above it on its own, but neither gets stacked with a second touch at the same price, so neither becomes the bigger, reinforced pool that equal highs would create.",
     distractor_note:
-      "Candles 9 and 25 put in highs at clearly different levels — not equal highs. There's still a small pool of resting liquidity above each wick individually, but without a second touch at the same price, neither pool is reinforced the way equal highs would be. Candle 9's high: 21,239. Candle 25's high: 21,222 — about 16 points apart.",
+      "Two highs on this chart land at clearly different prices, about 16 points apart — too far apart to call them equal. Each one still has a small pool of resting orders waiting above it on its own, but neither gets stacked with a second touch at the same price, so neither becomes the bigger, reinforced pool that equal highs would create.",
     candles: [
       { time: "09:30", open: 21100, high: 21119.5, low: 21096.25, close: 21116 },
       { time: "09:35", open: 21116, high: 21132.75, low: 21111.5, close: 21129.5 },
@@ -770,7 +770,7 @@ export const exercises: Exercise[] = [
       tolerance: 6,
     },
     explanation:
-      "Candles 7 and 31 put in lows a few points apart, close enough to count as equal lows even with the noise around them. Two touches at roughly the same price still make this the strongest Sell-Side Liquidity here.",
+      "This is the strongest Sell-Side Liquidity on the chart. Two lows land close enough together, just a few points apart, to count as the same level even with the noisy price action around them. Two lows stacked at roughly one price still make a bigger pool of waiting orders than any single low nearby — it's just harder to spot in the noise.",
     candles: [
       { time: "09:30", open: 21600, high: 21605, low: 21581.5, close: 21585.25 },
       { time: "09:35", open: 21585.25, high: 21591, low: 21566.75, close: 21571.25 },
@@ -841,7 +841,7 @@ export const exercises: Exercise[] = [
       tolerance: 6,
     },
     explanation:
-      "Candle 21's low (21,145) is the most recent higher low in the uptrend, which had been making higher highs and higher lows up through candle 16's high of 21,205. Candle 26 fails to exceed that high — a lower high. Candle 31 then closes at 21,075, well below candle 21's low, confirming the shift from bullish to bearish structure.",
+      "This is a real Market Structure Shift. Price had been making higher highs and higher lows — a clean uptrend. Then a rally attempt fails to reach a new high, and the next real move is a strong candle that closes well below the most recent higher low. A failed new high, followed by a decisive close beneath the last higher low, is exactly what confirms a shift from bullish to bearish structure.",
     candles: [
       { time: "09:30", open: 20985, high: 21003, low: 20982, close: 21000 },
       { time: "09:35", open: 21000, high: 21026.25, low: 20997, close: 21023.25 },
@@ -915,7 +915,7 @@ export const exercises: Exercise[] = [
       tolerance: 6,
     },
     explanation:
-      "Candle 21's high (21,055) is the most recent lower high in the downtrend, which had been making lower highs and lower lows down through candle 16's low of 20,995. Candle 26 fails to undercut that low — a higher low. Candle 31 then closes at 21,135, well above candle 21's high, confirming the shift from bearish to bullish structure.",
+      "This is a real Market Structure Shift. Price had been making lower highs and lower lows — a clean downtrend. Then a decline attempt fails to reach a new low, and the next real move is a strong candle that closes well above the most recent lower high. A failed new low, followed by a decisive close above the last lower high, is exactly what confirms a shift from bearish to bullish structure.",
     candles: [
       { time: "09:30", open: 21215, high: 21218, low: 21197, close: 21200 },
       { time: "09:35", open: 21200, high: 21203, low: 21172.5, close: 21175.5 },
@@ -990,7 +990,7 @@ export const exercises: Exercise[] = [
       tolerance: 6,
     },
     explanation:
-      "This chart has three higher lows before the shift — candle 8 (21,025), candle 15 (21,055), and candle 22 (21,085) — each one higher than the last. Candle 22's low is the most recent one, and the one whose break matters. Candle 26 fails to exceed candle 19's high (21,130) — a lower high. Candle 31 then closes at 21,040, well below candle 22's low, confirming the shift. The two earlier higher lows get passed through once price falls this far, but they aren't what confirms the shift — only the most recent structural low is.",
+      "This is a real Market Structure Shift, just with more swings to sort through. Price makes three higher lows in a row before the shift, and it's the most recent one — not either of the earlier two — that actually matters. A rally attempt fails to reach a new high, and the next real move is a strong candle that closes well below that most recent higher low. Once price falls that far it passes through the earlier higher lows too, but those aren't what confirms the shift — only the latest one is.",
     candles: [
       { time: "09:30", open: 20985, high: 21003, low: 20982, close: 21000 },
       { time: "09:35", open: 21000, high: 21017.75, low: 20997, close: 21014.75 },
@@ -1065,9 +1065,9 @@ export const exercises: Exercise[] = [
     has_answer: false,
     answer: null,
     explanation:
-      "There's no Market Structure Shift on this chart. Candle 15 closes at 21,112, breaking above candle 5's high (21,060) — but that's the uptrend continuing, not a shift. A Market Structure Shift requires a break against the prevailing direction: price failing to make a new high, then closing below the most recent higher low. That never happens here — every low (candle 9, candle 19, candle 28) is higher than the one before it, and every high (candle 5, candle 15, candle 24, candle 33) is higher than the one before it, all the way to the end of the chart.",
+      "Partway through, a candle closes decisively above the earlier high — that can look like a big deal, but it's just the uptrend continuing, not reversing. A real Market Structure Shift needs a break against the trend: a failed attempt at a new high, followed by a close below the most recent higher low. That never happens here. Every high on this chart is higher than the one before it, and every low is higher than the one before it, all the way to the end.",
     distractor_note:
-      "Candle 15 closes at 21,112, breaking above candle 5's high (21,060) — but that's the uptrend continuing, not a shift. A Market Structure Shift requires a break against the prevailing direction: price failing to make a new high, then closing below the most recent higher low. That never happens here — every low (candle 9, candle 19, candle 28) is higher than the one before it, and every high (candle 5, candle 15, candle 24, candle 33) is higher than the one before it, all the way to the end of the chart.",
+      "Partway through, a candle closes decisively above the earlier high — that can look like a big deal, but it's just the uptrend continuing, not reversing. A real Market Structure Shift needs a break against the trend: a failed attempt at a new high, followed by a close below the most recent higher low. That never happens here. Every high on this chart is higher than the one before it, and every low is higher than the one before it, all the way to the end.",
     candles: [
       { time: "09:30", open: 20985, high: 21003, low: 20982, close: 21000 },
       { time: "09:35", open: 21000, high: 21018.75, low: 20997, close: 21015.75 },
@@ -1146,7 +1146,7 @@ export const exercises: Exercise[] = [
       tolerance: 6,
     },
     explanation:
-      "Candle 26's low wicks down to 21,058, well below candle 18's low (21,085) — but its body closes back at 21,096, above the level. A wick poking through isn't enough; confirmation needs a candle body to close beyond the swing point, and this one doesn't. The real shift comes later: candle 34 closes at 21,035, a clean body close below candle 18's low, confirming the break. Candle 18's low is the level to mark — not the wick at candle 26.",
+      "This is a real Market Structure Shift, but there's a false alarm first. Price dips well below the most recent higher low — but only as a thin wick, a quick poke that doesn't stick. The solid part of that same candle, its body, closes back above the level, so nothing is confirmed yet. A wick alone isn't enough; the candle's body has to close beyond the level for real. The actual shift comes later, when a candle's body does close below that same higher low and price keeps falling from there.",
     candles: [
       { time: "09:30", open: 20985, high: 21003, low: 20982, close: 21000 },
       { time: "09:35", open: 21000, high: 21020.75, low: 20997, close: 21017.75 },
@@ -1221,7 +1221,7 @@ export const exercises: Exercise[] = [
       fvg_zone: { price_low: 21065, price_high: 21105, candle_start: 8, candle_end: 10 },
     },
     explanation:
-      "Price rallies away from the gap, then pulls back and wicks down into it — candle 28's low reaches 21,075, inside the 21,065-21,105 zone. Candle 29 closes back above 21,105, confirming price reacted from within the gap and reversed away. That's a respected FVG.",
+      "This Fair Value Gap was respected. After price rallies away from the gap, it eventually pulls back and trades down into that empty space — then turns around and closes back above it. That reaction, price entering the gap and reversing instead of continuing through it, is what makes a gap respected.",
     candles: [
       { time: "09:30", open: 20985, high: 21003.5, low: 20981.5, close: 21000 },
       { time: "09:35", open: 21000, high: 21010.5, low: 20996.5, close: 21007 },
@@ -1294,7 +1294,7 @@ export const exercises: Exercise[] = [
       fvg_zone: { price_low: 21080, price_high: 21120, candle_start: 8, candle_end: 10 },
     },
     explanation:
-      "Price falls away from the gap, then rallies back up into it — candle 28's high reaches 21,110, inside the 21,080-21,120 zone. Candle 29 closes back below 21,080, confirming price reacted from within the gap and reversed away. That's a respected FVG.",
+      "This Fair Value Gap was respected. After price falls away from the gap, it eventually rallies back up into that empty space — then turns around and closes back below it. That reaction, price entering the gap and reversing instead of continuing through it, is what makes a gap respected.",
     candles: [
       { time: "09:30", open: 21215, high: 21218.5, low: 21196.5, close: 21200 },
       { time: "09:35", open: 21200, high: 21203.5, low: 21189, close: 21192.5 },
@@ -1367,7 +1367,7 @@ export const exercises: Exercise[] = [
       fvg_zone: { price_low: 21065, price_high: 21105, candle_start: 8, candle_end: 10 },
     },
     explanation:
-      "Price rallies away from the gap, then declines back toward it. Candle 28 opens above the zone at 21,120 and closes at 21,050 — a single candle trading straight through the entire 21,065-21,105 range and continuing lower. There's no reaction and no reversal, just continuation through the level. That's a disrespected FVG.",
+      "This Fair Value Gap was disrespected. After price rallies away from the gap, it later comes back down — but instead of reacting, one candle opens above the entire gap and closes below it in a single move, then keeps falling. There's no pause and no reversal, just a straight trip through the level and out the other side.",
     candles: [
       { time: "09:30", open: 20985, high: 21003.5, low: 20981.5, close: 21000 },
       { time: "09:35", open: 21000, high: 21011.75, low: 20996.5, close: 21008.25 },
@@ -1441,7 +1441,7 @@ export const exercises: Exercise[] = [
       fvg_zone: { price_low: 21080, price_high: 21120, candle_start: 8, candle_end: 10 },
     },
     explanation:
-      "Price falls away from the gap, then rallies back toward it. Candle 28 opens below the zone at 21,050 and closes at 21,150 — a single candle trading straight through the entire 21,080-21,120 range and continuing higher. There's no reaction and no reversal, just continuation through the level. That's a disrespected FVG.",
+      "This Fair Value Gap was disrespected. After price falls away from the gap, it later comes back up — but instead of reacting, one candle opens below the entire gap and closes above it in a single move, then keeps rising. There's no pause and no reversal, just a straight trip through the level and out the other side.",
     candles: [
       { time: "09:30", open: 21215, high: 21218.5, low: 21196.5, close: 21200 },
       { time: "09:35", open: 21200, high: 21203.5, low: 21188.5, close: 21192 },
@@ -1515,7 +1515,7 @@ export const exercises: Exercise[] = [
       fvg_zone: { price_low: 21065, price_high: 21105, candle_start: 8, candle_end: 10 },
     },
     explanation:
-      "Price returns to the gap and spends two candles inside it — candle 28 and candle 29 both close within the 21,065-21,105 zone, which can look like a reaction. But pausing inside the gap isn't the same as reacting from it. Candle 30 then closes at 21,040, through the bottom of the zone, and price keeps falling from there. What decides respected vs. disrespected is how price leaves the zone — reversing back out counts as respected, closing through and continuing counts as disrespected — not whether it paused first. That's a disrespected FVG.",
+      "This Fair Value Gap was disrespected, even though it doesn't look that way at first. Price returns and sits inside the gap for a little while, which can look like a reaction. But sitting inside a gap isn't the same as reacting from it — what actually decides respected versus disrespected is which way price leaves. Here, price eventually closes out the far side of the gap and keeps going, instead of turning around and going back the way it came. That's disrespected, no matter how long it paused first.",
     candles: [
       { time: "09:30", open: 20985, high: 21003, low: 20982, close: 21000 },
       { time: "09:35", open: 21000, high: 21010, low: 20997, close: 21007 },
