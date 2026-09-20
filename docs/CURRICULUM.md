@@ -41,6 +41,14 @@ Source of truth for concept definitions. Every exercise's answer key is written 
 
 **Applies to:** FVG and IFVG only — not Liquidity or MSS, which don't have a "gap" for price to return to. IFVG exercises are not yet built; only FVG's respected/disrespected exercises exist so far.
 
+## Inverse Fair Value Gap (IFVG)
+
+**⚠️ PROVISIONAL — pending Haven's validation.** Do not build IFVG exercises against this definition until it's confirmed.
+
+**What it is:** an Inverse Fair Value Gap is an FVG that has been disrespected — a candle body closed beyond its far boundary — and which then acts as the opposite kind of level when price returns to it. A bullish FVG that fails becomes resistance; a bearish FVG that fails becomes support.
+
+**Confirmation:** the flip is confirmed the same way as [respected/disrespected](#fair-value-gap--respected-vs-disrespected) above — by a candle body close, not a wick.
+
 ## Liquidity — Time-Based Levels (defined, not yet examinable)
 
 **⚠️ Blocked.** These definitions exist so they aren't lost, but they cannot be turned into exercises yet — the chart currently shows no time context at all (no dates, session boundaries, or day separators), so there's no way for a user to tell where a "day" or "session" begins or ends on a static 40-candle chart. Unblocked when Phase 7 introduces real historical data with timestamps.
