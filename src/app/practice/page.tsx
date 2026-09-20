@@ -8,12 +8,14 @@ import { ChoiceControls } from "@/components/practice/choice-controls";
 import { ConceptPicker } from "@/components/practice/concept-picker";
 import { ExerciseControls } from "@/components/practice/exercise-controls";
 import { FeedbackPanel } from "@/components/practice/feedback-panel";
+import { SessionLengthPicker } from "@/components/practice/session-length-picker";
 import { SessionSummary } from "@/components/practice/session-summary";
-import { getExercise, getExerciseIdsByConcept } from "@/data/exercises";
+import { buildSessionExerciseIds, getExercise, type SessionLength } from "@/data/exercises";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { insertAttempt, nextAttemptNumber } from "@/lib/attempts";
 import { CONCEPT_LIST, getConceptMeta, type Concept } from "@/lib/concepts";
 import { gradeAttempt, type GradeResult, type UserAnswer, type UserRegion } from "@/lib/grading";
+import { recordSessionCompletion } from "@/lib/profiles";
 import {
   clearSession,
   createSession,
@@ -26,6 +28,9 @@ export default function PracticePage() {
   const { user, loading: authLoading } = useRequireAuth();
   const [session, setSession] = useState<SessionState | null>(null);
   const [showPicker, setShowPicker] = useState(false);
+  /** Set once a concept is picked, before session length is chosen — shows
+   * the length picker instead of immediately starting a session. */
+  const [lengthPickerConcept, setLengthPickerConcept] = useState<Concept | null>(null);
   const [userRegion, setUserRegion] = useState<UserRegion | null>(null);
   const [userLevel, setUserLevel] = useState<number | null>(null);
   const [userChoice, setUserChoice] = useState<string | null>(null);
@@ -36,11 +41,13 @@ export default function PracticePage() {
 
   // Resume an in-progress (or just-completed) session from a prior visit;
   // otherwise honor a ?concept= deep link (e.g. from the analytics page's
-  // "recommended next practice" link) by starting that concept directly;
-  // otherwise show the concept picker. Reading localStorage/location is a
-  // one-time sync from browser-only state (neither is available during
-  // SSR) and can't be done in render, so the setState-in-effect here is
-  // intentional.
+  // "recommended next practice" link, or the dashboard's "practice weakest
+  // concept" button) by starting that concept directly with every exercise
+  // included (skipping the length picker — a deep link is a "just start"
+  // action); otherwise show the concept picker. Reading localStorage/
+  // location is a one-time sync from browser-only state (neither is
+  // available during SSR) and can't be done in render, so the
+  // setState-in-effect here is intentional.
   useEffect(() => {
     const existing = loadSession();
     if (existing) {
@@ -50,7 +57,7 @@ export default function PracticePage() {
     }
     const requestedConcept = new URLSearchParams(window.location.search).get("concept");
     if (requestedConcept && CONCEPT_LIST.includes(requestedConcept as Concept)) {
-      handlePickConcept(requestedConcept as Concept);
+      handleStartSession(requestedConcept as Concept, "all");
       return;
     }
     setShowPicker(true);
@@ -62,10 +69,16 @@ export default function PracticePage() {
   }, [session?.session_id, session?.current_index]);
 
   function handlePickConcept(concept: Concept) {
-    const fresh = createSession(concept, getExerciseIdsByConcept(concept));
+    setShowPicker(false);
+    setLengthPickerConcept(concept);
+  }
+
+  function handleStartSession(concept: Concept, length: SessionLength) {
+    const fresh = createSession(concept, buildSessionExerciseIds(concept, length));
     saveSession(fresh);
     setSession(fresh);
     setShowPicker(false);
+    setLengthPickerConcept(null);
     setUserRegion(null);
     setUserLevel(null);
     setUserChoice(null);
@@ -75,6 +88,7 @@ export default function PracticePage() {
   function handleBackToPicker() {
     clearSession();
     setSession(null);
+    setLengthPickerConcept(null);
     setShowPicker(true);
   }
 
@@ -92,6 +106,24 @@ export default function PracticePage() {
       <div className="flex flex-1 flex-col">
         <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-14">
           <ConceptPicker onPick={handlePickConcept} />
+        </div>
+        <DisclaimerFooter />
+      </div>
+    );
+  }
+
+  if (lengthPickerConcept) {
+    return (
+      <div className="flex flex-1 flex-col">
+        <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-14">
+          <SessionLengthPicker
+            concept={lengthPickerConcept}
+            onPick={(length) => handleStartSession(lengthPickerConcept, length)}
+            onBack={() => {
+              setLengthPickerConcept(null);
+              setShowPicker(true);
+            }}
+          />
         </div>
         <DisclaimerFooter />
       </div>
@@ -238,6 +270,11 @@ export default function PracticePage() {
     setUserChoice(null);
     setResult(null);
     setSaveError(null);
+    // Best-effort, off the critical path — a failure here shouldn't block
+    // showing the session summary (matching how ensureProfile is called).
+    if (completed && user) {
+      recordSessionCompletion(user.id).catch(() => {});
+    }
   }
 
   return (

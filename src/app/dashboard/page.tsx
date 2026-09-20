@@ -7,6 +7,7 @@ import { LoadingState } from "@/components/loading-state";
 import { PrimaryButton } from "@/components/primary-button";
 import { StatCard } from "@/components/stat-card";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import { getStrongestAndWeakestConcept } from "@/lib/analytics";
 import {
   fetchAttempts,
   getAccuracyByConcept,
@@ -16,6 +17,7 @@ import {
   type DbAttempt,
 } from "@/lib/attempts";
 import { CONCEPTS, type Concept } from "@/lib/concepts";
+import { fetchProfile } from "@/lib/profiles";
 import { clearLocalAttempts, getSessionScoreLabel, loadAttempts, loadSession } from "@/lib/storage";
 
 export default function DashboardPage() {
@@ -29,6 +31,8 @@ export default function DashboardPage() {
   const [migrationDismissed, setMigrationDismissed] = useState(false);
   const [migrating, setMigrating] = useState(false);
   const [migrateError, setMigrateError] = useState<string | null>(null);
+
+  const [streak, setStreak] = useState<number | null>(null);
 
   // Reading localStorage is a one-time sync from a browser-only store (it
   // isn't available during SSR), so this can't be lazy initial state — the
@@ -48,6 +52,14 @@ export default function DashboardPage() {
       setLoadError(err instanceof Error ? err.message : "Couldn't load your stats.");
     } finally {
       setDataLoading(false);
+    }
+    // Streak is shown as "—" rather than blocking/erroring the rest of the
+    // dashboard if it fails to load — it's a nice-to-have, not core data.
+    try {
+      const profile = await fetchProfile(userId);
+      setStreak(profile?.current_streak ?? 0);
+    } catch {
+      setStreak(null);
     }
   }
 
@@ -90,11 +102,13 @@ export default function DashboardPage() {
 
   const accuracy = attempts ? getOverallAccuracy(attempts) : null;
   const byConcept = attempts ? getAccuracyByConcept(attempts) : {};
+  const highlights = getStrongestAndWeakestConcept(byConcept);
 
   const STATS = [
     { label: "Overall Accuracy", value: accuracy === null ? "—" : `${accuracy}%` },
     { label: "Exercises Completed", value: attempts ? String(getExercisesCompletedCount(attempts)) : "—" },
     { label: "Session Score", value: getSessionScoreLabel(loadSession()) },
+    { label: "Practice Streak", value: streak === null ? "—" : `${streak} day${streak === 1 ? "" : "s"}` },
   ];
 
   const conceptStats = (Object.keys(CONCEPTS) as Concept[]).map((concept) => ({
@@ -134,7 +148,7 @@ export default function DashboardPage() {
         </div>
       ) : (
         <>
-          <div className="mt-8 grid grid-cols-3 gap-4">
+          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
             {STATS.map((stat) => (
               <StatCard key={stat.label} label={stat.label} value={stat.value} />
             ))}
@@ -154,6 +168,15 @@ export default function DashboardPage() {
               ))}
             </div>
           </div>
+
+          {highlights && (
+            <div className="mt-8">
+              <PrimaryButton href={`/practice?concept=${encodeURIComponent(highlights.weakest.concept)}`}>
+                Practice my weakest concept (
+                {CONCEPTS[highlights.weakest.concept as Concept]?.pickerLabel ?? highlights.weakest.concept})
+              </PrimaryButton>
+            </div>
+          )}
         </>
       )}
 

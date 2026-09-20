@@ -2308,3 +2308,37 @@ export function getExerciseIdsByConcept(concept: Concept): string[] {
     .filter((exercise) => exercise.concept === concept)
     .map((exercise) => exercise.exercise_id);
 }
+
+/** Fixed session-length caps offered in the UI, in addition to "all". */
+const SESSION_LENGTH_CAPS = [5, 10] as const;
+
+export type SessionLength = number | "all";
+
+/** Which length choices make sense for a concept — a cap only appears if
+ * the concept actually has more exercises than that cap (offering "10"
+ * when there are only 5 exercises would just be a second way to ask for
+ * "all"). "all" is always offered. */
+export function getAvailableSessionLengths(concept: Concept): SessionLength[] {
+  const total = getExerciseIdsByConcept(concept).length;
+  const caps = SESSION_LENGTH_CAPS.filter((cap) => cap < total);
+  return [...caps, "all"];
+}
+
+/** Fisher-Yates — used so exercise order within a session isn't always the
+ * same fixed sequence the exercises are authored in. */
+function shuffle<T>(items: T[]): T[] {
+  const shuffled = [...items];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+/** Builds a randomly-ordered exercise list for a new session — `length`
+ * caps how many exercises are included ("all" uses every exercise for the
+ * concept, order still randomized). */
+export function buildSessionExerciseIds(concept: Concept, length: SessionLength): string[] {
+  const shuffled = shuffle(getExerciseIdsByConcept(concept));
+  return length === "all" ? shuffled : shuffled.slice(0, Math.min(length, shuffled.length));
+}
