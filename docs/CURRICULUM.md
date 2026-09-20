@@ -59,6 +59,40 @@ Source of truth for concept definitions. Every exercise's answer key is written 
 
 **Confirmation:** the flip is confirmed the same way as [respected/disrespected](#fair-value-gap--respected-vs-disrespected) above — by a candle body close, not a wick.
 
+## Guided Entry
+
+**Provenance:** AI-DRAFTED — approved by Haven on a read-through, not independently verified. Exercises have been built against this definition on that approval; treat the definition itself as still needing review before anyone other than Haven uses the app.
+
+**What it is:** a four-step framework for building a trade idea from market structure, rather than testing recognition of a single concept in isolation. Each step depends on the ones before it — a valid setup is a chain, not four independent guesses.
+
+1. **Directional bias** — the expected next move, read from market structure and which side's resting liquidity is likely being targeted. Bullish after a bullish [MSS](#market-structure-shift-mss) with sell-side liquidity already taken (the downside stop-run is done; price is expected to seek buy-side liquidity next). Bearish after a bearish MSS with buy-side liquidity already taken (mirrored). When structure hasn't shifted, or it's unclear which side's liquidity was actually targeted, bias is **unclear** — that's a legitimate answer, not a fallback for not knowing.
+
+2. **Entry** — sits at a level, never in open space. A valid entry is one of:
+   - an unmitigated [Fair Value Gap](#fair-value-gap-fvg) (price hasn't traded back through it since it formed),
+   - an [IFVG](#inverse-fair-value-gap-ifvg) acting as an inverse level (support after a bearish-to-bullish flip, resistance after a bullish-to-bearish flip),
+   - or a retest of a broken structural level (the swing point whose break confirmed the MSS, now acting as support/resistance from the other side).
+
+   An entry that isn't anchored to one of these — a round number, "it looks like it'll bounce here," the middle of a range — is not valid, regardless of how the rest of the setup reads.
+
+3. **Stop loss** — placed beyond the level that would invalidate the idea if reached: below the swing low that formed the setup for a long, above the swing high that formed the setup for a short. Not an arbitrary distance or a fixed point count — it's tied to the specific structural point whose violation means the read was wrong.
+
+4. **Target** — the next opposing liquidity pool. For a long, the nearest buy-side liquidity above; for a short, the nearest sell-side liquidity below. Not the next minor swing or a round-number level — the target is liquidity-based, same as [Liquidity](#liquidity)'s definitions above.
+
+**Risk-to-reward (R:R)** — the distance from entry to target divided by the distance from entry to stop:
+
+```
+R:R = (target − entry) / (entry − stop)     // for a long; mirrored for a short
+```
+
+**Minimum 2:1 is required for a valid setup.** A setup that's correct on bias, entry, and stop but whose best available target only reaches 1.5:1 is not a valid trade — the framework rejects it on R:R alone.
+
+**No trade** is the correct answer whenever any one of these holds:
+- bias is unclear,
+- no valid entry level exists (per the definition above),
+- or the best available risk-to-reward is below 2:1.
+
+**Why grade the process, not the outcome (PRD Section 13):** a setup that satisfies all four steps and clears 2:1 is a *valid* setup even if the trade would have lost — market structure describes probability, not certainty. Conversely, a setup that happened to work out but skipped a step (no real entry level, R:R below 2:1, bias never actually confirmed) is not a good decision that got lucky. Guided Entry exercises are graded against whether the four-step process was followed correctly, never against what price did afterward.
+
 ## Liquidity — Time-Based Levels (defined, not yet examinable)
 
 **Provenance:** HAVEN-VALIDATED.
