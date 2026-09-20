@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ConceptAccuracyBars } from "@/components/analytics/concept-accuracy-bars";
 import { ConceptHighlights } from "@/components/analytics/concept-highlights";
+import { DifficultyAccuracyBars } from "@/components/analytics/difficulty-accuracy-bars";
 import { AnalyticsEmptyState } from "@/components/analytics/empty-state";
 import { ExerciseAccuracyList } from "@/components/analytics/exercise-accuracy-list";
 import { ImprovementChart } from "@/components/analytics/improvement-chart";
@@ -13,6 +14,7 @@ import { ErrorBanner } from "@/components/error-banner";
 import { LoadingState } from "@/components/loading-state";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import {
+  getAccuracyByDifficulty,
   getAccuracyByExercise,
   getAccuracyOverTime,
   getOverallStats,
@@ -83,6 +85,7 @@ function AnalyticsContent({ attempts }: { attempts: DbAttempt[] }) {
   const byConcept = getAccuracyByConcept(attempts);
   const highlights = getStrongestAndWeakestConcept(byConcept);
   const byExercise = getAccuracyByExercise(attempts);
+  const byDifficulty = getAccuracyByDifficulty(attempts);
   const blocks = getAccuracyOverTime(attempts);
   const responseTime = getResponseTimeStats(attempts);
 
@@ -98,6 +101,17 @@ function AnalyticsContent({ attempts }: { attempts: DbAttempt[] }) {
           <ConceptAccuracyBars byConcept={byConcept} />
         </div>
       </section>
+
+      {Object.keys(byDifficulty).length > 0 && (
+        <section>
+          <p className="text-xs font-medium uppercase tracking-wide text-muted">
+            Accuracy by Difficulty
+          </p>
+          <div className="mt-3">
+            <DifficultyAccuracyBars byDifficulty={byDifficulty} />
+          </div>
+        </section>
+      )}
 
       <section>
         <p className="text-xs font-medium uppercase tracking-wide text-muted">

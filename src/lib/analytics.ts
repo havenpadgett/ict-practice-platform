@@ -113,6 +113,28 @@ export function getAccuracyByExercise(attempts: DbAttempt[]): ExerciseAccuracy[]
     .sort((a, b) => b.missed - a.missed || a.accuracy - b.accuracy);
 }
 
+/** Accuracy per difficulty level (1-3), e.g. { 1: 90, 2: 60, 3: 40} — only
+ * for levels with at least one recorded attempt. Attempts recorded before
+ * the difficulty column existed (null) are excluded rather than counted
+ * under any particular level. */
+export function getAccuracyByDifficulty(
+  attempts: { difficulty: 1 | 2 | 3 | null; is_correct: boolean }[],
+): Record<number, number> {
+  const byDifficulty = new Map<number, { correct: number; total: number }>();
+  for (const attempt of attempts) {
+    if (attempt.difficulty === null) continue;
+    const entry = byDifficulty.get(attempt.difficulty) ?? { correct: 0, total: 0 };
+    entry.total += 1;
+    if (attempt.is_correct) entry.correct += 1;
+    byDifficulty.set(attempt.difficulty, entry);
+  }
+  const result: Record<number, number> = {};
+  for (const [difficulty, { correct, total }] of byDifficulty) {
+    result[difficulty] = Math.round((correct / total) * 100);
+  }
+  return result;
+}
+
 export type AccuracyBlock = { label: string; accuracy: number; count: number };
 
 /** Blocks of 5 attempts, in the order they were recorded — 5 matches the

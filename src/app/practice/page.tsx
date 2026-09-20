@@ -175,6 +175,7 @@ export default function PracticePage() {
       await insertAttempt(user.id, {
         exercise_id: exercise!.exercise_id,
         concept: exercise!.concept,
+        difficulty: exercise!.difficulty,
         answer_type: exercise!.answer_type,
         user_answer_type: answer.type,
         user_price_low: isRegion ? answer.region.priceLow : null,
@@ -248,7 +249,7 @@ export default function PracticePage() {
           </h1>
           <p className="text-sm text-muted">
             Exercise {session.current_index + 1} of {session.exercise_order.length} · Score{" "}
-            {session.correct_count}/{attemptedCount}
+            {session.correct_count}/{attemptedCount} · Difficulty {exercise.difficulty}/3
           </p>
         </div>
         <p className="mt-2 text-sm text-muted">{exercise.prompt}</p>

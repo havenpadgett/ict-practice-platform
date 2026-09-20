@@ -12,6 +12,10 @@ export type DbAttempt = {
   user_id: string;
   exercise_id: string;
   concept: string;
+  /** The exercise's difficulty (1-3) at the time of the attempt. Null for
+   * attempts recorded before this column existed (supabase/migrations/
+   * ..._add_difficulty_to_attempts.sql). */
+  difficulty: 1 | 2 | 3 | null;
   answer_type: "zone" | "level" | "choice";
   user_answer_type: "region" | "level" | "choice" | "none";
   user_price_low: number | null;
@@ -87,6 +91,7 @@ export async function migrateLocalAttempts(
       user_id: userId,
       exercise_id: a.exercise_id,
       concept: a.concept,
+      difficulty: exercise?.difficulty ?? null,
       answer_type: exercise?.answer_type ?? "zone",
       user_answer_type: a.user_answer_type,
       user_price_low: a.user_price_low,
