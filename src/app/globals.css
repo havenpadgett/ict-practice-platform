@@ -1,13 +1,29 @@
 @import "tailwindcss";
 
+/* ---- Design tokens ----------------------------------------------------
+ * Single source of truth for color, type, and spacing. Documented in
+ * docs/DESIGN-SYSTEM.md. Change values here, not in individual components
+ * — everything else consumes these through the Tailwind theme mapping
+ * below (bg-background, text-muted, bg-accent, etc.) or the base element
+ * styles further down, so a token change cascades everywhere it's used
+ * instead of needing to be hand-applied component by component.
+ */
 :root {
-  --background: #0a0b0d;
-  --surface: #131519;
-  --line: #232630;
-  --foreground: #e9eaec;
-  --muted: #8b8f98;
-  --accent: #4c82fb;
-  --accent-foreground: #05070d;
+  /* Surfaces: background, then a slightly lighter surface for cards, then
+   * a subtle line for thin card/nav borders. */
+  --background: #1e1e1e;
+  --surface: #262626;
+  --line: #343434;
+
+  /* Text: high-contrast foreground for headings, muted grey for body copy
+   * and micro-labels. */
+  --foreground: #ececea;
+  --muted: #9b9b9b;
+
+  /* The one accent — mint green. Reserved for primary actions and active
+   * states only; never used for decoration or general emphasis. */
+  --accent: #34d399;
+  --accent-foreground: #0b1f16;
 }
 
 @theme inline {
@@ -20,10 +36,40 @@
   --color-accent-foreground: var(--accent-foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Generous, named vertical rhythm between page sections — use as
+   * mt-section / space-y-section / gap-section, rather than picking a
+   * one-off spacing number per page. */
+  --spacing-section: 3.5rem;
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
+  color: var(--muted);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  line-height: 1.6;
+}
+
+/* Headings: large, tight letter-spacing, high contrast. Components already
+ * pair these with a size utility (text-xl, text-2xl, ...) per heading; this
+ * base rule is what makes that the default instead of something every new
+ * heading has to opt into by hand. */
+h1,
+h2,
+h3,
+h4 {
+  color: var(--foreground);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Micro-label: small uppercase monospace, muted — used as a section
+ * eyebrow above a heading or a stat. */
+.eyebrow {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
