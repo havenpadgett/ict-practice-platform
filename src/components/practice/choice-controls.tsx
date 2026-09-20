@@ -14,7 +14,7 @@ export function ChoiceControls({
   canSubmit: boolean;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div>
       <div className="flex flex-wrap gap-3">
         {options.map((option) => (
           <button
@@ -32,14 +32,19 @@ export function ChoiceControls({
           </button>
         ))}
       </div>
-      <button
-        type="button"
-        onClick={onSubmit}
-        disabled={!canSubmit}
-        className="inline-flex items-center justify-center rounded-md bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        Submit
-      </button>
+      {/* Submit is a commit action, not another option in the group above —
+          a separate, top-bordered row keeps it from being mistaken for one
+          more choice and prevents mis-clicks right after selecting. */}
+      <div className="mt-5 flex justify-end border-t border-line pt-4">
+        <button
+          type="button"
+          onClick={onSubmit}
+          disabled={!canSubmit}
+          className="inline-flex items-center justify-center rounded-md bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Submit
+        </button>
+      </div>
     </div>
   );
 }
