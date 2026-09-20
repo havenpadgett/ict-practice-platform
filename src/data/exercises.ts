@@ -1221,7 +1221,7 @@ export const exercises: Exercise[] = [
       fvg_zone: { price_low: 21065, price_high: 21105, candle_start: 8, candle_end: 10 },
     },
     explanation:
-      "This Fair Value Gap was respected. After price rallies away from the gap, it eventually pulls back and trades down into that empty space — then turns around and closes back above it. That reaction, price entering the gap and reversing instead of continuing through it, is what makes a gap respected.",
+      "This Fair Value Gap was respected. This project decides respected vs. disrespected by candle body closes, not wicks — a wick trading into the gap doesn't invalidate it. Candle 28's wick reaches down to 21075, inside the gap, but its body closes at 21095 — still above the gap's lower boundary at 21065. No candle body ever closes below 21065, so the gap holds and price continues higher.",
     candles: [
       { time: "09:30", open: 20985, high: 21003.5, low: 20981.5, close: 21000 },
       { time: "09:35", open: 21000, high: 21010.5, low: 20996.5, close: 21007 },
@@ -1294,7 +1294,7 @@ export const exercises: Exercise[] = [
       fvg_zone: { price_low: 21080, price_high: 21120, candle_start: 8, candle_end: 10 },
     },
     explanation:
-      "This Fair Value Gap was respected. After price falls away from the gap, it eventually rallies back up into that empty space — then turns around and closes back below it. That reaction, price entering the gap and reversing instead of continuing through it, is what makes a gap respected.",
+      "This Fair Value Gap was respected. Respected vs. disrespected comes down to candle body closes, not wicks — a wick trading into the gap doesn't invalidate it. Candle 28's wick reaches up to 21110, inside the gap, but its body closes at 21100 — still below the gap's upper boundary at 21120. No candle body ever closes above 21120, so the gap holds and price continues lower.",
     candles: [
       { time: "09:30", open: 21215, high: 21218.5, low: 21196.5, close: 21200 },
       { time: "09:35", open: 21200, high: 21203.5, low: 21189, close: 21192.5 },
@@ -1367,7 +1367,7 @@ export const exercises: Exercise[] = [
       fvg_zone: { price_low: 21065, price_high: 21105, candle_start: 8, candle_end: 10 },
     },
     explanation:
-      "This Fair Value Gap was disrespected. After price rallies away from the gap, it later comes back down — but instead of reacting, one candle opens above the entire gap and closes below it in a single move, then keeps falling. There's no pause and no reversal, just a straight trip through the level and out the other side.",
+      "This Fair Value Gap was disrespected. A gap is disrespected the moment a candle body closes beyond its far boundary — wicks don't count, only body closes do. Candle 28 opens above the entire gap and its body closes at 21050, below the gap's lower boundary at 21065, with no earlier candle having closed inside or beyond it first. That single body close through the far side disrespects the gap, and price keeps falling from there.",
     candles: [
       { time: "09:30", open: 20985, high: 21003.5, low: 20981.5, close: 21000 },
       { time: "09:35", open: 21000, high: 21011.75, low: 20996.5, close: 21008.25 },
@@ -1441,7 +1441,7 @@ export const exercises: Exercise[] = [
       fvg_zone: { price_low: 21080, price_high: 21120, candle_start: 8, candle_end: 10 },
     },
     explanation:
-      "This Fair Value Gap was disrespected. After price falls away from the gap, it later comes back up — but instead of reacting, one candle opens below the entire gap and closes above it in a single move, then keeps rising. There's no pause and no reversal, just a straight trip through the level and out the other side.",
+      "This Fair Value Gap was disrespected. A gap is disrespected the moment a candle body closes beyond its far boundary — wicks don't count, only body closes do. Candle 28 opens below the entire gap and its body closes at 21150, above the gap's upper boundary at 21120, with no earlier candle having reacted from inside the zone first. That single body close through the far side disrespects the gap, and price keeps rising from there.",
     candles: [
       { time: "09:30", open: 21215, high: 21218.5, low: 21196.5, close: 21200 },
       { time: "09:35", open: 21200, high: 21203.5, low: 21188.5, close: 21192 },
@@ -1515,7 +1515,7 @@ export const exercises: Exercise[] = [
       fvg_zone: { price_low: 21065, price_high: 21105, candle_start: 8, candle_end: 10 },
     },
     explanation:
-      "This Fair Value Gap was disrespected, even though it doesn't look that way at first. Price returns and sits inside the gap for a little while, which can look like a reaction. But sitting inside a gap isn't the same as reacting from it — what actually decides respected versus disrespected is which way price leaves. Here, price eventually closes out the far side of the gap and keeps going, instead of turning around and going back the way it came. That's disrespected, no matter how long it paused first.",
+      "This Fair Value Gap was disrespected, even though it doesn't look that way at first. Price re-enters the gap on candle 28 and chops there for a candle, which can look like a reaction — but neither candle's body closes beyond the gap's lower boundary at 21065, so nothing is decided yet. Candle 30 then closes at 21040, below that boundary, and price keeps falling. That body close is what makes the gap disrespected — the pause beforehand doesn't matter, and neither would a wick that dipped low without a body close to match.",
     candles: [
       { time: "09:30", open: 20985, high: 21003, low: 20982, close: 21000 },
       { time: "09:35", open: 21000, high: 21010, low: 20997, close: 21007 },

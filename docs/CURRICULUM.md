@@ -30,9 +30,14 @@ Source of truth for concept definitions. Every exercise's answer key is written 
 - **Not an MSS:** a break in the same direction as the trend — that is continuation, not a shift.
 - **Terminology:** this project uses MSS. Do not introduce BOS or CHoCH terminology.
 
-## Fair Value Gap — Respected vs. Disrespected **(PROVISIONAL — pending Haven's validation)**
+## Fair Value Gap — Respected vs. Disrespected
 
-**What it is:** after an FVG forms, price may later trade back into it. If price reacts from within the gap — reversing back out the side it came in from — the gap is **respected**. If price instead closes through the far side of the gap and continues, the gap is **disrespected**. A brief pause or a shallow wick inside the gap isn't itself the deciding factor — what matters is which way price leaves the zone.
+**What it is:** after an FVG forms, price may later trade back into it. An FVG is **respected** as long as no candle *body* closes beyond the far boundary of the gap — price may wick into or through the zone without invalidating it, and the imbalance holds, so price continues in the original direction. An FVG is **disrespected** the moment a candle body closes beyond the far boundary.
+
+- **Bullish FVG:** respected while no candle body closes below the gap's lower boundary. Disrespected when a candle body closes below it.
+- **Bearish FVG:** respected while no candle body closes above the gap's upper boundary. Disrespected when a candle body closes above it.
+
+**Shared principle — confirmation by body close, not wicks:** this project confirms events by candle body closes rather than wicks. This is the same rule used for [MSS confirmation](#market-structure-shift-mss) above, applied here to gap invalidation.
 
 **Applies to:** FVG and IFVG only — not Liquidity or MSS, which don't have a "gap" for price to return to. IFVG exercises are not yet built; only FVG's respected/disrespected exercises exist so far.
 
