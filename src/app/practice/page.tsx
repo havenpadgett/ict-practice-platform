@@ -8,6 +8,7 @@ import { ChoiceControls } from "@/components/practice/choice-controls";
 import { ConceptPicker } from "@/components/practice/concept-picker";
 import { ExerciseControls } from "@/components/practice/exercise-controls";
 import { FeedbackPanel } from "@/components/practice/feedback-panel";
+import { GuidedExercise } from "@/components/practice/guided-exercise";
 import { SessionLengthPicker } from "@/components/practice/session-length-picker";
 import { SessionSummary } from "@/components/practice/session-summary";
 import { buildSessionExerciseIds, getExercise, type SessionLength } from "@/data/exercises";
@@ -15,6 +16,7 @@ import { useRequireAuth } from "@/hooks/use-require-auth";
 import { insertAttempt, nextAttemptNumber } from "@/lib/attempts";
 import { CONCEPT_LIST, getConceptMeta, type Concept } from "@/lib/concepts";
 import { gradeAttempt, type GradeResult, type UserAnswer, type UserRegion } from "@/lib/grading";
+import type { GuidedGradeResult, GuidedUserAnswer } from "@/lib/guided-grading";
 import { recordSessionCompletion } from "@/lib/profiles";
 import {
   clearSession,
@@ -218,10 +220,86 @@ export default function PracticePage() {
         distance_from_level: grade.distanceFromLevel,
         user_choice: isChoice ? answer.choice : null,
         correct_choice: exercise!.answer_type === "choice" ? exercise!.answer.correct_choice : null,
+        guided_bias_choice: null,
+        guided_entry_price: null,
+        guided_stop_price: null,
+        guided_target_price: null,
+        guided_bias_correct: null,
+        guided_entry_correct: null,
+        guided_stop_correct: null,
+        guided_target_correct: null,
+        guided_achieved_rr: null,
+        guided_declared_trade: null,
         is_correct: grade.isCorrect,
         coverage: grade.coverage,
         precision_ratio: grade.precisionRatio,
         failure_reason: grade.failureReason,
+        response_time_ms: responseTimeMs,
+        attempt_number: attemptNumber,
+      });
+    } catch (err) {
+      setSaveError(
+        err instanceof Error ? err.message : "Couldn't save this attempt — your progress in this session is unaffected.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // Guided Entry's multi-step flow finalizes itself (Submit Setup or No
+  // Trade at any step) and calls this once, in place of handleSubmit /
+  // handleNoAnswer — session bookkeeping and the Supabase write follow the
+  // same shape as recordAttempt above, just with guided's own fields.
+  async function recordGuidedAttempt(answer: GuidedUserAnswer, grade: GuidedGradeResult) {
+    if (!session || !user || exercise!.answer_type !== "guided") return;
+
+    const updatedSession: SessionState = {
+      ...session,
+      correct_count: session.correct_count + (grade.isCorrect ? 1 : 0),
+      missed_exercise_ids: grade.isCorrect
+        ? session.missed_exercise_ids
+        : [...session.missed_exercise_ids, exercise!.exercise_id],
+    };
+    saveSession(updatedSession);
+    setSession(updatedSession);
+
+    setSaving(true);
+    setSaveError(null);
+    const responseTimeMs = Date.now() - exerciseStartRef.current;
+
+    const stepResult = (step: "bias" | "entry" | "stop" | "target") =>
+      grade.steps.find((s) => s.step === step)?.isCorrect ?? null;
+
+    try {
+      const attemptNumber = await nextAttemptNumber(user.id, exercise!.exercise_id);
+      await insertAttempt(user.id, {
+        exercise_id: exercise!.exercise_id,
+        concept: exercise!.concept,
+        difficulty: exercise!.difficulty,
+        answer_type: "guided",
+        user_answer_type: "guided",
+        user_price_low: null,
+        user_price_high: null,
+        user_candle_start: null,
+        user_candle_end: null,
+        coverage: null,
+        precision_ratio: null,
+        user_price: null,
+        distance_from_level: null,
+        user_choice: null,
+        correct_choice: null,
+        guided_bias_choice: answer.bias,
+        guided_entry_price: answer.entry,
+        guided_stop_price: answer.stop,
+        guided_target_price: answer.target,
+        guided_bias_correct: stepResult("bias"),
+        guided_entry_correct: stepResult("entry"),
+        guided_stop_correct: stepResult("stop"),
+        guided_target_correct: stepResult("target"),
+        guided_achieved_rr: grade.achievedRR,
+        guided_declared_trade: answer.declaredTrade,
+        is_correct: grade.isCorrect,
+        failure_reason: null,
         response_time_ms: responseTimeMs,
         attempt_number: attemptNumber,
       });
@@ -291,66 +369,86 @@ export default function PracticePage() {
         </div>
         <p className="mt-2 text-sm text-muted">{exercise.prompt}</p>
 
-        <div className="mt-6 overflow-hidden rounded-lg border border-line bg-surface p-2 sm:p-3">
-          {exercise.answer_type === "zone" ? (
-            <CandlestickChart
-              answerType="zone"
-              candles={exercise.candles}
-              interactive={result === null}
-              userRegion={userRegion}
-              onUserRegionChange={setUserRegion}
-              correctZone={result?.revealZone ? exercise.answer : null}
-            />
-          ) : exercise.answer_type === "level" ? (
-            <CandlestickChart
-              answerType="level"
-              candles={exercise.candles}
-              interactive={result === null}
-              userLevel={userLevel}
-              onUserLevelChange={setUserLevel}
-              correctLevel={result?.revealZone ? exercise.answer?.price ?? null : null}
-            />
-          ) : (
-            <CandlestickChart
-              answerType="choice"
-              candles={exercise.candles}
-              interactive={false}
-              fvgZone={exercise.answer.fvg_zone}
-            />
-          )}
-        </div>
-
-        {saving && <p className="mt-3 text-xs text-muted">Saving…</p>}
-        {saveError && (
-          <p className="mt-3 text-xs" style={{ color: "#e2685f" }}>
-            {saveError}
-          </p>
-        )}
-
-        <div className="mt-5">
-          {result ? (
-            <FeedbackPanel
-              result={result}
+        {exercise.answer_type === "guided" ? (
+          <div className="mt-6">
+            <GuidedExercise
+              key={exercise.exercise_id}
+              exercise={exercise}
+              onGraded={recordGuidedAttempt}
               onNext={handleNext}
               nextLabel={isLastExercise ? "See Results" : "Next Exercise"}
             />
-          ) : exercise.answer_type === "choice" ? (
-            <ChoiceControls
-              options={exercise.options}
-              selected={userChoice}
-              onSelect={setUserChoice}
-              onSubmit={handleSubmit}
-              canSubmit={canSubmit}
-            />
-          ) : (
-            <ExerciseControls
-              canSubmit={canSubmit}
-              onSubmit={handleSubmit}
-              onNoAnswer={handleNoAnswer}
-              noAnswerLabel={exercise.noAnswerLabel}
-            />
-          )}
-        </div>
+            {saving && <p className="mt-3 text-xs text-muted">Saving…</p>}
+            {saveError && (
+              <p className="mt-3 text-xs" style={{ color: "#e2685f" }}>
+                {saveError}
+              </p>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="mt-6 overflow-hidden rounded-lg border border-line bg-surface p-2 sm:p-3">
+              {exercise.answer_type === "zone" ? (
+                <CandlestickChart
+                  answerType="zone"
+                  candles={exercise.candles}
+                  interactive={result === null}
+                  userRegion={userRegion}
+                  onUserRegionChange={setUserRegion}
+                  correctZone={result?.revealZone ? exercise.answer : null}
+                />
+              ) : exercise.answer_type === "level" ? (
+                <CandlestickChart
+                  answerType="level"
+                  candles={exercise.candles}
+                  interactive={result === null}
+                  userLevel={userLevel}
+                  onUserLevelChange={setUserLevel}
+                  correctLevel={result?.revealZone ? exercise.answer?.price ?? null : null}
+                />
+              ) : (
+                <CandlestickChart
+                  answerType="choice"
+                  candles={exercise.candles}
+                  interactive={false}
+                  fvgZone={exercise.answer.fvg_zone}
+                />
+              )}
+            </div>
+
+            {saving && <p className="mt-3 text-xs text-muted">Saving…</p>}
+            {saveError && (
+              <p className="mt-3 text-xs" style={{ color: "#e2685f" }}>
+                {saveError}
+              </p>
+            )}
+
+            <div className="mt-5">
+              {result ? (
+                <FeedbackPanel
+                  result={result}
+                  onNext={handleNext}
+                  nextLabel={isLastExercise ? "See Results" : "Next Exercise"}
+                />
+              ) : exercise.answer_type === "choice" ? (
+                <ChoiceControls
+                  options={exercise.options}
+                  selected={userChoice}
+                  onSelect={setUserChoice}
+                  onSubmit={handleSubmit}
+                  canSubmit={canSubmit}
+                />
+              ) : (
+                <ExerciseControls
+                  canSubmit={canSubmit}
+                  onSubmit={handleSubmit}
+                  onNoAnswer={handleNoAnswer}
+                  noAnswerLabel={exercise.noAnswerLabel}
+                />
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       <DisclaimerFooter />

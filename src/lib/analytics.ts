@@ -185,3 +185,29 @@ export function getResponseTimeStats(attempts: DbAttempt[]): ResponseTimeStats {
 export function formatResponseTime(ms: number): string {
   return `${(ms / 1000).toFixed(1)}s`;
 }
+
+export type GuidedStepAccuracy = { step: "bias" | "entry" | "stop" | "target"; accuracy: number; count: number };
+
+/** Accuracy per Guided Entry step (bias/entry/stop/target), each computed
+ * only over attempts that actually reached that step — a step's
+ * guided_*_correct flag is null (not false) when the user bailed with "No
+ * Trade" before placing it, so those attempts are excluded from that
+ * step's denominator rather than counted against it. Only guided attempts
+ * (answer_type = 'guided') are considered; empty array if there are none. */
+export function getGuidedStepAccuracy(attempts: DbAttempt[]): GuidedStepAccuracy[] {
+  const guided = attempts.filter((a) => a.answer_type === "guided");
+  const steps: { step: GuidedStepAccuracy["step"]; field: keyof DbAttempt }[] = [
+    { step: "bias", field: "guided_bias_correct" },
+    { step: "entry", field: "guided_entry_correct" },
+    { step: "stop", field: "guided_stop_correct" },
+    { step: "target", field: "guided_target_correct" },
+  ];
+  const result: GuidedStepAccuracy[] = [];
+  for (const { step, field } of steps) {
+    const reached = guided.filter((a) => a[field] !== null);
+    if (reached.length === 0) continue;
+    const correct = reached.filter((a) => a[field] === true).length;
+    result.push({ step, accuracy: Math.round((correct / reached.length) * 100), count: reached.length });
+  }
+  return result;
+}

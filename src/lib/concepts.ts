@@ -3,9 +3,9 @@
 // handful of strings that vary by concept so nothing else has to hardcode
 // "FVG" or "Liquidity" text.
 
-export type Concept = "FVG" | "Liquidity" | "MSS" | "IFVG";
+export type Concept = "FVG" | "Liquidity" | "MSS" | "IFVG" | "GuidedEntry";
 
-export const CONCEPT_LIST: Concept[] = ["FVG", "Liquidity", "MSS", "IFVG"];
+export const CONCEPT_LIST: Concept[] = ["FVG", "Liquidity", "MSS", "IFVG", "GuidedEntry"];
 
 type ConceptMeta = {
   /** Page heading shown above the exercise, e.g. "FVG Practice". */
@@ -36,6 +36,11 @@ export const CONCEPTS: Record<Concept, ConceptMeta> = {
     title: "IFVG Practice",
     pickerLabel: "Inverse Fair Value Gap",
     pickerDescription: "Spot a Fair Value Gap that failed and now acts as the opposite level.",
+  },
+  GuidedEntry: {
+    title: "Guided Entry Practice",
+    pickerLabel: "Guided Entry",
+    pickerDescription: "Build a full trade idea step by step: bias, entry, stop, and target.",
   },
 };
 

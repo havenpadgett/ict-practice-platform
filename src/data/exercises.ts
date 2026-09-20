@@ -125,7 +125,58 @@ export type ChoiceExercise = ExerciseBase & {
   answer: ChoiceAnswer;
 };
 
-export type Exercise = ZoneExercise | LevelExercise | ChoiceExercise;
+// Guided Entry (docs/CURRICULUM.md): a four-step framework — bias, entry,
+// stop, target — graded as a chain rather than four independent guesses.
+// Entry/stop/target are each a price + tolerance, graded the same way as
+// LevelAnswer above (the user places a line, not a box); "zone" in the PRD's
+// phrasing just means the entry is anchored to a real level (an FVG, an
+// IFVG, or a broken structural level) rather than open space, not that it's
+// drawn as a box.
+
+export type GuidedBias = "bullish" | "bearish" | "unclear";
+
+export type GuidedLevelAnswer = {
+  price: number;
+  /** How far the user's placed line may be from `price` and still count as
+   * correct — same reasoning as LevelAnswer.tolerance. */
+  tolerance: number;
+};
+
+export type GuidedStepExplanations = {
+  bias: string;
+  entry: string;
+  stop: string;
+  target: string;
+};
+
+export type GuidedAnswer = {
+  bias: GuidedBias;
+  /** Null whenever there's no valid level to place — bias is unclear, or
+   * bias is clear but no entry/stop/target actually exists. The correct
+   * action from that step onward is "No Trade" (src/lib/guided-grading.ts). */
+  entry: GuidedLevelAnswer | null;
+  stop: GuidedLevelAnswer | null;
+  target: GuidedLevelAnswer | null;
+  /** Minimum acceptable risk-to-reward (PRD/curriculum: 2:1). */
+  min_rr: number;
+  /** Whether this scenario is actually a valid trade end to end — false
+   * when bias is unclear, no valid entry exists, or the best achievable
+   * R:R falls below min_rr. See docs/CURRICULUM.md, Guided Entry. */
+  is_valid_setup: boolean;
+  /** Shown per-step in feedback regardless of how far the user actually
+   * got — e.g. the entry explanation still displays if the user bailed
+   * with "No Trade" right after placing an entry. */
+  step_explanations: GuidedStepExplanations;
+  /** Shown once, alongside the overall verdict. */
+  overall_explanation: string;
+};
+
+export type GuidedExercise = ExerciseBase & {
+  answer_type: "guided";
+  answer: GuidedAnswer;
+};
+
+export type Exercise = ZoneExercise | LevelExercise | ChoiceExercise | GuidedExercise;
 
 // fvg-001: a single bullish FVG sits at candles[19..21]. Candle 19's high
 // (21107.25) is below candle 21's low (21139.25) — candle 20 is the large
@@ -2295,6 +2346,449 @@ export const exercises: Exercise[] = [
       { time: "12:35", open: 21469, high: 21471, low: 21465, close: 21467 },
       { time: "12:40", open: 21467, high: 21474, low: 21465, close: 21472 },
       { time: "12:45", open: 21472, high: 21474, low: 21467, close: 21469 },
+    ],
+  },
+  // guided-001: clear bullish setup. Structure: an untouched swing high at
+  // 21445 sits above everything that follows (never revisited — the target).
+  // Price sweeps the prior swing low (21300, candle 5) down to a new low at
+  // 21280 (candle 12 — sell-side liquidity taken, the setup's swing low),
+  // then candle 15 closes at 21418, back above the lower high at 21415
+  // (candle 9) — a confirmed bullish MSS. That same displacement leaves a
+  // Fair Value Gap at [21328, 21350] (candles 14-16), retested at candle 19.
+  // Entry 21335 / stop 21275 / target 21470 -> R:R = (21470-21335)/(21335-21275)
+  // = 135/60 = 2.25, clearing the 2:1 minimum.
+  {
+    exercise_id: "guided-001",
+    concept: "GuidedEntry",
+    answer_type: "guided",
+    answerLabel: "a valid trade setup",
+    prompt: "Work through the setup: bias, entry, stop, and target.",
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 1,
+    explanation:
+      "A valid long setup: bullish MSS with sell-side liquidity taken, an unmitigated FVG for entry, a stop below the setup's swing low, and a target at the next buy-side liquidity — combining for roughly 2.25:1, clearing the 2:1 minimum.",
+    answer: {
+      bias: "bullish",
+      entry: { price: 21335, tolerance: 8 },
+      stop: { price: 21275, tolerance: 8 },
+      target: { price: 21470, tolerance: 6 },
+      min_rr: 2,
+      is_valid_setup: true,
+      step_explanations: {
+        bias:
+          "Price swept below the prior swing low around 21,300 (down to 21,280) — taking the resting sell-side liquidity there — then reversed and closed back above the most recent lower high near 21,415. A liquidity sweep followed by a structural break the other way is a confirmed bullish Market Structure Shift.",
+        entry:
+          "The reversal candle that broke structure left a Fair Value Gap between about 21,328 and 21,350. Price pulled back into that unfilled range before continuing higher — an unmitigated FVG is exactly the kind of level this framework enters from.",
+        stop:
+          "The idea is invalidated if price trades back below the swing low that formed the setup, around 21,280. The stop sits just beyond that level.",
+        target:
+          "The next resting buy-side liquidity above is the untouched swing high from earlier in the session, around 21,470 — price hasn't traded back up to test it yet.",
+      },
+      overall_explanation:
+        "A valid long setup: bullish MSS with sell-side liquidity taken, an unmitigated FVG for entry, a stop below the setup's swing low, and a target at the next buy-side liquidity — combining for roughly 2.25:1, clearing the 2:1 minimum.",
+    },
+    candles: [
+      { time: "09:30", open: 21430, high: 21470, low: 21425, close: 21460 },
+      { time: "09:35", open: 21460, high: 21462, low: 21430, close: 21435 },
+      { time: "09:40", open: 21435, high: 21438, low: 21395, close: 21400 },
+      { time: "09:45", open: 21400, high: 21405, low: 21360, close: 21365 },
+      { time: "09:50", open: 21365, high: 21370, low: 21330, close: 21335 },
+      // Candle 5 — Prior Low (sell-side liquidity pool) = 21300
+      { time: "09:55", open: 21335, high: 21340, low: 21300, close: 21305 },
+      { time: "10:00", open: 21305, high: 21340, low: 21300, close: 21335 },
+      { time: "10:05", open: 21335, high: 21375, low: 21330, close: 21370 },
+      { time: "10:10", open: 21370, high: 21410, low: 21365, close: 21405 },
+      // Candle 9 — Lower High (the swing whose break confirms the MSS) = 21415
+      { time: "10:15", open: 21405, high: 21415, low: 21395, close: 21400 },
+      { time: "10:20", open: 21400, high: 21402, low: 21360, close: 21365 },
+      { time: "10:25", open: 21365, high: 21368, low: 21320, close: 21325 },
+      // Candle 12 — sweeps below the Prior Low, new setup swing low = 21280
+      { time: "10:30", open: 21325, high: 21330, low: 21280, close: 21285 },
+      { time: "10:35", open: 21285, high: 21315, low: 21282, close: 21310 },
+      // Candle 14 — FVG candle 1 (high 21328)
+      { time: "10:40", open: 21310, high: 21328, low: 21305, close: 21322 },
+      // Candle 15 — displacement; close 21418 confirms the MSS (>21415)
+      { time: "10:45", open: 21322, high: 21422, low: 21320, close: 21418 },
+      // Candle 16 — FVG candle 3 (low 21350) confirms the gap [21328, 21350]
+      { time: "10:50", open: 21418, high: 21430, low: 21350, close: 21425 },
+      { time: "10:55", open: 21425, high: 21432, low: 21400, close: 21405 },
+      { time: "11:00", open: 21405, high: 21408, low: 21370, close: 21378 },
+      // Candle 19 — retests the FVG zone (low 21345)
+      { time: "11:05", open: 21378, high: 21382, low: 21345, close: 21355 },
+      { time: "11:10", open: 21355, high: 21400, low: 21350, close: 21395 },
+      { time: "11:15", open: 21395, high: 21430, low: 21390, close: 21425 },
+      { time: "11:20", open: 21425, high: 21460, low: 21420, close: 21455 },
+      { time: "11:25", open: 21455, high: 21468, low: 21448, close: 21460 },
+      { time: "11:30", open: 21460, high: 21472, low: 21455, close: 21468 },
+      { time: "11:35", open: 21468, high: 21475, low: 21460, close: 21470 },
+      { time: "11:40", open: 21470, high: 21478, low: 21462, close: 21465 },
+      { time: "11:45", open: 21465, high: 21470, low: 21450, close: 21455 },
+      { time: "11:50", open: 21455, high: 21460, low: 21440, close: 21445 },
+      { time: "11:55", open: 21445, high: 21450, low: 21430, close: 21435 },
+      { time: "12:00", open: 21435, high: 21440, low: 21420, close: 21425 },
+      { time: "12:05", open: 21425, high: 21432, low: 21415, close: 21420 },
+      { time: "12:10", open: 21420, high: 21428, low: 21410, close: 21415 },
+      { time: "12:15", open: 21415, high: 21422, low: 21405, close: 21410 },
+      { time: "12:20", open: 21410, high: 21418, low: 21400, close: 21405 },
+      { time: "12:25", open: 21405, high: 21412, low: 21395, close: 21400 },
+      { time: "12:30", open: 21400, high: 21408, low: 21390, close: 21395 },
+      { time: "12:35", open: 21395, high: 21402, low: 21385, close: 21390 },
+      { time: "12:40", open: 21390, high: 21398, low: 21380, close: 21385 },
+      { time: "12:45", open: 21385, high: 21392, low: 21378, close: 21382 },
+    ],
+  },
+  // guided-002: bearish mirror of guided-001. An untouched swing low at
+  // 21230 sits below everything that follows. Price sweeps the prior swing
+  // high (21400, candle 5) up to a new high at 21420 (candle 12 —
+  // buy-side liquidity taken), then candle 15 closes at 21282, back below
+  // the higher low at 21285 (candle 9) — a confirmed bearish MSS. That
+  // displacement leaves a bearish Fair Value Gap at [21350, 21372]
+  // (candles 14-16), retested at candles 18-19. Entry 21365 / stop 21425 /
+  // target 21230 -> R:R = (21365-21230)/(21425-21365) = 135/60 = 2.25.
+  {
+    exercise_id: "guided-002",
+    concept: "GuidedEntry",
+    answer_type: "guided",
+    answerLabel: "a valid trade setup",
+    prompt: "Work through the setup: bias, entry, stop, and target.",
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 1,
+    explanation:
+      "A valid short setup: bearish MSS with buy-side liquidity taken, an unmitigated FVG for entry, a stop above the setup's swing high, and a target at the next sell-side liquidity — combining for roughly 2.25:1.",
+    answer: {
+      bias: "bearish",
+      entry: { price: 21365, tolerance: 8 },
+      stop: { price: 21425, tolerance: 8 },
+      target: { price: 21230, tolerance: 6 },
+      min_rr: 2,
+      is_valid_setup: true,
+      step_explanations: {
+        bias:
+          "Price swept above the prior swing high around 21,400 (up to 21,420) — taking the resting buy-side liquidity there — then reversed and closed back below the most recent higher low near 21,285. A liquidity sweep followed by a structural break the other way is a confirmed bearish Market Structure Shift.",
+        entry:
+          "The reversal candle that broke structure left a Fair Value Gap between about 21,350 and 21,372. Price pulled back up into that unfilled range before continuing lower — an unmitigated FVG, mirrored for the short side.",
+        stop:
+          "The idea is invalidated if price trades back above the swing high that formed the setup, around 21,420. The stop sits just beyond that level.",
+        target:
+          "The next resting sell-side liquidity below is the untouched swing low from earlier in the session, around 21,230 — price hasn't traded back down to test it yet.",
+      },
+      overall_explanation:
+        "A valid short setup: bearish MSS with buy-side liquidity taken, an unmitigated FVG for entry, a stop above the setup's swing high, and a target at the next sell-side liquidity — combining for roughly 2.25:1, clearing the 2:1 minimum.",
+    },
+    candles: [
+      { time: "09:30", open: 21270, high: 21275, low: 21230, close: 21240 },
+      { time: "09:35", open: 21240, high: 21275, low: 21238, close: 21270 },
+      { time: "09:40", open: 21270, high: 21310, low: 21265, close: 21305 },
+      { time: "09:45", open: 21305, high: 21345, low: 21300, close: 21340 },
+      { time: "09:50", open: 21340, high: 21375, low: 21335, close: 21370 },
+      // Candle 5 — Prior High (buy-side liquidity pool) = 21400
+      { time: "09:55", open: 21370, high: 21400, low: 21365, close: 21395 },
+      { time: "10:00", open: 21395, high: 21400, low: 21360, close: 21365 },
+      { time: "10:05", open: 21365, high: 21370, low: 21325, close: 21330 },
+      { time: "10:10", open: 21330, high: 21335, low: 21290, close: 21295 },
+      // Candle 9 — Higher Low (the swing whose break confirms the MSS) = 21285
+      { time: "10:15", open: 21295, high: 21300, low: 21285, close: 21290 },
+      { time: "10:20", open: 21290, high: 21330, low: 21288, close: 21325 },
+      { time: "10:25", open: 21325, high: 21365, low: 21322, close: 21360 },
+      // Candle 12 — sweeps above the Prior High, new setup swing high = 21420
+      { time: "10:30", open: 21360, high: 21420, low: 21358, close: 21415 },
+      { time: "10:35", open: 21415, high: 21418, low: 21385, close: 21390 },
+      // Candle 14 — FVG candle 1 (low 21372)
+      { time: "10:40", open: 21390, high: 21395, low: 21372, close: 21378 },
+      // Candle 15 — displacement; close 21282 confirms the MSS (<21285)
+      { time: "10:45", open: 21378, high: 21380, low: 21278, close: 21282 },
+      // Candle 16 — FVG candle 3 (high 21350) confirms the gap [21350, 21372]
+      { time: "10:50", open: 21282, high: 21350, low: 21275, close: 21290 },
+      { time: "10:55", open: 21290, high: 21340, low: 21285, close: 21335 },
+      // Candle 18-19 — retest the FVG zone (high 21365-21372)
+      { time: "11:00", open: 21335, high: 21365, low: 21330, close: 21360 },
+      { time: "11:05", open: 21360, high: 21372, low: 21355, close: 21358 },
+      { time: "11:10", open: 21358, high: 21362, low: 21320, close: 21325 },
+      { time: "11:15", open: 21325, high: 21330, low: 21290, close: 21295 },
+      { time: "11:20", open: 21295, high: 21300, low: 21260, close: 21265 },
+      { time: "11:25", open: 21265, high: 21270, low: 21235, close: 21240 },
+      { time: "11:30", open: 21240, high: 21245, low: 21228, close: 21232 },
+      { time: "11:35", open: 21232, high: 21238, low: 21225, close: 21230 },
+      { time: "11:40", open: 21230, high: 21240, low: 21222, close: 21235 },
+      { time: "11:45", open: 21235, high: 21245, low: 21230, close: 21240 },
+      { time: "11:50", open: 21240, high: 21250, low: 21235, close: 21245 },
+      { time: "11:55", open: 21245, high: 21255, low: 21240, close: 21250 },
+      { time: "12:00", open: 21250, high: 21260, low: 21245, close: 21255 },
+      { time: "12:05", open: 21255, high: 21262, low: 21248, close: 21258 },
+      { time: "12:10", open: 21258, high: 21266, low: 21252, close: 21262 },
+      { time: "12:15", open: 21262, high: 21270, low: 21256, close: 21266 },
+      { time: "12:20", open: 21266, high: 21274, low: 21260, close: 21270 },
+      { time: "12:25", open: 21270, high: 21278, low: 21264, close: 21274 },
+      { time: "12:30", open: 21274, high: 21282, low: 21268, close: 21278 },
+      { time: "12:35", open: 21278, high: 21286, low: 21272, close: 21282 },
+      { time: "12:40", open: 21282, high: 21290, low: 21276, close: 21286 },
+      { time: "12:45", open: 21286, high: 21294, low: 21280, close: 21290 },
+    ],
+  },
+  // guided-003: same bullish structure as guided-001 (Prior Low 21300,
+  // setup swing low 21280, lower high 21415, FVG [21328, 21350], entry
+  // 21335, stop 21275) but the only untouched liquidity above sits close
+  // by, at 21445 (candle 0 — above the post-MSS rally's high of 21430, so
+  // it's never actually touched, but not far enough away to matter). R:R =
+  // (21445-21335)/(21335-21275) = 110/60 = 1.83 — every part of the read is
+  // right, but it doesn't clear 2:1. is_valid_setup is false on R:R alone.
+  {
+    exercise_id: "guided-003",
+    concept: "GuidedEntry",
+    answer_type: "guided",
+    answerLabel: "a valid trade setup",
+    prompt: "Work through the setup: bias, entry, stop, and target.",
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 2,
+    explanation:
+      "Every piece of the structure here is real — the bullish MSS, the FVG entry, the stop below the setup's swing low — but the only liquidity resting above is close enough that the trade only reaches about 1.8:1. That's below the 2:1 minimum, so the correct call is no trade, even though nothing about the read itself was wrong.",
+    answer: {
+      bias: "bullish",
+      entry: { price: 21335, tolerance: 8 },
+      stop: { price: 21275, tolerance: 8 },
+      target: { price: 21445, tolerance: 6 },
+      min_rr: 2,
+      is_valid_setup: false,
+      step_explanations: {
+        bias:
+          "Price swept below the prior swing low around 21,300 (down to 21,280) — taking the resting sell-side liquidity there — then reversed and closed back above the most recent lower high near 21,415. That's a confirmed bullish Market Structure Shift.",
+        entry:
+          "The reversal candle that broke structure left a Fair Value Gap between about 21,328 and 21,350 — an unmitigated FVG, retested before price continued higher.",
+        stop:
+          "The idea is invalidated below the swing low that formed the setup, around 21,280. The stop sits just beyond that level.",
+        target:
+          "The next visible resting buy-side liquidity above is a swing high around 21,445 — closer to entry than it looks at first glance.",
+      },
+      overall_explanation:
+        "Every piece of the structure here is real — the bullish MSS, the FVG entry, the stop below the setup's swing low — but the only liquidity resting above is close enough that the trade only reaches about 1.8:1. That's below the 2:1 minimum, so the correct call is no trade, even though nothing about the read itself was wrong.",
+    },
+    candles: [
+      // Candle 0 — the only untouched liquidity above = 21445
+      { time: "09:30", open: 21435, high: 21445, low: 21425, close: 21430 },
+      { time: "09:35", open: 21430, high: 21432, low: 21400, close: 21405 },
+      { time: "09:40", open: 21405, high: 21408, low: 21375, close: 21380 },
+      { time: "09:45", open: 21380, high: 21385, low: 21355, close: 21360 },
+      { time: "09:50", open: 21360, high: 21365, low: 21332, close: 21335 },
+      // Candle 5 — Prior Low = 21300
+      { time: "09:55", open: 21335, high: 21340, low: 21300, close: 21305 },
+      { time: "10:00", open: 21305, high: 21340, low: 21300, close: 21335 },
+      { time: "10:05", open: 21335, high: 21375, low: 21330, close: 21370 },
+      { time: "10:10", open: 21370, high: 21410, low: 21365, close: 21405 },
+      // Candle 9 — Lower High = 21415
+      { time: "10:15", open: 21405, high: 21415, low: 21395, close: 21400 },
+      { time: "10:20", open: 21400, high: 21402, low: 21360, close: 21365 },
+      { time: "10:25", open: 21365, high: 21368, low: 21320, close: 21325 },
+      // Candle 12 — setup swing low = 21280
+      { time: "10:30", open: 21325, high: 21330, low: 21280, close: 21285 },
+      { time: "10:35", open: 21285, high: 21315, low: 21282, close: 21310 },
+      // Candle 14 — FVG candle 1 (high 21328)
+      { time: "10:40", open: 21310, high: 21328, low: 21305, close: 21322 },
+      // Candle 15 — displacement; close 21418 confirms the MSS (>21415)
+      { time: "10:45", open: 21322, high: 21422, low: 21320, close: 21418 },
+      // Candle 16 — FVG candle 3 (low 21350); rally peaks at 21430, still
+      // below the 21445 target
+      { time: "10:50", open: 21418, high: 21430, low: 21350, close: 21425 },
+      { time: "10:55", open: 21425, high: 21432, low: 21400, close: 21405 },
+      { time: "11:00", open: 21405, high: 21408, low: 21370, close: 21378 },
+      // Candle 19 — retests the FVG zone (low 21345)
+      { time: "11:05", open: 21378, high: 21382, low: 21345, close: 21355 },
+      { time: "11:10", open: 21355, high: 21400, low: 21350, close: 21395 },
+      { time: "11:15", open: 21395, high: 21430, low: 21390, close: 21425 },
+      // Candle 22 — approaches but doesn't reach the 21445 target
+      { time: "11:20", open: 21425, high: 21440, low: 21420, close: 21430 },
+      { time: "11:25", open: 21430, high: 21435, low: 21415, close: 21420 },
+      { time: "11:30", open: 21420, high: 21425, low: 21405, close: 21410 },
+      { time: "11:35", open: 21410, high: 21415, low: 21398, close: 21402 },
+      { time: "11:40", open: 21402, high: 21408, low: 21392, close: 21396 },
+      { time: "11:45", open: 21396, high: 21400, low: 21385, close: 21390 },
+      { time: "11:50", open: 21390, high: 21395, low: 21378, close: 21382 },
+      { time: "11:55", open: 21382, high: 21388, low: 21372, close: 21376 },
+      { time: "12:00", open: 21376, high: 21380, low: 21365, close: 21370 },
+      { time: "12:05", open: 21370, high: 21375, low: 21360, close: 21365 },
+      { time: "12:10", open: 21365, high: 21370, low: 21355, close: 21360 },
+      { time: "12:15", open: 21360, high: 21365, low: 21350, close: 21355 },
+      { time: "12:20", open: 21355, high: 21360, low: 21345, close: 21350 },
+      { time: "12:25", open: 21350, high: 21355, low: 21340, close: 21345 },
+      { time: "12:30", open: 21345, high: 21350, low: 21335, close: 21340 },
+      { time: "12:35", open: 21340, high: 21345, low: 21330, close: 21335 },
+      { time: "12:40", open: 21335, high: 21340, low: 21325, close: 21330 },
+      { time: "12:45", open: 21330, high: 21335, low: 21320, close: 21325 },
+    ],
+  },
+  // guided-004: choppy, range-bound price action — no sweep-then-reversal,
+  // no sequence of higher-highs/higher-lows or lower-highs/lower-lows, and
+  // no qualifying Fair Value Gap anywhere (every candle's range overlaps
+  // generously with its neighbors, so no 3-candle imbalance forms). There's
+  // nothing to build a bias from, so entry/stop/target don't exist either.
+  {
+    exercise_id: "guided-004",
+    concept: "GuidedEntry",
+    answer_type: "guided",
+    answerLabel: "a valid trade setup",
+    prompt: "Work through the setup: bias, entry, stop, and target.",
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 2,
+    explanation:
+      "This chart never confirms a Market Structure Shift in either direction — it's just chop. With bias unclear, there's no valid entry level, no stop, and no target. The correct call is no trade.",
+    answer: {
+      bias: "unclear",
+      entry: null,
+      stop: null,
+      target: null,
+      min_rr: 2,
+      is_valid_setup: false,
+      step_explanations: {
+        bias:
+          "Price is chopping sideways with no clear sequence of higher highs/higher lows or lower highs/lower lows, and no liquidity sweep followed by a structural break in either direction. There's no confirmed Market Structure Shift here — bias is unclear.",
+        entry:
+          "With no clear bias, there's no direction to look for a valid entry level in — nothing here qualifies as an unmitigated FVG, an IFVG, or a broken structural level worth retesting.",
+        stop:
+          "No entry means no stop-loss reference — there's no swing point this idea would be built around.",
+        target:
+          "No entry means no target either — there's nothing to measure a reward against.",
+      },
+      overall_explanation:
+        "This chart never confirms a Market Structure Shift in either direction — it's just chop. With bias unclear, there's no valid entry level, no stop, and no target. The correct call is no trade.",
+    },
+    candles: [
+      { time: "09:30", open: 21350, high: 21362, low: 21344, close: 21358 },
+      { time: "09:35", open: 21358, high: 21365, low: 21348, close: 21352 },
+      { time: "09:40", open: 21352, high: 21360, low: 21338, close: 21344 },
+      { time: "09:45", open: 21344, high: 21356, low: 21335, close: 21350 },
+      { time: "09:50", open: 21350, high: 21368, low: 21345, close: 21362 },
+      { time: "09:55", open: 21362, high: 21370, low: 21350, close: 21355 },
+      { time: "10:00", open: 21355, high: 21362, low: 21340, close: 21346 },
+      { time: "10:05", open: 21346, high: 21358, low: 21332, close: 21352 },
+      { time: "10:10", open: 21352, high: 21366, low: 21346, close: 21360 },
+      { time: "10:15", open: 21360, high: 21372, low: 21352, close: 21356 },
+      { time: "10:20", open: 21356, high: 21364, low: 21340, close: 21345 },
+      { time: "10:25", open: 21345, high: 21358, low: 21332, close: 21350 },
+      { time: "10:30", open: 21350, high: 21368, low: 21344, close: 21362 },
+      { time: "10:35", open: 21362, high: 21374, low: 21354, close: 21358 },
+      { time: "10:40", open: 21358, high: 21366, low: 21344, close: 21350 },
+      { time: "10:45", open: 21350, high: 21362, low: 21336, close: 21344 },
+      { time: "10:50", open: 21344, high: 21356, low: 21328, close: 21340 },
+      { time: "10:55", open: 21340, high: 21352, low: 21324, close: 21348 },
+      { time: "11:00", open: 21348, high: 21364, low: 21338, close: 21358 },
+      { time: "11:05", open: 21358, high: 21370, low: 21348, close: 21354 },
+      { time: "11:10", open: 21354, high: 21362, low: 21340, close: 21346 },
+      { time: "11:15", open: 21346, high: 21358, low: 21332, close: 21352 },
+      { time: "11:20", open: 21352, high: 21366, low: 21344, close: 21360 },
+      { time: "11:25", open: 21360, high: 21372, low: 21350, close: 21356 },
+      { time: "11:30", open: 21356, high: 21364, low: 21342, close: 21348 },
+      { time: "11:35", open: 21348, high: 21360, low: 21334, close: 21352 },
+      { time: "11:40", open: 21352, high: 21368, low: 21344, close: 21362 },
+      { time: "11:45", open: 21362, high: 21374, low: 21352, close: 21358 },
+      { time: "11:50", open: 21358, high: 21366, low: 21346, close: 21350 },
+      { time: "11:55", open: 21350, high: 21362, low: 21338, close: 21344 },
+      { time: "12:00", open: 21344, high: 21356, low: 21330, close: 21348 },
+      { time: "12:05", open: 21348, high: 21360, low: 21336, close: 21354 },
+      { time: "12:10", open: 21354, high: 21366, low: 21344, close: 21358 },
+      { time: "12:15", open: 21358, high: 21370, low: 21348, close: 21352 },
+      { time: "12:20", open: 21352, high: 21362, low: 21340, close: 21346 },
+      { time: "12:25", open: 21346, high: 21358, low: 21332, close: 21350 },
+      { time: "12:30", open: 21350, high: 21364, low: 21340, close: 21356 },
+      { time: "12:35", open: 21356, high: 21368, low: 21346, close: 21360 },
+      { time: "12:40", open: 21360, high: 21372, low: 21350, close: 21354 },
+      { time: "12:45", open: 21354, high: 21364, low: 21344, close: 21350 },
+    ],
+  },
+  // guided-005: harder valid setup, IFVG entry. An early bearish FVG at
+  // [21440, 21470] (candles 3-5) later gets disrespected — candle 16
+  // closes at 21475, above its upper boundary — flipping it into an
+  // Inverse FVG acting as support. That same candle 16 also closes above
+  // the lower high at 21415 (candle 11), confirming a bullish MSS off the
+  // setup swing low at 21320 (candle 13, sweeping the prior low at 21340).
+  // Price retests the flipped zone at candles 20-22. Entry 21445 / stop
+  // 21315 / target 21730 -> R:R = (21730-21445)/(21445-21315) = 285/130 =
+  // 2.19.
+  {
+    exercise_id: "guided-005",
+    concept: "GuidedEntry",
+    answer_type: "guided",
+    answerLabel: "a valid trade setup",
+    prompt: "Work through the setup: bias, entry, stop, and target.",
+    instrument: "NQ (prototype data)",
+    timeframe: "5m",
+    difficulty: 3,
+    explanation:
+      "A valid, if layered, long setup: a bullish MSS with sell-side liquidity taken, entry from a former bearish FVG that failed and flipped into support (an IFVG), a stop below the setup's swing low, and a target at the next buy-side liquidity — combining for roughly 2.2:1.",
+    answer: {
+      bias: "bullish",
+      entry: { price: 21445, tolerance: 10 },
+      stop: { price: 21315, tolerance: 8 },
+      target: { price: 21730, tolerance: 6 },
+      min_rr: 2,
+      is_valid_setup: true,
+      step_explanations: {
+        bias:
+          "Price swept the prior swing low around 21,340 down to 21,320, taking the resting sell-side liquidity there, then reversed and closed back above the recent lower high near 21,415. That liquidity sweep plus structural break confirms a bullish Market Structure Shift.",
+        entry:
+          "Earlier in the chart, a bearish Fair Value Gap sat between about 21,440 and 21,470. The same displacement candle that confirmed the MSS also closed back above that gap's upper boundary — disrespecting it and flipping it into an Inverse Fair Value Gap acting as support. Price later retested that flipped zone and held, which is the entry.",
+        stop:
+          "The idea is invalidated below the swing low that formed the setup, around 21,320 — the stop sits just beyond it.",
+        target:
+          "The next resting buy-side liquidity above is the untouched high from earlier in the session, around 21,730.",
+      },
+      overall_explanation:
+        "A valid, if layered, long setup: a bullish MSS with sell-side liquidity taken, entry from a former bearish FVG that failed and flipped into support (an IFVG), a stop below the setup's swing low, and a target at the next buy-side liquidity — combining for roughly 2.2:1, clearing the 2:1 minimum.",
+    },
+    candles: [
+      // Candle 0 — the untouched high above everything that follows = 21730
+      { time: "09:30", open: 21650, high: 21730, low: 21640, close: 21660 },
+      { time: "09:35", open: 21660, high: 21665, low: 21600, close: 21610 },
+      { time: "09:40", open: 21610, high: 21615, low: 21540, close: 21550 },
+      { time: "09:45", open: 21550, high: 21555, low: 21500, close: 21505 },
+      // Candle 4 — bearish FVG candle 1 (low 21470)
+      { time: "09:50", open: 21505, high: 21508, low: 21470, close: 21475 },
+      // Candle 5 — displacement down
+      { time: "09:55", open: 21475, high: 21478, low: 21400, close: 21405 },
+      // Candle 6 — bearish FVG candle 3 (high 21440); gap [21440, 21470]
+      { time: "10:00", open: 21405, high: 21440, low: 21395, close: 21400 },
+      { time: "10:05", open: 21400, high: 21405, low: 21370, close: 21375 },
+      // Candle 8 — Prior Low = 21340
+      { time: "10:10", open: 21375, high: 21378, low: 21340, close: 21345 },
+      { time: "10:15", open: 21345, high: 21380, low: 21342, close: 21375 },
+      { time: "10:20", open: 21375, high: 21410, low: 21370, close: 21405 },
+      // Candle 11 — Lower High = 21415
+      { time: "10:25", open: 21405, high: 21415, low: 21398, close: 21400 },
+      { time: "10:30", open: 21400, high: 21402, low: 21360, close: 21365 },
+      // Candle 13 — setup swing low = 21320, sweeps the Prior Low
+      { time: "10:35", open: 21365, high: 21368, low: 21320, close: 21325 },
+      { time: "10:40", open: 21325, high: 21360, low: 21322, close: 21355 },
+      { time: "10:45", open: 21355, high: 21362, low: 21340, close: 21345 },
+      // Candle 16 — displacement: close 21475 confirms the MSS (>21415)
+      // AND closes above 21470, flipping the bearish FVG into an IFVG
+      { time: "10:50", open: 21345, high: 21480, low: 21342, close: 21475 },
+      { time: "10:55", open: 21475, high: 21490, low: 21470, close: 21485 },
+      { time: "11:00", open: 21485, high: 21495, low: 21478, close: 21490 },
+      { time: "11:05", open: 21490, high: 21492, low: 21460, close: 21465 },
+      // Candle 20 — dips into the flipped IFVG zone
+      { time: "11:10", open: 21465, high: 21468, low: 21445, close: 21450 },
+      { time: "11:15", open: 21450, high: 21455, low: 21442, close: 21448 },
+      // Candle 22 — touches the zone's bottom (21440) and reverses — entry
+      { time: "11:20", open: 21448, high: 21475, low: 21440, close: 21470 },
+      { time: "11:25", open: 21470, high: 21500, low: 21465, close: 21495 },
+      { time: "11:30", open: 21495, high: 21520, low: 21490, close: 21515 },
+      { time: "11:35", open: 21515, high: 21535, low: 21508, close: 21528 },
+      { time: "11:40", open: 21528, high: 21550, low: 21520, close: 21542 },
+      { time: "11:45", open: 21542, high: 21565, low: 21535, close: 21558 },
+      { time: "11:50", open: 21558, high: 21580, low: 21550, close: 21572 },
+      { time: "11:55", open: 21572, high: 21595, low: 21565, close: 21588 },
+      { time: "12:00", open: 21588, high: 21610, low: 21580, close: 21602 },
+      { time: "12:05", open: 21602, high: 21625, low: 21595, close: 21618 },
+      { time: "12:10", open: 21618, high: 21640, low: 21610, close: 21632 },
+      { time: "12:15", open: 21632, high: 21655, low: 21625, close: 21648 },
+      { time: "12:20", open: 21648, high: 21668, low: 21640, close: 21660 },
+      { time: "12:25", open: 21660, high: 21680, low: 21652, close: 21672 },
+      { time: "12:30", open: 21672, high: 21695, low: 21665, close: 21685 },
+      { time: "12:35", open: 21685, high: 21705, low: 21678, close: 21698 },
+      { time: "12:40", open: 21698, high: 21718, low: 21690, close: 21710 },
+      { time: "12:45", open: 21710, high: 21725, low: 21702, close: 21715 },
     ],
   },
 ];

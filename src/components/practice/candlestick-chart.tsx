@@ -63,7 +63,32 @@ type ChoiceProps = CommonProps & {
   fvgZone: CorrectZone;
 };
 
-export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps) {
+export type GuidedLevelField = "entry" | "stop" | "target";
+
+/** Guided Entry places up to three simultaneous horizontal lines (entry,
+ * stop, target) instead of one — only `activeField` responds to pointer
+ * input at a time (the earlier steps' lines are already frozen), and
+ * `activeField` is null entirely during the bias step, when there's
+ * nothing on the chart to place yet. */
+type GuidedProps = CommonProps & {
+  answerType: "guided";
+  entryPrice: number | null;
+  stopPrice: number | null;
+  targetPrice: number | null;
+  activeField: GuidedLevelField | null;
+  onActiveFieldChange: (price: number) => void;
+  correctEntry?: number | null;
+  correctStop?: number | null;
+  correctTarget?: number | null;
+};
+
+const GUIDED_FIELD_LABELS: Record<GuidedLevelField, string> = {
+  entry: "ENTRY",
+  stop: "STOP",
+  target: "TARGET",
+};
+
+export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | GuidedProps) {
   const { candles, interactive } = props;
   const svgRef = useRef<SVGSVGElement>(null);
   const [dragStart, setDragStart] = useState<PixelPoint | null>(null);
@@ -95,6 +120,7 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps) {
 
   function handlePointerDown(e: React.PointerEvent<SVGSVGElement>) {
     if (!interactive || props.answerType === "choice") return;
+    if (props.answerType === "guided" && props.activeField === null) return;
     // Pointer capture keeps the drag going even if the pointer slips past
     // the SVG's edge mid-drag. It can throw in some browsers/devices when
     // there's no "active pointer" session to capture — that's not fatal,
@@ -112,17 +138,28 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps) {
       props.onUserLevelChange(yToPrice(layout, point.y));
       return;
     }
+    if (props.answerType === "guided") {
+      setIsPlacingLevel(true);
+      props.onActiveFieldChange(yToPrice(layout, point.y));
+      return;
+    }
     setDragStart(point);
     props.onUserRegionChange(null); // clear the old box until the new drag clears the threshold
   }
 
   function handlePointerMove(e: React.PointerEvent<SVGSVGElement>) {
     if (!interactive || props.answerType === "choice") return;
+    if (props.answerType === "guided" && props.activeField === null) return;
     const point = toSvgPoint(e.clientX, e.clientY);
 
     if (props.answerType === "level") {
       if (!isPlacingLevel) return;
       props.onUserLevelChange(yToPrice(layout, point.y));
+      return;
+    }
+    if (props.answerType === "guided") {
+      if (!isPlacingLevel) return;
+      props.onActiveFieldChange(yToPrice(layout, point.y));
       return;
     }
 
@@ -179,17 +216,37 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps) {
       ? priceToY(layout, props.correctLevel)
       : null;
 
+  // Guided Entry's three possible lines (entry/stop/target), each shown in
+  // both its user-placed and (post-grading) correct-answer form — same
+  // rendering as a single Liquidity level, just three of them with a label
+  // distinguishing which is which.
+  const guidedFields: GuidedLevelField[] = ["entry", "stop", "target"];
+  const guidedUserPrices: Record<GuidedLevelField, number | null> =
+    props.answerType === "guided"
+      ? { entry: props.entryPrice, stop: props.stopPrice, target: props.targetPrice }
+      : { entry: null, stop: null, target: null };
+  const guidedCorrectPrices: Record<GuidedLevelField, number | null | undefined> =
+    props.answerType === "guided"
+      ? { entry: props.correctEntry, stop: props.correctStop, target: props.correctTarget }
+      : { entry: null, stop: null, target: null };
+
   const cursorClass =
     !interactive || props.answerType === "choice"
       ? ""
-      : props.answerType === "level"
+      : props.answerType === "level" || (props.answerType === "guided" && props.activeField !== null)
         ? "cursor-row-resize"
-        : "cursor-crosshair";
+        : props.answerType === "guided"
+          ? ""
+          : "cursor-crosshair";
 
   // Choice charts have nothing to drag, so the page should still scroll
   // normally when a touch starts on the chart — touch-action: none is only
-  // needed to keep a drawing gesture from also panning the page.
-  const touchClass = props.answerType === "choice" ? "" : "touch-none [-webkit-touch-callout:none]";
+  // needed to keep a drawing gesture from also panning the page. Same for a
+  // guided step with nothing currently placeable (the bias step).
+  const touchClass =
+    props.answerType === "choice" || (props.answerType === "guided" && props.activeField === null)
+      ? ""
+      : "touch-none [-webkit-touch-callout:none]";
 
   return (
     <svg
@@ -307,6 +364,57 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps) {
           strokeWidth={1.5}
         />
       )}
+
+      {/* Guided Entry: up to three labeled lines (entry/stop/target), each
+          in its user-placed and — once graded — correct-answer form. */}
+      {props.answerType === "guided" &&
+        guidedFields.map((field) => {
+          const userPrice = guidedUserPrices[field];
+          const correctPrice = guidedCorrectPrices[field];
+          return (
+            <g key={field}>
+              {correctPrice !== null && correctPrice !== undefined && (
+                <g>
+                  <line
+                    x1={bounds.left}
+                    x2={bounds.right}
+                    y1={priceToY(layout, correctPrice)}
+                    y2={priceToY(layout, correctPrice)}
+                    className="stroke-accent"
+                    strokeWidth={1.5}
+                    strokeDasharray="4 3"
+                  />
+                  <text
+                    x={bounds.left + 4}
+                    y={priceToY(layout, correctPrice) - 4}
+                    className="fill-accent text-[10px] font-medium"
+                  >
+                    {GUIDED_FIELD_LABELS[field]} (correct)
+                  </text>
+                </g>
+              )}
+              {userPrice !== null && (
+                <g>
+                  <line
+                    x1={bounds.left}
+                    x2={bounds.right}
+                    y1={priceToY(layout, userPrice)}
+                    y2={priceToY(layout, userPrice)}
+                    stroke={USER_MARK_COLOR}
+                    strokeWidth={1.5}
+                  />
+                  <text
+                    x={bounds.left + 90}
+                    y={priceToY(layout, userPrice) - 4}
+                    className="fill-foreground text-[10px] font-medium"
+                  >
+                    {GUIDED_FIELD_LABELS[field]}
+                  </text>
+                </g>
+              )}
+            </g>
+          );
+        })}
     </svg>
   );
 }

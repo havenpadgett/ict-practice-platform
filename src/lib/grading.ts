@@ -1,5 +1,11 @@
 import type { ChoiceExercise, Exercise, LevelExercise, ZoneExercise } from "@/data/exercises";
 
+/** Everything gradeAttempt actually dispatches to below — Guided Entry is
+ * graded separately (src/lib/guided-grading.ts) and never reaches these
+ * functions, so they're typed against the three variants they handle
+ * rather than the full Exercise union. */
+type GradableExercise = ZoneExercise | LevelExercise | ChoiceExercise;
+
 /** The user's drawn box, already converted from pixels into price + candle-index domain. */
 export type UserRegion = {
   priceLow: number;
@@ -64,7 +70,7 @@ function formatPrice(value: number): string {
 // so it reads naturally leading the explanation; it carries the actual
 // coordinates when something does exist, so it reads naturally trailing
 // the reasoning (numbers last, per the feedback restructuring below).
-function buildCorrectAnswerStatement(exercise: Exercise): string {
+function buildCorrectAnswerStatement(exercise: GradableExercise): string {
   // Choice exercises (FVG respected/disrespected) always have a definite
   // correct option among the choices offered — there's no "no X on this
   // chart" case the way zone/level exercises have, so this branches before
@@ -97,7 +103,7 @@ function buildCorrectAnswerStatement(exercise: Exercise): string {
 // has no numbers of its own, so it reads naturally as the lead-in instead;
 // when something does exist, the reasoning comes first and the concrete
 // coordinates trail it.
-function composeExplanation(exercise: Exercise): string {
+function composeExplanation(exercise: GradableExercise): string {
   const statement = buildCorrectAnswerStatement(exercise);
   if (exercise.answer_type !== "choice" && !exercise.has_answer) {
     const reasoning = exercise.distractor_note ?? exercise.explanation;
@@ -113,7 +119,16 @@ export function gradeAttempt(exercise: Exercise, userAnswer: UserAnswer): GradeR
   if (exercise.answer_type === "level") {
     return gradeLevelAttempt(exercise, userAnswer);
   }
-  return gradeChoiceAttempt(exercise, userAnswer);
+  if (exercise.answer_type === "choice") {
+    return gradeChoiceAttempt(exercise, userAnswer);
+  }
+  // Guided Entry's multi-step flow doesn't reduce to a single UserAnswer/
+  // GradeResult — it's graded by gradeGuidedAttempt (src/lib/guided-grading.ts)
+  // instead, called directly from the Guided Entry runner component, never
+  // through this dispatcher.
+  throw new Error(
+    `gradeAttempt does not support guided exercises (${exercise.exercise_id}) — use gradeGuidedAttempt from src/lib/guided-grading.ts instead.`,
+  );
 }
 
 // ---- Zone grading (FVG) ---------------------------------------------------

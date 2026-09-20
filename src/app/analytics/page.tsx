@@ -6,6 +6,7 @@ import { ConceptHighlights } from "@/components/analytics/concept-highlights";
 import { DifficultyAccuracyBars } from "@/components/analytics/difficulty-accuracy-bars";
 import { AnalyticsEmptyState } from "@/components/analytics/empty-state";
 import { ExerciseAccuracyList } from "@/components/analytics/exercise-accuracy-list";
+import { GuidedStepAccuracyBars } from "@/components/analytics/guided-step-accuracy-bars";
 import { ImprovementChart } from "@/components/analytics/improvement-chart";
 import { OverviewStats } from "@/components/analytics/overview-stats";
 import { RecommendedPractice } from "@/components/analytics/recommended-practice";
@@ -17,6 +18,7 @@ import {
   getAccuracyByDifficulty,
   getAccuracyByExercise,
   getAccuracyOverTime,
+  getGuidedStepAccuracy,
   getOverallStats,
   getResponseTimeStats,
   getStrongestAndWeakestConcept,
@@ -88,6 +90,7 @@ function AnalyticsContent({ attempts }: { attempts: DbAttempt[] }) {
   const byDifficulty = getAccuracyByDifficulty(attempts);
   const blocks = getAccuracyOverTime(attempts);
   const responseTime = getResponseTimeStats(attempts);
+  const guidedSteps = getGuidedStepAccuracy(attempts);
 
   return (
     <div className="mt-8 space-y-10">
@@ -109,6 +112,21 @@ function AnalyticsContent({ attempts }: { attempts: DbAttempt[] }) {
           </p>
           <div className="mt-3">
             <DifficultyAccuracyBars byDifficulty={byDifficulty} />
+          </div>
+        </section>
+      )}
+
+      {guidedSteps.length > 0 && (
+        <section>
+          <p className="text-xs font-medium uppercase tracking-wide text-muted">
+            Guided Entry — Accuracy by Step
+          </p>
+          <p className="mt-1 text-xs text-muted">
+            Bias, entry, stop, and target graded independently — a step only counts if you actually
+            reached it.
+          </p>
+          <div className="mt-4">
+            <GuidedStepAccuracyBars steps={guidedSteps} />
           </div>
         </section>
       )}

@@ -6,7 +6,8 @@ import { getExercise } from "@/data/exercises";
 import { createClient } from "@/lib/supabase/client";
 import type { StoredAttempt } from "@/lib/storage";
 
-/** Matches the `attempts` table (supabase/migrations/...create_profiles_and_attempts.sql). */
+/** Matches the `attempts` table (supabase/migrations/...create_profiles_and_attempts.sql,
+ * widened for Guided Entry by ..._add_guided_fields_to_attempts.sql). */
 export type DbAttempt = {
   id: string;
   user_id: string;
@@ -16,8 +17,8 @@ export type DbAttempt = {
    * attempts recorded before this column existed (supabase/migrations/
    * ..._add_difficulty_to_attempts.sql). */
   difficulty: 1 | 2 | 3 | null;
-  answer_type: "zone" | "level" | "choice";
-  user_answer_type: "region" | "level" | "choice" | "none";
+  answer_type: "zone" | "level" | "choice" | "guided";
+  user_answer_type: "region" | "level" | "choice" | "guided" | "none";
   user_price_low: number | null;
   user_price_high: number | null;
   user_candle_start: number | null;
@@ -28,6 +29,22 @@ export type DbAttempt = {
   distance_from_level: number | null;
   user_choice: string | null;
   correct_choice: string | null;
+  // Guided Entry fields — populated only when answer_type = 'guided'.
+  // Each per-step *_correct flag is null when that step was never reached
+  // (the user bailed with "No Trade" before placing it), not when it was
+  // reached and graded wrong (that's `false`).
+  guided_bias_choice: "bullish" | "bearish" | "unclear" | null;
+  guided_entry_price: number | null;
+  guided_stop_price: number | null;
+  guided_target_price: number | null;
+  guided_bias_correct: boolean | null;
+  guided_entry_correct: boolean | null;
+  guided_stop_correct: boolean | null;
+  guided_target_correct: boolean | null;
+  guided_achieved_rr: number | null;
+  /** Whether the user confirmed all four steps as a trade ("Submit Setup")
+   * rather than bailing with "No Trade" at some point. */
+  guided_declared_trade: boolean | null;
   is_correct: boolean;
   failure_reason: string | null;
   response_time_ms: number;
@@ -103,10 +120,20 @@ export async function migrateLocalAttempts(
       user_price: a.user_price,
       distance_from_level: a.distance_from_level,
       // StoredAttempt (the pre-login localStorage shape) predates the
-      // "choice" answer type entirely — nothing migrated through it could
-      // have been a choice attempt.
+      // "choice" and "guided" answer types entirely — nothing migrated
+      // through it could have been a choice or guided attempt.
       user_choice: null,
       correct_choice: null,
+      guided_bias_choice: null,
+      guided_entry_price: null,
+      guided_stop_price: null,
+      guided_target_price: null,
+      guided_bias_correct: null,
+      guided_entry_correct: null,
+      guided_stop_correct: null,
+      guided_target_correct: null,
+      guided_achieved_rr: null,
+      guided_declared_trade: null,
       is_correct: a.is_correct,
       failure_reason: a.failure_reason,
       response_time_ms: a.response_time_ms,
