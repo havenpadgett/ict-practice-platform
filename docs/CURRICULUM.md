@@ -129,14 +129,34 @@ All five are hand-authored prototype NQ 5m data (`src/data/free-trade-scenarios.
 - **ft-004 — Range Chop.** Sideways the entire session; no MSS in either direction, no qualifying FVG, and the one poke above the range is a wick with no follow-through. Correct decision: no trade.
 - **ft-005 — Too Close to Call.** A clean bearish MSS after a buy-side sweep, with a bearish FVG — but the nearest sell-side liquidity (equal lows) is so close that the best available R:R from the gap is about 1.4:1, and a typical fill is nearer 1:1. Correct decision: no trade. Price does reach the equal lows, then reverses back through the highs.
 
-## Liquidity — Time-Based Levels (defined, not yet examinable)
+## Liquidity — Time-Based Levels
 
-**Provenance:** HAVEN-VALIDATED.
+**Provenance:** the list of levels and the NY AM window are HAVEN-VALIDATED. The session-boundary definitions below (trading day, trading week, which candles count toward a session) and all five exercises are **AI-DRAFTED** — not yet reviewed by Haven.
 
-**⚠️ Blocked.** These definitions exist so they aren't lost, but they cannot be turned into exercises yet — the chart currently shows no time context at all (no dates, session boundaries, or day separators), so there's no way for a user to tell where a "day" or "session" begins or ends on a static 40-candle chart. Unblocked when Phase 7 introduces real historical data with timestamps.
+> **Unblocked (2026-09-24):** charts now carry real ET timestamps when an exercise provides them, and render date/time labels, trading-day separators, and NY AM session shading (`src/lib/time-context.ts`). The five exercises below use constructed candles with realistic timestamps until reviewed real scenarios exist (`docs/SCENARIO-VALIDATION.md`).
+
+Same idea as [Liquidity](#liquidity): resting stops sit above highs and below lows. These levels are defined by *time* rather than by shape — the highest and lowest prices of a specific period — and are watched by enough traders that stops cluster there.
 
 - Previous day high / previous day low
 - New York AM session high / low — **9:30–11:00 ET** (see note below; exact window TBC by Haven)
 - Weekly high / low
 
-**Note on the NY AM window:** Haven's actual practice window is roughly 9:30–10:30 or 11:00. The wider 11:00 boundary above was chosen deliberately so that a high forming between 10:30 and 11:00 isn't marked incorrect. Revisit this exact boundary once time-based exercises are actually built — see the Decision Log in `docs/PRD-MVP-V1.md`.
+**Definitions (AI-DRAFTED):**
+- **Trading day:** a CME futures trading day runs **18:00 ET to 17:00 ET** the next calendar day. A candle opening at or after 18:00 ET belongs to the *next* trading date — so Thursday's trading day begins Wednesday evening, and a low printed at 20:00 ET Wednesday is part of Thursday. The market is closed 17:00–18:00 ET each weekday.
+- **Previous day high/low:** the highest high / lowest low of the trading day before the current one.
+- **NY AM session high/low:** the highest high / lowest low among candles inside 9:30–11:00 ET. Only candles within that window count — a lower pre-market spike or a later afternoon move is a different level. On charts with bars of an hour or less, the session is shaded.
+- **Trading week:** Sunday 18:00 ET to Friday 17:00 ET. The **weekly high/low** is the highest high / lowest low of that span; on the chart a heavier separator marks the weekend.
+
+**Note on the NY AM window:** Haven's actual practice window is roughly 9:30–10:30 or 11:00. The wider 11:00 boundary above was chosen deliberately so that a high forming between 10:30 and 11:00 isn't marked incorrect. Revisit this exact boundary now that time-based exercises are built — see the Decision Log in `docs/PRD-MVP-V1.md`.
+
+### Exercises (AI-DRAFTED — pending Haven's review)
+
+All use the existing `level` answer type (`src/data/time-liquidity-exercises.ts`, concept `TimeLiquidity`).
+
+| ID | Level | Timeframe | Difficulty | Answer | What it tests |
+|---|---|---|---|---|---|
+| `tliq-001` | Previous day high | 1h | 1 | 21,486 | Reading the day separator; the current day stays below it |
+| `tliq-002` | Previous day low | 1h | 2 | 21,338 | The 18:00 ET boundary — the low prints Wednesday evening but belongs to Thursday; a lower low two days back is a distractor |
+| `tliq-003` | NY AM session high | 15m | 1 | 21,522 | Reading the shaded session |
+| `tliq-004` | NY AM session low | 15m | 2 | 21,338 | Only 9:30–11:00 counts — a lower pre-market spike and a later sell-off are distractors |
+| `tliq-005` | Previous week high | 4h | 3 | 21,632 | The weekend separator (and a DST switch); Friday's near-miss and the current week's high are distractors |

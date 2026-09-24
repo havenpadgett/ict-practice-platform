@@ -5,6 +5,7 @@
 
 import { freeTradeScenarios } from "@/data/free-trade-scenarios";
 import { realScenarios } from "@/data/real-scenarios";
+import { timeLiquidityExercises } from "@/data/time-liquidity-exercises";
 import type { Concept } from "@/lib/concepts";
 
 export type Candle = {
@@ -2876,7 +2877,12 @@ const conceptExercises: Exercise[] = [
 // Real-data scenarios (src/data/real-scenarios/) are registered alongside the
 // constructed ones — every one carries provenance, and only human-reviewed
 // ones are ever offered in practice (see isPracticeReady below).
-export const exercises: Exercise[] = [...conceptExercises, ...freeTradeScenarios, ...realScenarios];
+export const exercises: Exercise[] = [
+  ...conceptExercises,
+  ...timeLiquidityExercises,
+  ...freeTradeScenarios,
+  ...realScenarios,
+];
 
 /** Constructed exercises are always practice-ready; a real-data scenario
  * only once a human has reviewed it (docs/SCENARIO-VALIDATION.md). */
