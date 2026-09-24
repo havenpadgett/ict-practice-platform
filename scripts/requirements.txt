@@ -1,0 +1,6 @@
+# Scenario pipeline (scripts/ingest.py, detect.py, build_scenario.py).
+# Python 3.9+. Everything else is the standard library.
+#
+# IANA timezone data for zoneinfo — bundled with macOS/Linux, but not with
+# every Python install (notably Windows).
+tzdata>=2024.1

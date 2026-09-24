@@ -1,0 +1,7 @@
+__pycache__/
+# Pipeline outputs and generated sample data — reproducible, not source.
+*.clean.json
+*.candidates.json
+sample/*.csv
+# Raw vendor data is licensed; never commit it.
+data/
