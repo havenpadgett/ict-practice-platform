@@ -4,6 +4,7 @@
 // cross-reference with the doc.
 
 import { freeTradeScenarios } from "@/data/free-trade-scenarios";
+import { realScenarios } from "@/data/real-scenarios";
 import type { Concept } from "@/lib/concepts";
 
 export type Candle = {
@@ -72,6 +73,29 @@ export type ChoiceAnswer = {
   };
 };
 
+/** Where a real-data scenario came from and whether a human has checked it
+ * (docs/SCENARIO-VALIDATION.md). Written by scripts/build_scenario.py with
+ * human_reviewed: false; the reviewer fills in the review fields on
+ * promotion. Constructed exercises have no provenance. */
+export type ScenarioProvenance = {
+  data_source: string;
+  symbol: string;
+  date_range: { start: string; end: string };
+  /** The scripts/detect.py rule that flagged this scenario. */
+  detection_rule: string;
+  candidate_id: string;
+  detection_params: Record<string, unknown>;
+  detection_notes: string;
+  /** SHA-256 of the raw input CSV, so the scenario can be traced back to the
+   * exact file it was built from. */
+  input_sha256: string;
+  built_at: string;
+  human_reviewed: boolean;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_notes: string | null;
+};
+
 type ExerciseBase = {
   exercise_id: string;
   concept: Concept;
@@ -99,6 +123,8 @@ type ExerciseBase = {
    * describing the near-miss itself are hand-written here since there's no
    * structured data to derive them from. */
   distractor_note?: string;
+  /** Present on real-data scenarios only (src/data/real-scenarios/). */
+  provenance?: ScenarioProvenance;
 };
 
 /** Zone and level exercises always carry a "no answer exists" button —
@@ -2847,15 +2873,27 @@ const conceptExercises: Exercise[] = [
 // Free Trade scenarios live in their own file (each carries ~80 candles) —
 // same Exercise shape, so sessions, attempts, and analytics treat them like
 // any other exercise.
-export const exercises: Exercise[] = [...conceptExercises, ...freeTradeScenarios];
+// Real-data scenarios (src/data/real-scenarios/) are registered alongside the
+// constructed ones — every one carries provenance, and only human-reviewed
+// ones are ever offered in practice (see isPracticeReady below).
+export const exercises: Exercise[] = [...conceptExercises, ...freeTradeScenarios, ...realScenarios];
+
+/** Constructed exercises are always practice-ready; a real-data scenario
+ * only once a human has reviewed it (docs/SCENARIO-VALIDATION.md). */
+export function isPracticeReady(exercise: Exercise): boolean {
+  return exercise.provenance === undefined || exercise.provenance.human_reviewed === true;
+}
 
 export function getExercise(exerciseId: string): Exercise | undefined {
   return exercises.find((exercise) => exercise.exercise_id === exerciseId);
 }
 
+/** Only practice-ready exercises — every session is built from this, so an
+ * unreviewed real scenario can never be served. getExercise() above stays
+ * unfiltered so past attempts still resolve their labels. */
 export function getExerciseIdsByConcept(concept: Concept): string[] {
   return exercises
-    .filter((exercise) => exercise.concept === concept)
+    .filter((exercise) => exercise.concept === concept && isPracticeReady(exercise))
     .map((exercise) => exercise.exercise_id);
 }
 
