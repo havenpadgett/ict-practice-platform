@@ -8,14 +8,16 @@ import { ChoiceControls } from "@/components/practice/choice-controls";
 import { ConceptPicker } from "@/components/practice/concept-picker";
 import { ExerciseControls } from "@/components/practice/exercise-controls";
 import { FeedbackPanel } from "@/components/practice/feedback-panel";
+import { FreeTradeExercise, type FreeTradeAttempt } from "@/components/practice/free-trade-exercise";
 import { GuidedExercise } from "@/components/practice/guided-exercise";
 import { SessionLengthPicker } from "@/components/practice/session-length-picker";
 import { SessionSummary } from "@/components/practice/session-summary";
 import { buildSessionExerciseIds, getExercise, type SessionLength } from "@/data/exercises";
 import { useRequireAuth } from "@/hooks/use-require-auth";
-import { insertAttempt, nextAttemptNumber } from "@/lib/attempts";
+import { insertAttempt, nextAttemptNumber, NULL_FREE_TRADE_FIELDS } from "@/lib/attempts";
 import { CONCEPT_LIST, getConceptMeta, type Concept } from "@/lib/concepts";
 import { gradeAttempt, type GradeResult, type UserAnswer, type UserRegion } from "@/lib/grading";
+import type { FreeTradeGradeResult } from "@/lib/free-trade-grading";
 import type { GuidedGradeResult, GuidedUserAnswer } from "@/lib/guided-grading";
 import { recordSessionCompletion } from "@/lib/profiles";
 import {
@@ -230,6 +232,7 @@ export default function PracticePage() {
         guided_target_correct: null,
         guided_achieved_rr: null,
         guided_declared_trade: null,
+        ...NULL_FREE_TRADE_FIELDS,
         is_correct: grade.isCorrect,
         coverage: grade.coverage,
         precision_ratio: grade.precisionRatio,
@@ -298,7 +301,92 @@ export default function PracticePage() {
         guided_target_correct: stepResult("target"),
         guided_achieved_rr: grade.achievedRR,
         guided_declared_trade: answer.declaredTrade,
+        ...NULL_FREE_TRADE_FIELDS,
         is_correct: grade.isCorrect,
+        failure_reason: null,
+        response_time_ms: responseTimeMs,
+        attempt_number: attemptNumber,
+      });
+    } catch (err) {
+      setSaveError(
+        err instanceof Error ? err.message : "Couldn't save this attempt — your progress in this session is unaffected.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // Free Trade's playback runner grades itself when the scenario ends
+  // (trade closed, End Session, or playback ran out) and calls this once —
+  // same shape as recordGuidedAttempt. is_correct is the process verdict,
+  // never the win/loss outcome.
+  async function recordFreeTradeAttempt(attempt: FreeTradeAttempt, grade: FreeTradeGradeResult) {
+    if (!session || !user || exercise!.answer_type !== "free") return;
+
+    const updatedSession: SessionState = {
+      ...session,
+      correct_count: session.correct_count + (grade.passed ? 1 : 0),
+      missed_exercise_ids: grade.passed
+        ? session.missed_exercise_ids
+        : [...session.missed_exercise_ids, exercise!.exercise_id],
+    };
+    saveSession(updatedSession);
+    setSession(updatedSession);
+
+    setSaving(true);
+    setSaveError(null);
+    const responseTimeMs = Date.now() - exerciseStartRef.current;
+    const { position, exit } = attempt;
+    const checkResult = (id: FreeTradeGradeResult["checks"][number]["id"]) => {
+      const status = grade.checks.find((c) => c.id === id)?.status;
+      return status === "pass" ? true : status === "fail" ? false : null;
+    };
+
+    try {
+      const attemptNumber = await nextAttemptNumber(user.id, exercise!.exercise_id);
+      await insertAttempt(user.id, {
+        exercise_id: exercise!.exercise_id,
+        concept: exercise!.concept,
+        difficulty: exercise!.difficulty,
+        answer_type: "free",
+        user_answer_type: "free",
+        user_price_low: null,
+        user_price_high: null,
+        user_candle_start: null,
+        user_candle_end: null,
+        coverage: null,
+        precision_ratio: null,
+        user_price: null,
+        distance_from_level: null,
+        user_choice: null,
+        correct_choice: null,
+        guided_bias_choice: null,
+        guided_entry_price: null,
+        guided_stop_price: null,
+        guided_target_price: null,
+        guided_bias_correct: null,
+        guided_entry_correct: null,
+        guided_stop_correct: null,
+        guided_target_correct: null,
+        guided_achieved_rr: null,
+        guided_declared_trade: null,
+        free_direction: position?.direction ?? "none",
+        free_entry_price: position?.entry ?? null,
+        free_stop_price: position?.stop ?? null,
+        free_target_price: position?.target ?? null,
+        free_entry_candle_index: position?.entryIndex ?? null,
+        free_exit_candle_index: exit?.index ?? null,
+        free_exit_price: exit?.price ?? null,
+        free_exit_reason: exit?.reason ?? null,
+        free_rr: grade.rr,
+        free_result_r: grade.resultR,
+        free_outcome: grade.outcome,
+        free_direction_correct: checkResult("direction"),
+        free_entry_correct: checkResult("entry"),
+        free_stop_correct: checkResult("stop"),
+        free_rr_correct: checkResult("rr"),
+        free_decision_correct: checkResult("decision"),
+        is_correct: grade.passed,
         failure_reason: null,
         response_time_ms: responseTimeMs,
         attempt_number: attemptNumber,
@@ -369,7 +457,23 @@ export default function PracticePage() {
         </div>
         <p className="mt-2 text-sm text-muted">{exercise.prompt}</p>
 
-        {exercise.answer_type === "guided" ? (
+        {exercise.answer_type === "free" ? (
+          <div className="mt-6">
+            <FreeTradeExercise
+              key={exercise.exercise_id}
+              exercise={exercise}
+              onGraded={recordFreeTradeAttempt}
+              onNext={handleNext}
+              nextLabel={isLastExercise ? "See Results" : "Next Scenario"}
+            />
+            {saving && <p className="mt-3 text-xs text-muted">Saving…</p>}
+            {saveError && (
+              <p className="mt-3 text-xs" style={{ color: "#e2685f" }}>
+                {saveError}
+              </p>
+            )}
+          </div>
+        ) : exercise.answer_type === "guided" ? (
           <div className="mt-6">
             <GuidedExercise
               key={exercise.exercise_id}

@@ -211,3 +211,52 @@ export function getGuidedStepAccuracy(attempts: DbAttempt[]): GuidedStepAccuracy
   }
   return result;
 }
+
+export type FreeTradeCheckAccuracy = {
+  check: "direction" | "entry" | "stop" | "rr" | "decision";
+  accuracy: number;
+  count: number;
+};
+
+export type FreeTradeStats = {
+  /** Pass rate per process check, each only over attempts where the check
+   * applied (a free_*_correct flag is null, not false, when it didn't —
+   * e.g. entry on a No Trade decision). */
+  checks: FreeTradeCheckAccuracy[];
+  scenarios: number;
+  trades: number;
+  wins: number;
+  losses: number;
+  /** Sum of result-in-R across every trade taken (open trades included at
+   * their session-end mark). */
+  totalR: number;
+};
+
+/** Free Trade only (answer_type = 'free'); null if there are no attempts. */
+export function getFreeTradeStats(attempts: DbAttempt[]): FreeTradeStats | null {
+  const free = attempts.filter((a) => a.answer_type === "free");
+  if (free.length === 0) return null;
+  const fields: { check: FreeTradeCheckAccuracy["check"]; field: keyof DbAttempt }[] = [
+    { check: "decision", field: "free_decision_correct" },
+    { check: "direction", field: "free_direction_correct" },
+    { check: "entry", field: "free_entry_correct" },
+    { check: "stop", field: "free_stop_correct" },
+    { check: "rr", field: "free_rr_correct" },
+  ];
+  const checks: FreeTradeCheckAccuracy[] = [];
+  for (const { check, field } of fields) {
+    const applied = free.filter((a) => a[field] !== null);
+    if (applied.length === 0) continue;
+    const passed = applied.filter((a) => a[field] === true).length;
+    checks.push({ check, accuracy: Math.round((passed / applied.length) * 100), count: applied.length });
+  }
+  const trades = free.filter((a) => a.free_direction === "long" || a.free_direction === "short");
+  return {
+    checks,
+    scenarios: free.length,
+    trades: trades.length,
+    wins: trades.filter((a) => a.free_outcome === "win").length,
+    losses: trades.filter((a) => a.free_outcome === "loss").length,
+    totalR: trades.reduce((sum, a) => sum + (a.free_result_r ?? 0), 0),
+  };
+}

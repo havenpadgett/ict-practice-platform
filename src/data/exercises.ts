@@ -3,6 +3,7 @@
 // to match the PRD's Exercise definition so the data contract is easy to
 // cross-reference with the doc.
 
+import { freeTradeScenarios } from "@/data/free-trade-scenarios";
 import type { Concept } from "@/lib/concepts";
 
 export type Candle = {
@@ -176,7 +177,51 @@ export type GuidedExercise = ExerciseBase & {
   answer: GuidedAnswer;
 };
 
-export type Exercise = ZoneExercise | LevelExercise | ChoiceExercise | GuidedExercise;
+// Free Trade (docs/CURRICULUM.md): historical playback. `candles` is the
+// starting window shown up front; `hidden_candles` are revealed one at a
+// time and are never rendered (or used to scale the chart) until revealed.
+// The user decides if/when to trade, and is graded on process against the
+// answer below — never on whether the trade happened to win.
+
+export type FreeTradeDirection = "long" | "short";
+
+/** "none" when structure never gives a direction worth trading. */
+export type FreeTradeBias = FreeTradeDirection | "none";
+
+export type FreeTradePriceZone = {
+  price_low: number;
+  price_high: number;
+};
+
+export type FreeTradeEntryZone = FreeTradePriceZone & {
+  /** Index (into candles followed by hidden_candles) of the first candle
+   * whose close counts as an entry — the setup hasn't formed before this,
+   * so an entry at the same price earlier isn't the same trade. */
+  earliest_index: number;
+};
+
+export type FreeTradeAnswer = {
+  intended_bias: FreeTradeBias;
+  /** False for scenarios where the correct decision is to not trade at
+   * all. Entry/stop/target may still be filled in as reference levels
+   * (e.g. a clean setup whose R:R falls short), or null when nothing
+   * qualifies. */
+  is_valid_setup: boolean;
+  entry_zone: FreeTradeEntryZone | null;
+  stop_zone: FreeTradePriceZone | null;
+  target: number | null;
+  /** Minimum acceptable risk-to-reward (curriculum: 2:1). */
+  min_rr: number;
+};
+
+export type FreeTradeExercise = ExerciseBase & {
+  answer_type: "free";
+  title: string;
+  hidden_candles: Candle[];
+  answer: FreeTradeAnswer;
+};
+
+export type Exercise = ZoneExercise | LevelExercise | ChoiceExercise | GuidedExercise | FreeTradeExercise;
 
 // fvg-001: a single bullish FVG sits at candles[19..21]. Candle 19's high
 // (21107.25) is below candle 21's low (21139.25) — candle 20 is the large
@@ -184,7 +229,7 @@ export type Exercise = ZoneExercise | LevelExercise | ChoiceExercise | GuidedExe
 // window in this series was checked by generation script and does not
 // qualify as a gap (bullish or bearish), per the PRD's ambiguity rule
 // (exactly one valid FVG, never two).
-export const exercises: Exercise[] = [
+const conceptExercises: Exercise[] = [
   {
     exercise_id: "fvg-001",
     concept: "FVG",
@@ -2792,6 +2837,11 @@ export const exercises: Exercise[] = [
     ],
   },
 ];
+
+// Free Trade scenarios live in their own file (each carries ~80 candles) —
+// same Exercise shape, so sessions, attempts, and analytics treat them like
+// any other exercise.
+export const exercises: Exercise[] = [...conceptExercises, ...freeTradeScenarios];
 
 export function getExercise(exerciseId: string): Exercise | undefined {
   return exercises.find((exercise) => exercise.exercise_id === exerciseId);

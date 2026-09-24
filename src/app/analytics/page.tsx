@@ -6,6 +6,7 @@ import { ConceptHighlights } from "@/components/analytics/concept-highlights";
 import { DifficultyAccuracyBars } from "@/components/analytics/difficulty-accuracy-bars";
 import { AnalyticsEmptyState } from "@/components/analytics/empty-state";
 import { ExerciseAccuracyList } from "@/components/analytics/exercise-accuracy-list";
+import { FreeTradeStatsView } from "@/components/analytics/free-trade-stats";
 import { GuidedStepAccuracyBars } from "@/components/analytics/guided-step-accuracy-bars";
 import { ImprovementChart } from "@/components/analytics/improvement-chart";
 import { OverviewStats } from "@/components/analytics/overview-stats";
@@ -18,6 +19,7 @@ import {
   getAccuracyByDifficulty,
   getAccuracyByExercise,
   getAccuracyOverTime,
+  getFreeTradeStats,
   getGuidedStepAccuracy,
   getOverallStats,
   getResponseTimeStats,
@@ -91,6 +93,7 @@ function AnalyticsContent({ attempts }: { attempts: DbAttempt[] }) {
   const blocks = getAccuracyOverTime(attempts);
   const responseTime = getResponseTimeStats(attempts);
   const guidedSteps = getGuidedStepAccuracy(attempts);
+  const freeTrade = getFreeTradeStats(attempts);
 
   return (
     <div className="mt-8 space-y-10">
@@ -127,6 +130,18 @@ function AnalyticsContent({ attempts }: { attempts: DbAttempt[] }) {
           </p>
           <div className="mt-4">
             <GuidedStepAccuracyBars steps={guidedSteps} />
+          </div>
+        </section>
+      )}
+
+      {freeTrade && (
+        <section>
+          <p className="eyebrow">Free Trade — Process Checks</p>
+          <p className="mt-1 text-xs text-muted">
+            Pass rate per check, graded on process — each check only counts where it applied.
+          </p>
+          <div className="mt-4">
+            <FreeTradeStatsView stats={freeTrade} />
           </div>
         </section>
       )}

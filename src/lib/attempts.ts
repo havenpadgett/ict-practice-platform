@@ -7,7 +7,8 @@ import { createClient } from "@/lib/supabase/client";
 import type { StoredAttempt } from "@/lib/storage";
 
 /** Matches the `attempts` table (supabase/migrations/...create_profiles_and_attempts.sql,
- * widened for Guided Entry by ..._add_guided_fields_to_attempts.sql). */
+ * widened for Guided Entry by ..._add_guided_fields_to_attempts.sql and for
+ * Free Trade by ..._add_free_trade_fields_to_attempts.sql). */
 export type DbAttempt = {
   id: string;
   user_id: string;
@@ -17,8 +18,8 @@ export type DbAttempt = {
    * attempts recorded before this column existed (supabase/migrations/
    * ..._add_difficulty_to_attempts.sql). */
   difficulty: 1 | 2 | 3 | null;
-  answer_type: "zone" | "level" | "choice" | "guided";
-  user_answer_type: "region" | "level" | "choice" | "guided" | "none";
+  answer_type: "zone" | "level" | "choice" | "guided" | "free";
+  user_answer_type: "region" | "level" | "choice" | "guided" | "free" | "none";
   user_price_low: number | null;
   user_price_high: number | null;
   user_candle_start: number | null;
@@ -45,6 +46,27 @@ export type DbAttempt = {
   /** Whether the user confirmed all four steps as a trade ("Submit Setup")
    * rather than bailing with "No Trade" at some point. */
   guided_declared_trade: boolean | null;
+  // Free Trade fields — populated only when answer_type = 'free'. Price,
+  // R, and exit fields are null when the user finished with No Trade; each
+  // free_*_correct process check is null when it didn't apply (e.g. entry
+  // on a no-trade decision), not false. is_correct holds the overall
+  // process verdict — never the win/loss outcome.
+  free_direction: "long" | "short" | "none" | null;
+  free_entry_price: number | null;
+  free_stop_price: number | null;
+  free_target_price: number | null;
+  free_entry_candle_index: number | null;
+  free_exit_candle_index: number | null;
+  free_exit_price: number | null;
+  free_exit_reason: "stop" | "target" | "session_end" | null;
+  free_rr: number | null;
+  free_result_r: number | null;
+  free_outcome: "win" | "loss" | "open" | "no_trade" | null;
+  free_direction_correct: boolean | null;
+  free_entry_correct: boolean | null;
+  free_stop_correct: boolean | null;
+  free_rr_correct: boolean | null;
+  free_decision_correct: boolean | null;
   is_correct: boolean;
   failure_reason: string | null;
   response_time_ms: number;
@@ -53,6 +75,27 @@ export type DbAttempt = {
 };
 
 export type NewAttempt = Omit<DbAttempt, "id" | "user_id" | "created_at">;
+
+/** Every free_* column as null — spread into inserts for non-Free-Trade
+ * attempts. */
+export const NULL_FREE_TRADE_FIELDS = {
+  free_direction: null,
+  free_entry_price: null,
+  free_stop_price: null,
+  free_target_price: null,
+  free_entry_candle_index: null,
+  free_exit_candle_index: null,
+  free_exit_price: null,
+  free_exit_reason: null,
+  free_rr: null,
+  free_result_r: null,
+  free_outcome: null,
+  free_direction_correct: null,
+  free_entry_correct: null,
+  free_stop_correct: null,
+  free_rr_correct: null,
+  free_decision_correct: null,
+} satisfies Partial<NewAttempt>;
 
 export async function fetchAttempts(userId: string): Promise<DbAttempt[]> {
   const supabase = createClient();
@@ -120,8 +163,8 @@ export async function migrateLocalAttempts(
       user_price: a.user_price,
       distance_from_level: a.distance_from_level,
       // StoredAttempt (the pre-login localStorage shape) predates the
-      // "choice" and "guided" answer types entirely — nothing migrated
-      // through it could have been a choice or guided attempt.
+      // "choice", "guided", and "free" answer types entirely — nothing
+      // migrated through it could have been any of those.
       user_choice: null,
       correct_choice: null,
       guided_bias_choice: null,
@@ -134,6 +177,7 @@ export async function migrateLocalAttempts(
       guided_target_correct: null,
       guided_achieved_rr: null,
       guided_declared_trade: null,
+      ...NULL_FREE_TRADE_FIELDS,
       is_correct: a.is_correct,
       failure_reason: a.failure_reason,
       response_time_ms: a.response_time_ms,

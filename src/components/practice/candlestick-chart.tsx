@@ -5,10 +5,12 @@ import type { Candle } from "@/data/exercises";
 import type { UserRegion } from "@/lib/grading";
 import {
   buildChartLayout,
+  candleIndexToX,
   clampToPlot,
   plotBounds,
   priceToY,
   regionToPixelRect,
+  slotWidth,
   xToCandleIndex,
   yToPrice,
 } from "@/lib/coordinates";
@@ -25,6 +27,10 @@ const DRAG_THRESHOLD = 5;
 const UP_COLOR = "#4caf82";
 const DOWN_COLOR = "#e2685f";
 const USER_MARK_COLOR = "#e9eaec";
+/** Free Trade gets a little more headroom than the default so a stop just
+ * beyond the revealed swing extreme can still be placed. Symmetric, so it
+ * says nothing about which way price goes next. */
+const FREE_PRICE_MARGIN_RATIO = 0.14;
 
 type PixelPoint = { x: number; y: number };
 
@@ -82,21 +88,62 @@ type GuidedProps = CommonProps & {
   correctTarget?: number | null;
 };
 
+/** Free Trade playback: only revealed candles are passed in (the chart
+ * scales to them alone, so the axis never hints at future price), with a
+ * few empty slots to the right. Once a Long/Short is opened, the stop and
+ * target are placed as horizontal lines — same interaction as Guided
+ * Entry's levels, with `activeField` choosing which one pointer input
+ * moves. After grading, the ideal entry zone / stop zone / target overlay
+ * the fully revealed chart. */
+type FreeProps = CommonProps & {
+  answerType: "free";
+  extraSlots: number;
+  entryPrice: number | null;
+  stopPrice: number | null;
+  targetPrice: number | null;
+  activeField: "stop" | "target" | null;
+  onActiveFieldChange: (price: number) => void;
+  entryIndex: number | null;
+  exit: { index: number; price: number } | null;
+  idealEntryZone?: { price_low: number; price_high: number; candle_start: number } | null;
+  idealStopZone?: { price_low: number; price_high: number } | null;
+  idealTarget?: number | null;
+};
+
 const GUIDED_FIELD_LABELS: Record<GuidedLevelField, string> = {
   entry: "ENTRY",
   stop: "STOP",
   target: "TARGET",
 };
 
-export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | GuidedProps) {
+export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | GuidedProps | FreeProps) {
   const { candles, interactive } = props;
   const svgRef = useRef<SVGSVGElement>(null);
   const [dragStart, setDragStart] = useState<PixelPoint | null>(null);
   const [isPlacingLevel, setIsPlacingLevel] = useState(false);
 
-  const layout = buildChartLayout(candles, VIEWBOX_WIDTH, VIEWBOX_HEIGHT);
+  // Guided Entry and Free Trade both place labeled horizontal lines, one
+  // "active" field at a time; nothing is placeable while activeField is null.
+  const isMultiLine = props.answerType === "guided" || props.answerType === "free";
+  const hasActiveField = isMultiLine && props.activeField !== null;
+
+  const freeOverlayPrices =
+    props.answerType === "free"
+      ? [
+          ...(props.idealStopZone ? [props.idealStopZone.price_low, props.idealStopZone.price_high] : []),
+          ...(props.idealTarget !== null && props.idealTarget !== undefined ? [props.idealTarget] : []),
+        ]
+      : [];
+  const layout = buildChartLayout(
+    candles,
+    VIEWBOX_WIDTH,
+    VIEWBOX_HEIGHT,
+    props.answerType === "free"
+      ? { extraSlots: props.extraSlots, extraPrices: freeOverlayPrices, marginRatio: FREE_PRICE_MARGIN_RATIO }
+      : {},
+  );
   const bounds = plotBounds(layout);
-  const slotW = (bounds.right - bounds.left) / candles.length;
+  const slotW = slotWidth(layout);
 
   // Browser pointer events report coordinates in real screen pixels, but our
   // layout math lives in the SVG's viewBox units. This converts one to the
@@ -120,7 +167,7 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
 
   function handlePointerDown(e: React.PointerEvent<SVGSVGElement>) {
     if (!interactive || props.answerType === "choice") return;
-    if (props.answerType === "guided" && props.activeField === null) return;
+    if (isMultiLine && !hasActiveField) return;
     // Pointer capture keeps the drag going even if the pointer slips past
     // the SVG's edge mid-drag. It can throw in some browsers/devices when
     // there's no "active pointer" session to capture — that's not fatal,
@@ -138,7 +185,7 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
       props.onUserLevelChange(yToPrice(layout, point.y));
       return;
     }
-    if (props.answerType === "guided") {
+    if (props.answerType === "guided" || props.answerType === "free") {
       setIsPlacingLevel(true);
       props.onActiveFieldChange(yToPrice(layout, point.y));
       return;
@@ -149,7 +196,7 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
 
   function handlePointerMove(e: React.PointerEvent<SVGSVGElement>) {
     if (!interactive || props.answerType === "choice") return;
-    if (props.answerType === "guided" && props.activeField === null) return;
+    if (isMultiLine && !hasActiveField) return;
     const point = toSvgPoint(e.clientX, e.clientY);
 
     if (props.answerType === "level") {
@@ -157,7 +204,7 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
       props.onUserLevelChange(yToPrice(layout, point.y));
       return;
     }
-    if (props.answerType === "guided") {
+    if (props.answerType === "guided" || props.answerType === "free") {
       if (!isPlacingLevel) return;
       props.onActiveFieldChange(yToPrice(layout, point.y));
       return;
@@ -222,7 +269,7 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
   // distinguishing which is which.
   const guidedFields: GuidedLevelField[] = ["entry", "stop", "target"];
   const guidedUserPrices: Record<GuidedLevelField, number | null> =
-    props.answerType === "guided"
+    props.answerType === "guided" || props.answerType === "free"
       ? { entry: props.entryPrice, stop: props.stopPrice, target: props.targetPrice }
       : { entry: null, stop: null, target: null };
   const guidedCorrectPrices: Record<GuidedLevelField, number | null | undefined> =
@@ -233,9 +280,9 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
   const cursorClass =
     !interactive || props.answerType === "choice"
       ? ""
-      : props.answerType === "level" || (props.answerType === "guided" && props.activeField !== null)
+      : props.answerType === "level" || hasActiveField
         ? "cursor-row-resize"
-        : props.answerType === "guided"
+        : isMultiLine
           ? ""
           : "cursor-crosshair";
 
@@ -244,7 +291,7 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
   // needed to keep a drawing gesture from also panning the page. Same for a
   // guided step with nothing currently placeable (the bias step).
   const touchClass =
-    props.answerType === "choice" || (props.answerType === "guided" && props.activeField === null)
+    props.answerType === "choice" || (isMultiLine && !hasActiveField)
       ? ""
       : "touch-none [-webkit-touch-callout:none]";
 
@@ -365,9 +412,96 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
         />
       )}
 
-      {/* Guided Entry: up to three labeled lines (entry/stop/target), each
-          in its user-placed and — once graded — correct-answer form. */}
-      {props.answerType === "guided" &&
+      {/* Free Trade, after grading: ideal entry zone (from the candle the
+          setup completes on), stop zone, and target. */}
+      {props.answerType === "free" && props.idealEntryZone && (
+        <g>
+          <rect
+            x={candleIndexToX(layout, props.idealEntryZone.candle_start) - slotW / 2}
+            y={priceToY(layout, props.idealEntryZone.price_high)}
+            width={bounds.right - (candleIndexToX(layout, props.idealEntryZone.candle_start) - slotW / 2)}
+            height={priceToY(layout, props.idealEntryZone.price_low) - priceToY(layout, props.idealEntryZone.price_high)}
+            className="fill-accent/15 stroke-accent"
+            strokeWidth={1}
+            strokeDasharray="4 3"
+          />
+          <text
+            x={candleIndexToX(layout, props.idealEntryZone.candle_start) - slotW / 2 + 4}
+            y={priceToY(layout, props.idealEntryZone.price_high) - 4}
+            className="fill-accent text-[10px] font-medium"
+          >
+            IDEAL ENTRY
+          </text>
+        </g>
+      )}
+      {props.answerType === "free" && props.idealStopZone && (
+        <g>
+          <rect
+            x={bounds.left}
+            y={priceToY(layout, props.idealStopZone.price_high)}
+            width={bounds.right - bounds.left}
+            height={priceToY(layout, props.idealStopZone.price_low) - priceToY(layout, props.idealStopZone.price_high)}
+            fill={DOWN_COLOR}
+            fillOpacity={0.12}
+            stroke={DOWN_COLOR}
+            strokeWidth={1}
+            strokeDasharray="4 3"
+          />
+          <text
+            x={bounds.left + 4}
+            y={priceToY(layout, props.idealStopZone.price_high) - 4}
+            fill={DOWN_COLOR}
+            className="text-[10px] font-medium"
+          >
+            STOP ZONE
+          </text>
+        </g>
+      )}
+      {props.answerType === "free" && props.idealTarget !== null && props.idealTarget !== undefined && (
+        <g>
+          <line
+            x1={bounds.left}
+            x2={bounds.right}
+            y1={priceToY(layout, props.idealTarget)}
+            y2={priceToY(layout, props.idealTarget)}
+            className="stroke-accent"
+            strokeWidth={1.5}
+            strokeDasharray="4 3"
+          />
+          <text
+            x={bounds.left + 4}
+            y={priceToY(layout, props.idealTarget) - 4}
+            className="fill-accent text-[10px] font-medium"
+          >
+            IDEAL TARGET
+          </text>
+        </g>
+      )}
+
+      {/* Free Trade: entry fill and exit markers. */}
+      {props.answerType === "free" && props.entryIndex !== null && props.entryPrice !== null && (
+        <circle
+          cx={candleIndexToX(layout, props.entryIndex)}
+          cy={priceToY(layout, props.entryPrice)}
+          r={4}
+          fill={USER_MARK_COLOR}
+        />
+      )}
+      {props.answerType === "free" && props.exit && (
+        <circle
+          cx={candleIndexToX(layout, props.exit.index)}
+          cy={priceToY(layout, props.exit.price)}
+          r={4}
+          fill="none"
+          stroke={USER_MARK_COLOR}
+          strokeWidth={2}
+        />
+      )}
+
+      {/* Guided Entry / Free Trade: up to three labeled lines (entry/stop/
+          target), each in its user-placed and — once graded (Guided only) —
+          correct-answer form. */}
+      {isMultiLine &&
         guidedFields.map((field) => {
           const userPrice = guidedUserPrices[field];
           const correctPrice = guidedCorrectPrices[field];

@@ -93,6 +93,42 @@ R:R = (target − entry) / (entry − stop)     // for a long; mirrored for a sh
 
 **Why grade the process, not the outcome (PRD Section 13):** a setup that satisfies all four steps and clears 2:1 is a *valid* setup even if the trade would have lost — market structure describes probability, not certainty. Conversely, a setup that happened to work out but skipped a step (no real entry level, R:R below 2:1, bias never actually confirmed) is not a good decision that got lucky. Guided Entry exercises are graded against whether the four-step process was followed correctly, never against what price did afterward.
 
+## Free Trade
+
+**Provenance:** AI-DRAFTED — the mode's rules and all five scenario definitions below were written by AI and have **not** been reviewed by Haven yet. Treat every scenario answer key as pending review before anyone other than Haven uses the app.
+
+**What it is:** historical playback. The user sees a starting window of candles, then reveals the rest one candle at a time — no future candle is rendered, and the chart's price axis is scaled to revealed candles only, so it never hints at where price goes next. At any revealed candle the user may go **Long** or **Short** (a market order filled at that candle's close), then place a stop and a target. The trade closes when a later candle's high/low touches the stop or target; if one candle touches both, the stop is assumed hit first. One trade per scenario. Ending the session without a trade is a **No Trade** decision.
+
+**Graded on process, not outcome** — same principle as [Guided Entry](#guided-entry). Each check is pass/fail:
+
+1. **Direction** — matches the scenario's intended bias (read from [MSS](#market-structure-shift-mss) and which side's liquidity was taken).
+2. **Entry** — the fill price sits inside the scenario's ideal entry zone, and only once the setup has actually formed (an entry at the same price before the MSS isn't the same trade).
+3. **Stop** — inside the scenario's stop zone: just beyond the swing point that would invalidate the idea. Inside that swing point is too tight; well past it is too wide.
+4. **Risk-to-reward** — the user's own planned R:R (the entry, stop, and target they placed) is at least **2:1**.
+5. **Trade decision** — traded a scenario that has a valid setup, or sat out one that doesn't.
+
+The overall verdict passes only if every check that applies passes. Win/loss and the result in R are reported alongside but never change the verdict: a losing trade with good process passes; a winning trade with bad process fails. A trade still open when the session ends is marked at the last revealed close.
+
+**Known V1 gap:** the target is not graded on its own — only through the R:R check. A target placed far beyond the nearest opposing liquidity inflates planned R:R. Revisit with Haven before wider use.
+
+### Scenarios (AI-DRAFTED — pending Haven's review)
+
+All five are hand-authored prototype NQ 5m data (`src/data/free-trade-scenarios.ts`): 40 candles visible at the start, 40 revealed during playback.
+
+| ID | Title | Difficulty | Intended bias | Valid setup? | Ideal entry zone | Stop zone | Target |
+|---|---|---|---|---|---|---|---|
+| `ft-001` | Sweep and Reclaim | 1 | Long | Yes | 21,335–21,362 (bullish FVG) | 21,250–21,284 | 21,520 (untouched high) |
+| `ft-002` | Equal Highs Raid | 2 | Short | Yes | 21,405–21,430 (bearish FVG, forms during playback) | 21,479–21,510 | 21,260 (swing low) |
+| `ft-003` | The Retest That Failed | 3 | Long | Yes — but the trade loses | 21,172–21,190 (retest of the broken lower high) | 21,090–21,119 | 21,330 (untouched high) |
+| `ft-004` | Range Chop | 2 | None | No — no bias, no level | — | — | — |
+| `ft-005` | Too Close to Call | 3 | Short | No — best R:R ≈ 1.4:1 | 21,455–21,470 (reference only) | 21,521–21,550 (reference only) | 21,400 (equal lows, reference only) |
+
+- **ft-001 — Sweep and Reclaim.** Downtrend sweeps a prior low (sell-side liquidity), then a displacement candle closes above the most recent lower high — bullish MSS — leaving a bullish FVG. Long on the pullback into the gap, stop below the sweep low, target the untouched high (buy-side liquidity). Wins.
+- **ft-002 — Equal Highs Raid.** Uptrend prints equal highs (a large buy-side pool). The setup forms only during playback: price raids the equal highs, then closes below the recent higher low — bearish MSS — leaving a bearish FVG. Short the pullback into the gap, stop above the raid high, target the sell-side liquidity under the earlier swing low. Wins. Tests patience: nothing is tradable at the start.
+- **ft-003 — The Retest That Failed.** Sweep of a prior low, then a close above the lower high — bullish MSS — but no FVG is left behind, so the entry is the retest of the broken structural level. Stop below the sweep low, target the untouched high. **Loses:** the bounce stalls and price runs the stop. Exists specifically to show a correct-process loss passing.
+- **ft-004 — Range Chop.** Sideways the entire session; no MSS in either direction, no qualifying FVG, and the one poke above the range is a wick with no follow-through. Correct decision: no trade.
+- **ft-005 — Too Close to Call.** A clean bearish MSS after a buy-side sweep, with a bearish FVG — but the nearest sell-side liquidity (equal lows) is so close that the best available R:R from the gap is about 1.4:1, and a typical fill is nearer 1:1. Correct decision: no trade. Price does reach the equal lows, then reverses back through the highs.
+
 ## Liquidity — Time-Based Levels (defined, not yet examinable)
 
 **Provenance:** HAVEN-VALIDATED.

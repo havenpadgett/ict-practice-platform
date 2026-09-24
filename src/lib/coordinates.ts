@@ -23,16 +23,29 @@ const PADDING = { top: 16, right: 64, bottom: 24, left: 8 };
 /** Extra breathing room above/below the candle range so wicks don't touch the edges. */
 const PRICE_MARGIN_RATIO = 0.08;
 
+export type ChartLayoutOptions = {
+  /** Empty candle slots to the right of the last candle (Free Trade
+   * playback leaves room for the next reveal instead of pinning the newest
+   * candle to the price axis). */
+  extraSlots?: number;
+  /** Prices that must fit on the axis besides the candles themselves (e.g.
+   * overlay levels shown after grading). */
+  extraPrices?: number[];
+  marginRatio?: number;
+};
+
 export function buildChartLayout(
   candles: Candle[],
   width: number,
   height: number,
+  options: ChartLayoutOptions = {},
 ): ChartLayout {
-  const highs = candles.map((c) => c.high);
-  const lows = candles.map((c) => c.low);
+  const { extraSlots = 0, extraPrices = [], marginRatio = PRICE_MARGIN_RATIO } = options;
+  const highs = [...candles.map((c) => c.high), ...extraPrices];
+  const lows = [...candles.map((c) => c.low), ...extraPrices];
   const rawMax = Math.max(...highs);
   const rawMin = Math.min(...lows);
-  const margin = (rawMax - rawMin) * PRICE_MARGIN_RATIO;
+  const margin = (rawMax - rawMin) * marginRatio;
 
   return {
     width,
@@ -43,7 +56,7 @@ export function buildChartLayout(
     paddingLeft: PADDING.left,
     priceMin: rawMin - margin,
     priceMax: rawMax + margin,
-    candleCount: candles.length,
+    candleCount: candles.length + extraSlots,
   };
 }
 
