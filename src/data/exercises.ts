@@ -7,7 +7,13 @@ import { freeTradeScenarios } from "@/data/free-trade-scenarios";
 import type { Concept } from "@/lib/concepts";
 
 export type Candle = {
+  /** Display label, "HH:MM". Constructed exercises use only this. */
   time: string;
+  /** Optional real timestamp: ISO 8601 in New York wall-clock time with the
+   * ET offset, e.g. "2026-03-03T09:30:00-05:00" (see src/lib/time-context.ts).
+   * When every candle in an exercise has one, the chart shows date/time
+   * labels, trading-day separators, and NY AM session shading. */
+  timestamp?: string;
   open: number;
   high: number;
   low: number;

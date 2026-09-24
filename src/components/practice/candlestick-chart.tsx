@@ -2,7 +2,9 @@
 
 import { useRef, useState } from "react";
 import type { Candle } from "@/data/exercises";
+import { ChartTimeBackground, ChartTimeLabels } from "@/components/practice/chart-time-layer";
 import type { UserRegion } from "@/lib/grading";
+import { buildTimeContext } from "@/lib/time-context";
 import {
   buildChartLayout,
   candleIndexToX,
@@ -144,6 +146,8 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
   );
   const bounds = plotBounds(layout);
   const slotW = slotWidth(layout);
+  // Null for constructed exercises without timestamps — no time layer.
+  const timeContext = buildTimeContext(candles);
 
   // Browser pointer events report coordinates in real screen pixels, but our
   // layout math lives in the SVG's viewBox units. This converts one to the
@@ -330,6 +334,8 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
         );
       })}
 
+      {timeContext && <ChartTimeBackground ctx={timeContext} bounds={bounds} slotW={slotW} />}
+
       {/* Candles */}
       {candles.map((candle, index) => {
         const x = bounds.left + slotW * index + slotW / 2;
@@ -341,7 +347,8 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
         const bodyWidth = slotW * 0.6;
 
         return (
-          <g key={candle.time}>
+          // Index, not time: multi-day real data repeats "HH:MM" labels.
+          <g key={index}>
             <line
               x1={x}
               x2={x}
@@ -360,6 +367,8 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
           </g>
         );
       })}
+
+      {timeContext && <ChartTimeLabels ctx={timeContext} bounds={bounds} slotW={slotW} />}
 
       {/* The true zone, shown only after grading */}
       {correctZoneRect && (
