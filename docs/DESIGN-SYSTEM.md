@@ -74,3 +74,23 @@ Focus: one global `:focus-visible` style, a 2px mint ring offset by 2px.
 ## Scope note (2026-09-19)
 
 This pass defined the token layer in `globals.css` and, per instruction, touched only one other file — `StatCard` — to swap its label onto the new `.eyebrow` class. `TopNav` and the existing buttons (`PrimaryButton`, the Submit/secondary buttons in `ExerciseControls`/`ChoiceControls`) needed no edits: they already build on the shared Tailwind classes (`bg-background`, `border-line`, `text-muted`, `bg-accent`, ...), so the new color values apply to them automatically. Everything else in the app (dashboard, analytics, exercise/session cards, section labels) re-themes the same way, but several of those places still use an ad-hoc `text-xs uppercase tracking-wide text-muted` label instead of the new `.eyebrow` class — tracked in `docs/POLISH-BACKLOG.md`. New components (e.g. Guided Entry) should use the tokens and recipes above directly rather than reintroducing the old pattern.
+
+## Accessibility audit (2026-09-25, AI-DRAFTED)
+
+**Contrast (WCAG AA):** every text token passes on both surfaces (see Contrast above). Found and fixed:
+- **Control boundaries:** inputs and outline buttons used `--line` as their only boundary (1.3:1; non-text controls need 3:1). They now use `--control` (3.4–3.6:1).
+- **Faded text:** some text was drawn at reduced opacity (`text-foreground/70`, `/85`, `/90`). All of it is now a full token.
+- **Chart time labels:** these were `muted/70`. They now use the full `muted` token.
+
+**Correct vs. incorrect without color:** found and fixed:
+- **Verdicts** were colored words ("Correct" / "Not Quite", "Pass" / "Fail") with no other cue. They are now an icon shape (check vs cross) plus a word (`Verdict`, `CheckRow`).
+- **Accuracy bars** were colored green / blue / red by band. They are now one neutral fill, and the number carries the value.
+- **Weak concepts** in the adaptive table were flagged only in red. The cell now also says "weak".
+- **Live R:R** in Guided Entry and Free Trade turned mint when it cleared the minimum, with nothing else. It now says "meets" or "below the 2:1 minimum".
+- **Chart answers:** the user's answer and the correct answer differed only by color. The user's answer is now solid white and the correct answer dashed mint, drawn on top, with a legend after grading.
+- **Candles:** up and down candles differed only by color. Up candles are now hollow and down candles solid.
+
+**Keyboard:**
+- **Working:** tab order follows reading order. Every button, link, option and field is reachable and operable, including concept cards, answer options, playback controls and the review forms. Option buttons expose `aria-pressed`.
+- **Added:** a "Skip to content" link, one visible focus ring (2px mint `:focus-visible`), and an accessible name on each chart (`role="img"`).
+- **Not fixed (needs a behaviour change, per this pass's no-functional-changes rule):** drawing a box (FVG, IFVG, order block), placing a line (liquidity, MSS, time-based levels), and placing entry/stop/target (Guided Entry, Free Trade) are pointer-only. A keyboard-only user cannot answer those exercises; choice exercises and every control around the chart do work. Suggested fix: when the chart has focus, arrow keys move a cursor over candles and price, Enter anchors, Shift+arrows resize, Enter again commits, and the chosen values are announced. Logged in `docs/POLISH-BACKLOG.md`.

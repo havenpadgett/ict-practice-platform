@@ -22,9 +22,10 @@ export function ConceptPicker({
         <button
           type="button"
           onClick={onPickAdaptive}
-          className="mt-6 w-full rounded-lg border border-accent/60 bg-accent/5 p-5 text-left transition-colors hover:bg-accent/10"
+          className="card mt-6 w-full text-left transition-colors hover:border-control"
         >
-          <p className="text-base font-semibold text-foreground">Adaptive mix</p>
+          <p className="eyebrow">Recommended mode</p>
+          <p className="mt-1 text-base font-semibold text-foreground">Adaptive mix</p>
           <p className="mt-1 text-sm text-muted">
             10 exercises across concepts, weighted toward the ones you miss most, with some of your stronger ones mixed in.
           </p>
@@ -48,7 +49,7 @@ export function ConceptPicker({
               type="button"
               onClick={() => onPick(concept)}
               disabled={!ready}
-              className="rounded-lg border border-line bg-surface p-5 text-left transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-surface"
+              className="card text-left transition-colors hover:border-control disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-line"
             >
               <p className="text-base font-semibold text-foreground">
                 {meta.pickerLabel}

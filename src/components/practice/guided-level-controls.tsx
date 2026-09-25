@@ -35,7 +35,10 @@ export function GuidedLevelControls({
           <span className={liveRR >= minRR ? "text-accent font-medium" : "font-medium"}>
             {liveRR.toFixed(2)}:1
           </span>
-          <span className="text-muted"> (minimum {minRR}:1)</span>
+          <span className="text-muted">
+            {" "}
+            · {liveRR >= minRR ? "meets" : "below"} the {minRR}:1 minimum
+          </span>
         </p>
       )}
 

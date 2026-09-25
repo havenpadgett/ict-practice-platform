@@ -375,7 +375,10 @@ export function FreeTradeExercise({
                     <span className={liveRR >= key.min_rr ? "font-medium text-accent" : "font-medium"}>
                       {liveRR.toFixed(2)}:1
                     </span>
-                    <span className="text-muted"> (minimum {key.min_rr}:1)</span>
+                    <span className="text-muted">
+                      {" "}
+                      · {liveRR >= key.min_rr ? "meets" : "below"} the {key.min_rr}:1 minimum
+                    </span>
                   </p>
                 )}
                 {(stopError || targetError) && (

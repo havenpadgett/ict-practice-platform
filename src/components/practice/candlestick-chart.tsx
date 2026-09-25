@@ -213,7 +213,10 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
             width={bodyWidth}
             height={Math.max(1, bodyBottom - bodyTop)}
             rx={Math.min(1, bodyWidth / 6)}
-            className={up ? "fill-candle-up" : "fill-candle-down"}
+            // Up candles hollow, down candles solid: direction reads from
+            // shape as well as color.
+            className={up ? "fill-surface stroke-candle-up" : "fill-candle-down"}
+            strokeWidth={up ? 1 : undefined}
           />
         </g>
       );
@@ -383,6 +386,8 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
     <>
     <svg
       ref={svgRef}
+      role="img"
+      aria-label={`Candlestick chart, ${candles.length} candles${props.answerType === "zone" ? ". Drag to draw a box" : props.answerType === "level" ? ". Click to place a line" : ""}`}
       viewBox={`0 0 ${viewBox.width} ${viewBox.height}`}
       className={`w-full select-none ${touchClass} ${cursorClass}`}
       onPointerDown={handlePointerDown}
