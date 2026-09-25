@@ -70,7 +70,15 @@ export default function AnalyticsPage() {
       <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
         Analytics
       </h1>
-      <p className="mt-1 text-sm text-muted">How your practice is trending.</p>
+      <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-muted">How your practice is trending.</p>
+        <a
+          href="/api/export/attempts"
+          className="inline-flex min-h-11 items-center text-sm text-muted underline underline-offset-2 hover:text-foreground"
+        >
+          Export CSV
+        </a>
+      </div>
 
       {dataLoading ? (
         <div className="mt-8">
