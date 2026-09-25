@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useRenderedWidth } from "@/hooks/use-rendered-width";
 import type { TrendPoint } from "@/lib/analytics";
 
-const W = 640;
+/** Full-size viewBox width; narrower screens get a viewBox matching their
+ * width so the axis text stays at its real size. */
+const MAX_W = 640;
 const H = 200;
 const PAD = { top: 12, right: 12, bottom: 24, left: 36 };
 
@@ -11,6 +14,8 @@ const PAD = { top: 12, right: 12, bottom: 24, left: 36 };
  * no legend — the section title names it. Hover (or tap) shows the value. */
 export function AccuracyTrend({ points, window }: { points: TrendPoint[]; window: number }) {
   const [hover, setHover] = useState<number | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const W = Math.max(280, Math.min(MAX_W, useRenderedWidth(svgRef) ?? MAX_W));
   if (points.length < 2) {
     return (
       <p className="text-sm text-muted">
@@ -37,6 +42,7 @@ export function AccuracyTrend({ points, window }: { points: TrendPoint[]; window
   return (
     <div>
       <svg
+        ref={svgRef}
         viewBox={`0 0 ${W} ${H}`}
         className="w-full touch-pan-y"
         role="img"

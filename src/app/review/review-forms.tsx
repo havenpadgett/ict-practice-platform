@@ -11,8 +11,9 @@ function Status({ state }: { state: ReviewActionState }) {
   return null;
 }
 
-const field = "mt-1 w-full rounded border border-line bg-background p-2 text-sm text-foreground";
-const button = "mt-2 rounded border border-line px-4 py-1.5 text-sm text-foreground hover:bg-background disabled:opacity-40";
+const field = "mt-1 min-h-11 w-full rounded border border-line bg-background p-2 text-base text-foreground sm:text-sm";
+const button =
+  "mt-2 min-h-11 rounded border border-line px-4 text-sm text-foreground hover:bg-background disabled:opacity-40";
 
 export type ReviewText = { key: string; label: string; draft: string };
 

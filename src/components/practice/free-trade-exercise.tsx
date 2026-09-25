@@ -168,11 +168,11 @@ function reduce(exercise: FreeTradeExerciseData, state: State, action: Action): 
 }
 
 const primaryClass =
-  "inline-flex items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40";
 const secondaryClass =
-  "inline-flex items-center justify-center rounded-md border border-line px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex min-h-11 items-center justify-center rounded-md border border-line px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40";
 const activeClass =
-  "inline-flex items-center justify-center rounded-md border border-accent bg-accent/10 px-4 py-2.5 text-sm font-medium text-accent";
+  "inline-flex min-h-11 items-center justify-center rounded-md border border-accent bg-accent/10 px-4 py-2.5 text-sm font-medium text-accent";
 
 function formatPrice(price: number): string {
   return price.toLocaleString("en-US", { maximumFractionDigits: 2 });
@@ -310,7 +310,7 @@ export function FreeTradeExercise({
                     type="button"
                     onClick={() => dispatch({ type: "set_speed", speed })}
                     aria-pressed={state.speed === speed}
-                    className={`px-3 py-2 text-xs font-medium transition-colors ${
+                    className={`min-h-11 min-w-11 px-3 text-xs font-medium transition-colors ${
                       state.speed === speed ? "bg-accent/10 text-accent" : "text-muted hover:text-foreground"
                     }`}
                   >

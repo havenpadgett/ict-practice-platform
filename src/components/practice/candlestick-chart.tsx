@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import type { Candle, DealingRange } from "@/data/exercises";
 import { ChartTimeBackground, ChartTimeLabels } from "@/components/practice/chart-time-layer";
+import { useRenderedWidth } from "@/hooks/use-rendered-width";
 import type { UserRegion } from "@/lib/grading";
 import { buildTimeContext } from "@/lib/time-context";
 import {
@@ -17,8 +18,19 @@ import {
   yToPrice,
 } from "@/lib/coordinates";
 
+/** Full-size viewBox. On a container narrower than this the viewBox shrinks
+ * to the rendered width (1 unit = 1 CSS px), so labels keep their real
+ * 10-11px size on a phone instead of being scaled down to ~4px along with
+ * everything else. Height shrinks proportionally, never below the minimum. */
 const VIEWBOX_WIDTH = 800;
 const VIEWBOX_HEIGHT = 420;
+const MIN_VIEWBOX_WIDTH = 280;
+const MIN_VIEWBOX_HEIGHT = 300;
+
+function viewBoxFor(renderedWidth: number): { width: number; height: number } {
+  const width = Math.round(Math.min(VIEWBOX_WIDTH, Math.max(MIN_VIEWBOX_WIDTH, renderedWidth)));
+  return { width, height: Math.max(MIN_VIEWBOX_HEIGHT, Math.round((VIEWBOX_HEIGHT * width) / VIEWBOX_WIDTH)) };
+}
 const PRICE_TICK_COUNT = 5;
 /** Minimum drag distance (in viewBox units) before a box-drag counts as a
  * box instead of a stray click — keeps a zero-area click from enabling
@@ -131,6 +143,8 @@ const GUIDED_FIELD_LABELS: Record<GuidedLevelField, string> = {
 export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | GuidedProps | FreeProps) {
   const { candles, interactive } = props;
   const svgRef = useRef<SVGSVGElement>(null);
+  const renderedWidth = useRenderedWidth(svgRef);
+  const viewBox = viewBoxFor(renderedWidth ?? VIEWBOX_WIDTH);
   const [dragStart, setDragStart] = useState<PixelPoint | null>(null);
   const [isPlacingLevel, setIsPlacingLevel] = useState(false);
 
@@ -148,8 +162,8 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
       : [];
   const layout = buildChartLayout(
     candles,
-    VIEWBOX_WIDTH,
-    VIEWBOX_HEIGHT,
+    viewBox.width,
+    viewBox.height,
     props.answerType === "free"
       ? { extraSlots: props.extraSlots, extraPrices: freeOverlayPrices, marginRatio: FREE_PRICE_MARGIN_RATIO }
       : {},
@@ -165,8 +179,8 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
   // viewBox size, so dragging works the same at any responsive width.
   function toSvgPoint(clientX: number, clientY: number): PixelPoint {
     const rect = svgRef.current!.getBoundingClientRect();
-    const x = ((clientX - rect.left) / rect.width) * VIEWBOX_WIDTH;
-    const y = ((clientY - rect.top) / rect.height) * VIEWBOX_HEIGHT;
+    const x = ((clientX - rect.left) / rect.width) * viewBox.width;
+    const y = ((clientY - rect.top) / rect.height) * viewBox.height;
     return clampToPlot(layout, x, y);
   }
 
@@ -314,7 +328,7 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
   return (
     <svg
       ref={svgRef}
-      viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
+      viewBox={`0 0 ${viewBox.width} ${viewBox.height}`}
       className={`w-full select-none ${touchClass} ${cursorClass}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}

@@ -91,7 +91,7 @@ export function AuthForm() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1.5 w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+            className="mt-1.5 min-h-11 w-full rounded-md border border-line bg-surface px-3 py-2 text-base text-foreground outline-none focus:border-accent sm:text-sm"
           />
         </div>
 
@@ -107,7 +107,7 @@ export function AuthForm() {
             autoComplete={mode === "sign_in" ? "current-password" : "new-password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1.5 w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+            className="mt-1.5 min-h-11 w-full rounded-md border border-line bg-surface px-3 py-2 text-base text-foreground outline-none focus:border-accent sm:text-sm"
           />
         </div>
 
@@ -121,7 +121,7 @@ export function AuthForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="inline-flex w-full items-center justify-center rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex w-full min-h-11 items-center justify-center rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {submitting ? "Please wait…" : mode === "sign_in" ? "Log in" : "Sign up"}
         </button>

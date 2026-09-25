@@ -31,7 +31,7 @@ export function MigrationPrompt({
           type="button"
           onClick={onMigrate}
           disabled={migrating}
-          className="inline-flex items-center justify-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {migrating ? "Migrating…" : "Migrate"}
         </button>
@@ -39,7 +39,7 @@ export function MigrationPrompt({
           type="button"
           onClick={onDismiss}
           disabled={migrating}
-          className="inline-flex items-center justify-center rounded-md border border-line px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex min-h-11 items-center justify-center rounded-md border border-line px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-50"
         >
           Dismiss
         </button>

@@ -10,7 +10,7 @@ export function GoogleSignInButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-line bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-50"
+      className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-md border border-line bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-50"
     >
       <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
         <path

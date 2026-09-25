@@ -44,14 +44,14 @@ export function GuidedLevelControls({
           type="button"
           onClick={onContinue}
           disabled={price === null}
-          className="inline-flex items-center justify-center rounded-md bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {continueLabel}
         </button>
         <button
           type="button"
           onClick={onNoTrade}
-          className="inline-flex items-center justify-center rounded-md border border-line px-6 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-surface"
+          className="inline-flex min-h-11 items-center justify-center rounded-md border border-line px-6 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-surface"
         >
           No Trade
         </button>

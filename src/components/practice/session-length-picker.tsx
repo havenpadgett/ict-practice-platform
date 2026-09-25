@@ -35,7 +35,7 @@ export function SessionLengthPicker({
       <button
         type="button"
         onClick={onBack}
-        className="mt-6 text-sm text-muted underline-offset-2 hover:underline"
+        className="mt-4 -ml-2 inline-flex min-h-11 min-w-11 items-center px-2 text-sm text-muted underline-offset-2 hover:underline"
       >
         Back
       </button>

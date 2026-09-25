@@ -478,7 +478,7 @@ export default function PracticePage() {
   return (
     <div className="flex flex-1 flex-col">
       <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-14">
-        <div className="flex items-baseline justify-between">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
             {conceptMeta.title}
           </h1>

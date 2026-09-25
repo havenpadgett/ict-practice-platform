@@ -40,7 +40,7 @@ export function SessionSummary({
       <button
         type="button"
         onClick={onPracticeAgain}
-        className="mt-6 inline-flex items-center justify-center rounded-md bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
+        className="mt-6 inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
       >
         Practice again
       </button>
