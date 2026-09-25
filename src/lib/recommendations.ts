@@ -27,6 +27,14 @@ export const RECENT_WINDOW = 20;
 /** Below this score a concept is "weak" and gets practiced before anything
  * new is introduced. */
 export const WEAK_THRESHOLD = 0.7;
+/** A concept needs this many attempts before it can be called weak — the
+ * shrinkage alone isn't enough: one miss scores 0.8x overall accuracy,
+ * which is under WEAK_THRESHOLD whenever overall is below 87.5%. */
+export const MIN_ATTEMPTS_FOR_WEAK = 3;
+
+export function isWeak(c: ConceptScore): boolean {
+  return c.score < WEAK_THRESHOLD && c.attempts >= MIN_ATTEMPTS_FOR_WEAK;
+}
 /** Minimum reached attempts before a sub-skill (a Guided Entry step, a Free
  * Trade check) is named as the weak spot. */
 const MIN_SUBSKILL_ATTEMPTS = 3;
@@ -188,7 +196,7 @@ export function recommendSession(attempts: DbAttempt[]): Recommendation {
       href: hrefFor("FVG", 1, 5),
     };
   }
-  const weakest = concepts[0];
+  const weakest = concepts.find(isWeak) ?? concepts[0];
   const practiced = new Set(concepts.map((c) => c.concept));
   const unpracticed = CONCEPT_LIST.filter((c) => !practiced.has(c) && getPracticeExercises(c).length > 0);
 
@@ -196,13 +204,13 @@ export function recommendSession(attempts: DbAttempt[]): Recommendation {
   let difficulty: 1 | 2 | 3;
   let reason: string;
   let score: number;
-  if (weakest.score < WEAK_THRESHOLD || unpracticed.length === 0) {
+  if (isWeak(weakest) || unpracticed.length === 0) {
     concept = weakest.concept;
     score = weakest.score;
     difficulty = difficultyFor(score);
     const sample = weakest.attempts < 5 ? ` (only ${weakest.attempts} attempt${weakest.attempts === 1 ? "" : "s"} so far, so this is a first read)` : "";
     reason =
-      weakest.score < WEAK_THRESHOLD
+      isWeak(weakest)
         ? `Your ${label(concept)} accuracy is ${pct(weakest.recentAccuracy)} over your last ${weakest.recentCount} attempt${weakest.recentCount === 1 ? "" : "s"}, below your ${pct(overall)} overall${sample}.${trendNote(concept, attempts, weakest.recentAccuracy)}`
         : `Every concept is at or above ${pct(WEAK_THRESHOLD)}. ${label(concept)} is your lowest at ${pct(weakest.recentAccuracy)} over your last ${weakest.recentCount}, so push it at a harder level.`;
   } else {
@@ -243,7 +251,7 @@ export function adaptiveWeights(attempts: DbAttempt[]): Record<Concept, number> 
 export function buildAdaptiveSession(attempts: DbAttempt[], length = 10, random: () => number = Math.random): string[] {
   const weights = adaptiveWeights(attempts);
   const { concepts } = scoreConcepts(attempts);
-  const weak = new Set(concepts.filter((c) => c.score < WEAK_THRESHOLD && c.concept in weights).map((c) => c.concept));
+  const weak = new Set(concepts.filter((c) => isWeak(c) && c.concept in weights).map((c) => c.concept));
   const weakSlots = weak.size > 0 ? Math.round(length * ADAPTIVE_WEAK_SHARE) : 0;
   const pools = new Map<Concept, Exercise[]>(
     (Object.keys(weights) as Concept[]).map((c) => [c, getPracticeExercises(c)]),

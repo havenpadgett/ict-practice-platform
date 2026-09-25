@@ -140,7 +140,7 @@ describe("row level security on attempts", () => {
       .filter((p) => /on public\.attempts\b/.test(p));
     expect(policies.map((p) => p.match(/for (\w+)/)![1]).sort()).toEqual(["delete", "insert", "select", "update"]);
     for (const p of policies) {
-      const clauses = [...p.matchAll(/(using|with check) \((.*?)\)\s*(?=with check|$)/gs)].map((m) => m[2].trim());
+      const clauses = [...p.matchAll(/(using|with check) \(([\s\S]*?)\)\s*(?=with check|$)/g)].map((m) => m[2].trim());
       expect(clauses.length).toBeGreaterThan(0);
       for (const c of clauses) expect(c).toBe("auth.uid() = user_id");
     }

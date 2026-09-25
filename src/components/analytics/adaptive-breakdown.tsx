@@ -3,8 +3,10 @@ import type { DbAttempt } from "@/lib/attempts";
 import { CONCEPTS } from "@/lib/concepts";
 import {
   getSubSkill,
+  isWeak,
   recommendSession,
   RECENT_WINDOW,
+  MIN_ATTEMPTS_FOR_WEAK,
   scoreConcepts,
   WEAK_THRESHOLD,
 } from "@/lib/recommendations";
@@ -41,7 +43,7 @@ export function AdaptiveBreakdown({ attempts }: { attempts: DbAttempt[] }) {
                   <td className="py-2 pr-3 text-muted">{c.attempts}</td>
                   <td className="py-2 pr-3 text-muted">{pct(c.accuracy)}</td>
                   <td className="py-2 pr-3 text-muted">{pct(c.recentAccuracy)}</td>
-                  <td className={`py-2 pr-3 font-medium ${c.score < WEAK_THRESHOLD ? "text-[#e2685f]" : "text-foreground"}`}>
+                  <td className={`py-2 pr-3 font-medium ${isWeak(c) ? "text-[#e2685f]" : "text-foreground"}`}>
                     {pct(c.score)}
                   </td>
                   <td className="py-2 text-muted">{sub ? `${sub.name} (${pct(sub.accuracy)})` : "—"}</td>
@@ -54,7 +56,7 @@ export function AdaptiveBreakdown({ attempts }: { attempts: DbAttempt[] }) {
       <p className="text-xs text-muted">
         Skill score weights recent attempts more (an attempt 10 back counts half as much as your latest) and pulls concepts
         with few attempts toward your overall accuracy, so one miss can&apos;t make a concept look weak. Below{" "}
-        {pct(WEAK_THRESHOLD)} counts as weak.
+        {pct(WEAK_THRESHOLD)} counts as weak once a concept has {MIN_ATTEMPTS_FOR_WEAK}+ attempts.
       </p>
     </div>
   );
