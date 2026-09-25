@@ -80,7 +80,6 @@ This pass defined the token layer in `globals.css` and, per instruction, touched
 **Contrast (WCAG AA):** every text token passes on both surfaces (see Contrast above). Found and fixed:
 - **Control boundaries:** inputs and outline buttons used `--line` as their only boundary (1.3:1; non-text controls need 3:1). They now use `--control` (3.4–3.6:1).
 - **Faded text:** some text was drawn at reduced opacity (`text-foreground/70`, `/85`, `/90`). All of it is now a full token.
-- **Chart time labels:** these were `muted/70`. They now use the full `muted` token.
 
 **Correct vs. incorrect without color:** found and fixed:
 - **Verdicts** were colored words ("Correct" / "Not Quite", "Pass" / "Fail") with no other cue. They are now an icon shape (check vs cross) plus a word (`Verdict`, `CheckRow`).
