@@ -1,0 +1,199 @@
+{
+  "exercise_id": "real-liq-004",
+  "concept": "Liquidity",
+  "answer_type": "level",
+  "answerLabel": "Sell-Side Liquidity",
+  "prompt": "Mark the strongest Sell-Side Liquidity, if there is one.",
+  "noAnswerLabel": "No Sell-Side Liquidity present",
+  "instrument": "NQ (real data)",
+  "timeframe": "5m",
+  "difficulty": 1,
+  "has_answer": true,
+  "answer": {
+    "type": "sell_side",
+    "price": 21243.375,
+    "tolerance": 19.0
+  },
+  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] 2 lows land within 2.75 points of each other around 21243.4, stacking resting stops into one larger pool.",
+  "provenance": {
+    "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
+    "symbol": "NQ",
+    "date_range": {
+      "start": "2024-09-23T09:30:00-04:00",
+      "end": "2024-09-23T10:55:00-04:00"
+    },
+    "trading_date": "2024-09-23",
+    "session": "ny_am",
+    "context_start": null,
+    "timeframe": "5m",
+    "detection_rule": "equal_lows",
+    "candidate_id": "equal_lows-20240923T1015",
+    "detection_params": {
+      "rules": [
+        "fvg",
+        "equal_highs",
+        "equal_lows",
+        "mss",
+        "dealing_range",
+        "ny_am"
+      ],
+      "swing_lookback": 2,
+      "equal_tolerance_pct": 0.05,
+      "fvg_min_range_mult": 0.25,
+      "range_window": 100
+    },
+    "detection_notes": "2 touches within 2.75 points (tolerance 0.05% = 10.62 points)",
+    "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
+    "built_at": "2026-09-25T03:21:04+00:00",
+    "human_reviewed": false,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "review_notes": null
+  },
+  "candles": [
+    {
+      "time": "09:30",
+      "timestamp": "2024-09-23T09:30:00-04:00",
+      "open": 21275.25,
+      "high": 21283.75,
+      "low": 21233.25,
+      "close": 21250.5
+    },
+    {
+      "time": "09:35",
+      "timestamp": "2024-09-23T09:35:00-04:00",
+      "open": 21250.75,
+      "high": 21264.5,
+      "low": 21229.25,
+      "close": 21248.75
+    },
+    {
+      "time": "09:40",
+      "timestamp": "2024-09-23T09:40:00-04:00",
+      "open": 21249.5,
+      "high": 21262.5,
+      "low": 21231.5,
+      "close": 21258.25
+    },
+    {
+      "time": "09:45",
+      "timestamp": "2024-09-23T09:45:00-04:00",
+      "open": 21258.25,
+      "high": 21298.5,
+      "low": 21235.0,
+      "close": 21298.25
+    },
+    {
+      "time": "09:50",
+      "timestamp": "2024-09-23T09:50:00-04:00",
+      "open": 21298.25,
+      "high": 21303.0,
+      "low": 21258.0,
+      "close": 21277.25
+    },
+    {
+      "time": "09:55",
+      "timestamp": "2024-09-23T09:55:00-04:00",
+      "open": 21277.25,
+      "high": 21290.75,
+      "low": 21262.5,
+      "close": 21264.0
+    },
+    {
+      "time": "10:00",
+      "timestamp": "2024-09-23T10:00:00-04:00",
+      "open": 21264.5,
+      "high": 21293.0,
+      "low": 21242.0,
+      "close": 21278.0
+    },
+    {
+      "time": "10:05",
+      "timestamp": "2024-09-23T10:05:00-04:00",
+      "open": 21277.75,
+      "high": 21301.25,
+      "low": 21266.0,
+      "close": 21283.5
+    },
+    {
+      "time": "10:10",
+      "timestamp": "2024-09-23T10:10:00-04:00",
+      "open": 21284.0,
+      "high": 21297.5,
+      "low": 21252.0,
+      "close": 21258.25
+    },
+    {
+      "time": "10:15",
+      "timestamp": "2024-09-23T10:15:00-04:00",
+      "open": 21256.5,
+      "high": 21291.0,
+      "low": 21244.75,
+      "close": 21279.25
+    },
+    {
+      "time": "10:20",
+      "timestamp": "2024-09-23T10:20:00-04:00",
+      "open": 21280.25,
+      "high": 21318.25,
+      "low": 21271.0,
+      "close": 21302.75
+    },
+    {
+      "time": "10:25",
+      "timestamp": "2024-09-23T10:25:00-04:00",
+      "open": 21303.0,
+      "high": 21305.5,
+      "low": 21276.75,
+      "close": 21298.75
+    },
+    {
+      "time": "10:30",
+      "timestamp": "2024-09-23T10:30:00-04:00",
+      "open": 21298.5,
+      "high": 21302.75,
+      "low": 21272.5,
+      "close": 21284.75
+    },
+    {
+      "time": "10:35",
+      "timestamp": "2024-09-23T10:35:00-04:00",
+      "open": 21285.0,
+      "high": 21295.25,
+      "low": 21255.0,
+      "close": 21259.25
+    },
+    {
+      "time": "10:40",
+      "timestamp": "2024-09-23T10:40:00-04:00",
+      "open": 21259.0,
+      "high": 21304.75,
+      "low": 21257.75,
+      "close": 21303.25
+    },
+    {
+      "time": "10:45",
+      "timestamp": "2024-09-23T10:45:00-04:00",
+      "open": 21302.5,
+      "high": 21312.75,
+      "low": 21293.0,
+      "close": 21302.75
+    },
+    {
+      "time": "10:50",
+      "timestamp": "2024-09-23T10:50:00-04:00",
+      "open": 21303.5,
+      "high": 21324.75,
+      "low": 21291.5,
+      "close": 21308.0
+    },
+    {
+      "time": "10:55",
+      "timestamp": "2024-09-23T10:55:00-04:00",
+      "open": 21307.75,
+      "high": 21309.75,
+      "low": 21283.25,
+      "close": 21294.5
+    }
+  ]
+}

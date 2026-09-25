@@ -5,14 +5,76 @@
 // (isPracticeReady in src/data/exercises.ts). Promotion steps are in
 // docs/SCENARIO-VALIDATION.md.
 //
-// To register one:
-//   import realFvg001 from "./real-fvg-001.json";
-//   const registered: unknown[] = [realFvg001];
+// To register one: import its JSON file below and add it to `registered`.
+// Review and approval happen at /review (src/app/review/), which edits the
+// JSON file and the Review Log in docs/SCENARIO-VALIDATION.md.
 
 import type { Exercise, ScenarioProvenance } from "@/data/exercises";
 import { CONCEPT_LIST } from "@/lib/concepts";
 
-const registered: unknown[] = [];
+import realFvg001 from "./real-fvg-001.json";
+import realFvg002 from "./real-fvg-002.json";
+import realFvg003 from "./real-fvg-003.json";
+import realFvg004 from "./real-fvg-004.json";
+import realFvg005 from "./real-fvg-005.json";
+import realFvg006 from "./real-fvg-006.json";
+import realFvg007 from "./real-fvg-007.json";
+import realFvg008 from "./real-fvg-008.json";
+import realFvg009 from "./real-fvg-009.json";
+import realFvg010 from "./real-fvg-010.json";
+import realLiq001 from "./real-liq-001.json";
+import realLiq002 from "./real-liq-002.json";
+import realLiq003 from "./real-liq-003.json";
+import realLiq004 from "./real-liq-004.json";
+import realLiq005 from "./real-liq-005.json";
+import realLiq006 from "./real-liq-006.json";
+import realLiq007 from "./real-liq-007.json";
+import realLiq008 from "./real-liq-008.json";
+import realLiq009 from "./real-liq-009.json";
+import realLiq010 from "./real-liq-010.json";
+import realMss001 from "./real-mss-001.json";
+import realMss002 from "./real-mss-002.json";
+import realMss003 from "./real-mss-003.json";
+import realMss004 from "./real-mss-004.json";
+import realMss005 from "./real-mss-005.json";
+import realMss006 from "./real-mss-006.json";
+import realMss007 from "./real-mss-007.json";
+import realMss008 from "./real-mss-008.json";
+import realMss009 from "./real-mss-009.json";
+import realMss010 from "./real-mss-010.json";
+
+const registered: unknown[] = [
+  realFvg001,
+  realFvg002,
+  realFvg003,
+  realFvg004,
+  realFvg005,
+  realFvg006,
+  realFvg007,
+  realFvg008,
+  realFvg009,
+  realFvg010,
+  realLiq001,
+  realLiq002,
+  realLiq003,
+  realLiq004,
+  realLiq005,
+  realLiq006,
+  realLiq007,
+  realLiq008,
+  realLiq009,
+  realLiq010,
+  realMss001,
+  realMss002,
+  realMss003,
+  realMss004,
+  realMss005,
+  realMss006,
+  realMss007,
+  realMss008,
+  realMss009,
+  realMss010,
+];
 
 export type RealScenario = Exercise & { provenance: ScenarioProvenance };
 
@@ -44,7 +106,7 @@ export function parseRealScenario(raw: unknown): RealScenario {
 
   const p = s.provenance as Record<string, unknown> | undefined;
   if (typeof p !== "object" || p === null) fail(id, "missing provenance");
-  for (const k of ["data_source", "detection_rule", "candidate_id", "input_sha256"]) {
+  for (const k of ["data_source", "detection_rule", "candidate_id", "input_sha256", "trading_date", "session", "timeframe"]) {
     if (typeof p[k] !== "string" || (p[k] as string).length === 0) fail(id, `provenance.${k} is required`);
   }
   const range = p.date_range as Record<string, unknown> | undefined;

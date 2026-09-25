@@ -96,6 +96,14 @@ export type ScenarioProvenance = {
   data_source: string;
   symbol: string;
   date_range: { start: string; end: string };
+  /** Trading date (YYYY-MM-DD, 18:00-17:00 ET) the setup formed on. */
+  trading_date: string;
+  /** Session the data was cut to: "ny_am", "rth", or "all". */
+  session: string;
+  /** For MSS on session charts: the ET time structure context starts from
+   * (docs/CURRICULUM.md, MSS); null otherwise. */
+  context_start: string | null;
+  timeframe: string;
   /** The scripts/detect.py rule that flagged this scenario. */
   detection_rule: string;
   candidate_id: string;

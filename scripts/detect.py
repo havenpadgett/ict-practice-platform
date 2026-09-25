@@ -111,6 +111,17 @@ def trailing_median_range(candles: List[Candle], window: int) -> List[float]:
     return out
 
 
+def session_median_range(candles: List[Candle], window: int) -> List[float]:
+    """trailing_median_range over session bars only - quiet context bars
+    (ingest.py --context-start) would otherwise drag it down. Context bars
+    themselves get 0."""
+    session_idx = [i for i, c in enumerate(candles) if not c.get("context")]
+    out = [0.0] * len(candles)
+    for i, m in zip(session_idx, trailing_median_range([candles[i] for i in session_idx], window)):
+        out[i] = m
+    return out
+
+
 def detect_fvg(candles: List[Candle], min_sizes: List[float]) -> List[Dict[str, Any]]:
     """min_sizes[i] is the smallest gap accepted when candle 1 is bar i."""
     out = []
@@ -343,12 +354,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         # A day's or week's high/low needs every bar of it, overnight included.
         rules = [r for r in rules if r not in partial_rules]
         print(f"NOTE: skipped {', '.join(partial_rules)} - the data holds only the {session} session, not full days.")
-    # Trailing median range over session bars only: quiet context bars would
-    # otherwise lower the floor for the session that follows.
-    session_idx = [i for i, c in enumerate(candles) if not c.get("context")]
-    fvg_min_sizes = [0.0] * len(candles)
-    for i, m in zip(session_idx, trailing_median_range([candles[i] for i in session_idx], args.range_window)):
-        fvg_min_sizes[i] = m * args.fvg_min_range_mult
+    fvg_min_sizes = [m * args.fvg_min_range_mult for m in session_median_range(candles, args.range_window)]
 
     found: List[Dict[str, Any]] = []
     swing_high_count = swing_low_count = 0

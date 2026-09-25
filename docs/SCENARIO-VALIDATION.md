@@ -47,6 +47,26 @@ Detection runs within one session at a time, so a session must hold enough bars 
 
 `previous_day_*` and `weekly_*` levels need every bar of the day or week, overnight included — `detect.py` skips them on NY AM- or RTH-only data. Build them from a `--session all` ingest.
 
+### Building a batch
+
+`scripts/pick_candidates.py` builds a spread-out batch: it splits the date range into equal slices, takes one candidate per slice (seeded random order, so a run can be repeated), and prefers a candidate matching a target difficulty that cycles 1–3. Difficulty is set by how clear the setup is: FVG size, how tight the equal highs/lows are, or how decisively the MSS break closed. `build_scenario.py` refuses a window if another candidate of the same rule is in it. On session data the window is the candidate's whole session; MSS windows on NY AM charts include the 07:00–9:30 context bars. It also refuses a window where:
+- **FVG:** another gap of at least 0.1× the median bar range is visible, even one below the detection minimum.
+- **Equal highs/lows:** the pool is taken before the chart ends.
+
+The first batch (2026-09-24, awaiting review — no Review Log rows yet):
+
+```bash
+N=data/clean/nq_nyam_ctx.5m; R=data/clean/nq_rth_full.15m
+python3 scripts/pick_candidates.py $N.clean.json $N.candidates.json --rules fvg --count 6 --prefix real-fvg --first 1
+python3 scripts/pick_candidates.py $R.clean.json $R.candidates.json --rules fvg --count 4 --prefix real-fvg --first 7 --seed 2
+python3 scripts/pick_candidates.py $N.clean.json $N.candidates.json --rules equal_highs,equal_lows --count 6 --prefix real-liq --first 1 --seed 3
+python3 scripts/pick_candidates.py $R.clean.json $R.candidates.json --rules equal_highs,equal_lows --count 4 --prefix real-liq --first 7 --seed 4
+python3 scripts/pick_candidates.py $N.clean.json $N.candidates.json --rules mss --count 7 --prefix real-mss --first 1 --seed 5
+python3 scripts/pick_candidates.py $R.clean.json $R.candidates.json --rules mss --count 3 --prefix real-mss --first 8 --seed 6
+```
+
+That is 30 scenarios (`real-fvg-001`…`010`, `real-liq-001`…`010`, `real-mss-001`…`010`), each with `human_reviewed: false`. They are registered in `src/data/real-scenarios/index.ts`, so they're visible at `/review` but never served in practice until approved.
+
 To try the pipeline without licensed data, generate synthetic bars first: `python3 scripts/sample/make_synthetic.py`, then run the same commands on `scripts/sample/synthetic_nq_5m.csv`. **Never promote a scenario built from synthetic data.**
 
 Previous-day and weekly levels span a full day or week; build those from 1h (or 4h) bars so the chart stays around 40 candles. `build_scenario.py` warns when a window exceeds 120 bars.
@@ -80,6 +100,9 @@ Every real scenario carries a `provenance` block (type `ScenarioProvenance` in `
 | `data_source` | ingest (`--source`) | Vendor, dataset, and license the candles came from |
 | `symbol` | ingest | Instrument, e.g. NQ |
 | `date_range.start` / `.end` | build | First and last candle in the scenario (ET) |
+| `trading_date` | build | Trading date the setup formed on (18:00–17:00 ET) |
+| `session` / `context_start` | build | Session the data was cut to (`ny_am`, `rth`, `all`), and for MSS on NY AM charts the time structure context starts (`07:00`) |
+| `timeframe` | build | Bar size, e.g. `5m`, `15m` |
 | `detection_rule` | build | The `detect.py` rule that flagged it, e.g. `fvg`, `mss`, `previous_day_high` |
 | `candidate_id`, `detection_params`, `detection_notes` | build | Exactly which candidate, with which settings, and what the detector saw |
 | `input_sha256` | ingest | Hash of the raw CSV — traces the scenario to the exact file |

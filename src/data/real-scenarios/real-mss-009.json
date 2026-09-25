@@ -1,0 +1,263 @@
+{
+  "exercise_id": "real-mss-009",
+  "concept": "MSS",
+  "answer_type": "level",
+  "answerLabel": "Market Structure Shift",
+  "prompt": "Mark the swing level whose break confirmed the Market Structure Shift, if one occurred.",
+  "noAnswerLabel": "No Market Structure Shift present",
+  "instrument": "NQ (real data)",
+  "timeframe": "15m",
+  "difficulty": 2,
+  "has_answer": true,
+  "answer": {
+    "type": "bullish",
+    "price": 20174.5,
+    "tolerance": 14.0
+  },
+  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bullish Market Structure Shift: a candle body closed beyond the swing at 20174.5, against the prevailing trend.",
+  "provenance": {
+    "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
+    "symbol": "NQ",
+    "date_range": {
+      "start": "2024-03-28T09:30:00-04:00",
+      "end": "2024-03-28T15:45:00-04:00"
+    },
+    "trading_date": "2024-03-28",
+    "session": "rth",
+    "context_start": null,
+    "timeframe": "15m",
+    "detection_rule": "mss",
+    "candidate_id": "mss-bullish-20240328T1445",
+    "detection_params": {
+      "rules": [
+        "fvg",
+        "equal_highs",
+        "equal_lows",
+        "mss",
+        "dealing_range",
+        "ny_am"
+      ],
+      "swing_lookback": 2,
+      "equal_tolerance_pct": 0.05,
+      "fvg_min_range_mult": 0.25,
+      "range_window": 100
+    },
+    "detection_notes": "downtrend; body close 20192.5 above lower high 20174.5",
+    "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
+    "built_at": "2026-09-25T03:21:08+00:00",
+    "human_reviewed": false,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "review_notes": null
+  },
+  "candles": [
+    {
+      "time": "09:30",
+      "timestamp": "2024-03-28T09:30:00-04:00",
+      "open": 20194.0,
+      "high": 20203.25,
+      "low": 20151.0,
+      "close": 20199.5
+    },
+    {
+      "time": "09:45",
+      "timestamp": "2024-03-28T09:45:00-04:00",
+      "open": 20200.0,
+      "high": 20230.75,
+      "low": 20193.5,
+      "close": 20208.25
+    },
+    {
+      "time": "10:00",
+      "timestamp": "2024-03-28T10:00:00-04:00",
+      "open": 20208.25,
+      "high": 20232.5,
+      "low": 20174.0,
+      "close": 20184.75
+    },
+    {
+      "time": "10:15",
+      "timestamp": "2024-03-28T10:15:00-04:00",
+      "open": 20184.75,
+      "high": 20192.25,
+      "low": 20170.25,
+      "close": 20184.0
+    },
+    {
+      "time": "10:30",
+      "timestamp": "2024-03-28T10:30:00-04:00",
+      "open": 20184.25,
+      "high": 20209.0,
+      "low": 20178.25,
+      "close": 20205.75
+    },
+    {
+      "time": "10:45",
+      "timestamp": "2024-03-28T10:45:00-04:00",
+      "open": 20206.25,
+      "high": 20210.25,
+      "low": 20191.75,
+      "close": 20200.25
+    },
+    {
+      "time": "11:00",
+      "timestamp": "2024-03-28T11:00:00-04:00",
+      "open": 20200.0,
+      "high": 20210.5,
+      "low": 20182.25,
+      "close": 20194.0
+    },
+    {
+      "time": "11:15",
+      "timestamp": "2024-03-28T11:15:00-04:00",
+      "open": 20193.5,
+      "high": 20206.25,
+      "low": 20189.0,
+      "close": 20203.75
+    },
+    {
+      "time": "11:30",
+      "timestamp": "2024-03-28T11:30:00-04:00",
+      "open": 20203.75,
+      "high": 20212.25,
+      "low": 20183.5,
+      "close": 20184.0
+    },
+    {
+      "time": "11:45",
+      "timestamp": "2024-03-28T11:45:00-04:00",
+      "open": 20183.75,
+      "high": 20212.75,
+      "low": 20181.75,
+      "close": 20210.25
+    },
+    {
+      "time": "12:00",
+      "timestamp": "2024-03-28T12:00:00-04:00",
+      "open": 20210.5,
+      "high": 20211.75,
+      "low": 20173.5,
+      "close": 20181.25
+    },
+    {
+      "time": "12:15",
+      "timestamp": "2024-03-28T12:15:00-04:00",
+      "open": 20181.5,
+      "high": 20188.0,
+      "low": 20166.0,
+      "close": 20187.0
+    },
+    {
+      "time": "12:30",
+      "timestamp": "2024-03-28T12:30:00-04:00",
+      "open": 20187.0,
+      "high": 20188.25,
+      "low": 20169.5,
+      "close": 20172.5
+    },
+    {
+      "time": "12:45",
+      "timestamp": "2024-03-28T12:45:00-04:00",
+      "open": 20172.75,
+      "high": 20180.5,
+      "low": 20166.5,
+      "close": 20176.0
+    },
+    {
+      "time": "13:00",
+      "timestamp": "2024-03-28T13:00:00-04:00",
+      "open": 20176.0,
+      "high": 20177.25,
+      "low": 20152.5,
+      "close": 20159.25
+    },
+    {
+      "time": "13:15",
+      "timestamp": "2024-03-28T13:15:00-04:00",
+      "open": 20159.0,
+      "high": 20163.75,
+      "low": 20147.75,
+      "close": 20157.75
+    },
+    {
+      "time": "13:30",
+      "timestamp": "2024-03-28T13:30:00-04:00",
+      "open": 20158.25,
+      "high": 20168.5,
+      "low": 20150.75,
+      "close": 20166.0
+    },
+    {
+      "time": "13:45",
+      "timestamp": "2024-03-28T13:45:00-04:00",
+      "open": 20166.0,
+      "high": 20174.5,
+      "low": 20158.75,
+      "close": 20162.25
+    },
+    {
+      "time": "14:00",
+      "timestamp": "2024-03-28T14:00:00-04:00",
+      "open": 20162.75,
+      "high": 20172.25,
+      "low": 20142.5,
+      "close": 20169.0
+    },
+    {
+      "time": "14:15",
+      "timestamp": "2024-03-28T14:15:00-04:00",
+      "open": 20169.25,
+      "high": 20172.5,
+      "low": 20158.5,
+      "close": 20167.25
+    },
+    {
+      "time": "14:30",
+      "timestamp": "2024-03-28T14:30:00-04:00",
+      "open": 20167.75,
+      "high": 20170.75,
+      "low": 20143.0,
+      "close": 20149.0
+    },
+    {
+      "time": "14:45",
+      "timestamp": "2024-03-28T14:45:00-04:00",
+      "open": 20149.5,
+      "high": 20200.0,
+      "low": 20145.0,
+      "close": 20192.5
+    },
+    {
+      "time": "15:00",
+      "timestamp": "2024-03-28T15:00:00-04:00",
+      "open": 20192.5,
+      "high": 20204.5,
+      "low": 20167.5,
+      "close": 20184.0
+    },
+    {
+      "time": "15:15",
+      "timestamp": "2024-03-28T15:15:00-04:00",
+      "open": 20184.25,
+      "high": 20203.25,
+      "low": 20182.0,
+      "close": 20193.75
+    },
+    {
+      "time": "15:30",
+      "timestamp": "2024-03-28T15:30:00-04:00",
+      "open": 20194.0,
+      "high": 20201.75,
+      "low": 20172.25,
+      "close": 20185.0
+    },
+    {
+      "time": "15:45",
+      "timestamp": "2024-03-28T15:45:00-04:00",
+      "open": 20185.0,
+      "high": 20190.25,
+      "low": 20151.5,
+      "close": 20156.75
+    }
+  ]
+}

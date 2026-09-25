@@ -27,7 +27,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from common import load_clean, load_json, round_price, write_json
+from common import load_clean, load_json, round_price, trading_date, write_json
+from detect import session_median_range
 
 DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parent.parent / "src" / "data" / "real-scenarios"
 
@@ -136,6 +137,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--difficulty", type=int, choices=[1, 2, 3], default=2)
     ap.add_argument("--before", type=int, default=30, help="bars before the earliest involved candle (default 30)")
     ap.add_argument("--after", type=int, default=10, help="bars after the anchor candle (default 10)")
+    ap.add_argument("--window", choices=["bars", "session"],
+                    help="'session' = the candidate's whole session (with its context bars for mss); "
+                         "'bars' = --before/--after (default: session for session-only data, else bars)")
+    ap.add_argument("--visible-gap-mult", type=float, default=0.1,
+                    help="fvg: refuse a window holding any other three-candle gap at least this multiple of the "
+                         "trailing median bar range, even one below detection's minimum (default 0.1)")
     ap.add_argument("--start", help="window start timestamp (overrides --before)")
     ap.add_argument("--end", help="window end timestamp (overrides --after)")
     ap.add_argument("--tolerance", type=float, help="level tolerance in points (default: half the window's median bar range, min 2)")
@@ -155,7 +162,19 @@ def main(argv: Optional[List[str]] = None) -> int:
         print("ERROR: candidates were detected from a different clean file (input_sha256 mismatch).")
         return 1
 
-    start, end = default_window(cand, args.before, args.after)
+    meta = data["meta"]
+    selection = meta.get("selection") or {}
+    window_mode = args.window or ("session" if selection.get("session", "all") != "all" else "bars")
+    if cand.get("context"):
+        print(f"ERROR: {cand['id']} breaks inside the context bars, not the session - not a setup.")
+        return 1
+    if window_mode == "session":
+        day = trading_date(candles[cand["anchor_index"]]["_dt"])
+        idxs = [i for i, c in enumerate(candles) if trading_date(c["_dt"]) == day
+                and (cand["rule"] == "mss" or not c.get("context"))]
+        start, end = idxs[0], idxs[-1]
+    else:
+        start, end = default_window(cand, args.before, args.after)
     index_of = {c["timestamp"]: i for i, c in enumerate(candles)}
     if args.start:
         if args.start not in index_of:
@@ -182,6 +201,27 @@ def main(argv: Optional[List[str]] = None) -> int:
         if c["id"] != cand["id"] and c["rule"] == cand["rule"]
         and start <= min(c["involved_indices"]) and max(c["involved_indices"]) <= end
     ]
+    problems: List[str] = []
+    if cand["rule"] == "fvg":
+        # Gaps under detection's minimum are still visible on the chart; a
+        # beginner who marks one mustn't be marked wrong (CURRICULUM.md).
+        med = session_median_range(candles, cands["meta"].get("detection_params", {}).get("range_window", 100))
+        k0 = cand["involved_indices"][1]
+        for k in range(start + 1, end):
+            c1, c3 = candles[k - 1], candles[k + 1]
+            gap = max(c3["low"] - c1["high"], c1["low"] - c3["high"])
+            if k != k0 and gap > 0 and gap >= args.visible_gap_mult * med[k - 1]:
+                problems.append(f"another visible gap of {gap:g} points around {candles[k]['timestamp']}")
+    if cand["rule"] in ("equal_highs", "equal_lows"):
+        # The pool must still be resting at the end of the chart.
+        buy = cand["rule"] == "equal_highs"
+        pool = max(cand["touch_prices"]) if buy else min(cand["touch_prices"])
+        taken = [c for c in candles[cand["anchor_index"] + 1:end + 1] if (c["high"] > pool if buy else c["low"] < pool)]
+        if taken:
+            problems.append(f"the pool at {pool:g} is taken at {taken[0]['timestamp']} before the chart ends")
+    if problems and not args.allow_ambiguous:
+        print("ERROR: " + "; ".join(problems[:5]))
+        return 1
     if others and not args.allow_ambiguous:
         print(f"ERROR: window also contains {len(others)} other '{cand['rule']}' candidate(s): "
               + ", ".join(c["id"] for c in others[:8]))
@@ -194,7 +234,6 @@ def main(argv: Optional[List[str]] = None) -> int:
         tol = args.tolerance if args.tolerance is not None else max(2.0, round(median_range / 2 * 4) / 4)
         mapped["answer"]["tolerance"] = round_price(tol)
 
-    meta = data["meta"]
     exercise = {
         "exercise_id": args.exercise_id,
         "concept": mapped["concept"],
@@ -212,6 +251,10 @@ def main(argv: Optional[List[str]] = None) -> int:
             "data_source": meta["source"],
             "symbol": meta["symbol"],
             "date_range": {"start": window[0]["timestamp"], "end": window[-1]["timestamp"]},
+            "trading_date": trading_date(candles[cand["anchor_index"]]["_dt"]).isoformat(),
+            "session": selection.get("session", "all"),
+            "context_start": selection.get("context_start") if cand["rule"] == "mss" else None,
+            "timeframe": timeframe_label(meta["timeframe_minutes"]),
             "detection_rule": cand["rule"],
             "candidate_id": cand["id"],
             "detection_params": cands["meta"].get("detection_params", {}),

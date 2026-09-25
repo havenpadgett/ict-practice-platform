@@ -1,0 +1,266 @@
+{
+  "exercise_id": "real-fvg-010",
+  "concept": "FVG",
+  "answer_type": "zone",
+  "answerLabel": "Fair Value Gap",
+  "prompt": "Identify the Fair Value Gap, if there is one.",
+  "noAnswerLabel": "No FVG present",
+  "instrument": "NQ (real data)",
+  "timeframe": "15m",
+  "difficulty": 1,
+  "has_answer": true,
+  "answer": {
+    "type": "bearish",
+    "price_low": 20860.0,
+    "price_high": 20939.75,
+    "candle_start": 2,
+    "candle_end": 4,
+    "key_candle_index": 3
+  },
+  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bearish Fair Value Gap: the first candle's low and the third candle's high leave the range 20860-20939.8 untraded.",
+  "provenance": {
+    "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
+    "symbol": "NQ",
+    "date_range": {
+      "start": "2025-05-09T09:30:00-04:00",
+      "end": "2025-05-09T15:45:00-04:00"
+    },
+    "trading_date": "2025-05-09",
+    "session": "rth",
+    "context_start": null,
+    "timeframe": "15m",
+    "detection_rule": "fvg",
+    "candidate_id": "fvg-bearish-20250509T1015",
+    "detection_params": {
+      "rules": [
+        "fvg",
+        "equal_highs",
+        "equal_lows",
+        "mss",
+        "dealing_range",
+        "ny_am"
+      ],
+      "swing_lookback": 2,
+      "equal_tolerance_pct": 0.05,
+      "fvg_min_range_mult": 0.25,
+      "range_window": 100
+    },
+    "detection_notes": "candle 1 low 20939.8 > candle 3 high 20860",
+    "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
+    "built_at": "2026-09-25T03:20:58+00:00",
+    "human_reviewed": false,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "review_notes": null
+  },
+  "candles": [
+    {
+      "time": "09:30",
+      "timestamp": "2025-05-09T09:30:00-04:00",
+      "open": 20935.5,
+      "high": 20988.25,
+      "low": 20930.0,
+      "close": 20935.75
+    },
+    {
+      "time": "09:45",
+      "timestamp": "2025-05-09T09:45:00-04:00",
+      "open": 20936.0,
+      "high": 20968.75,
+      "low": 20913.25,
+      "close": 20962.75
+    },
+    {
+      "time": "10:00",
+      "timestamp": "2025-05-09T10:00:00-04:00",
+      "open": 20962.5,
+      "high": 20983.5,
+      "low": 20939.75,
+      "close": 20961.25
+    },
+    {
+      "time": "10:15",
+      "timestamp": "2025-05-09T10:15:00-04:00",
+      "open": 20961.0,
+      "high": 20962.75,
+      "low": 20820.25,
+      "close": 20842.25
+    },
+    {
+      "time": "10:30",
+      "timestamp": "2025-05-09T10:30:00-04:00",
+      "open": 20842.75,
+      "high": 20860.0,
+      "low": 20766.5,
+      "close": 20818.25
+    },
+    {
+      "time": "10:45",
+      "timestamp": "2025-05-09T10:45:00-04:00",
+      "open": 20818.75,
+      "high": 20855.25,
+      "low": 20801.75,
+      "close": 20850.5
+    },
+    {
+      "time": "11:00",
+      "timestamp": "2025-05-09T11:00:00-04:00",
+      "open": 20851.25,
+      "high": 20884.75,
+      "low": 20834.5,
+      "close": 20863.25
+    },
+    {
+      "time": "11:15",
+      "timestamp": "2025-05-09T11:15:00-04:00",
+      "open": 20862.5,
+      "high": 20880.25,
+      "low": 20817.75,
+      "close": 20842.25
+    },
+    {
+      "time": "11:30",
+      "timestamp": "2025-05-09T11:30:00-04:00",
+      "open": 20841.75,
+      "high": 20862.75,
+      "low": 20811.5,
+      "close": 20840.5
+    },
+    {
+      "time": "11:45",
+      "timestamp": "2025-05-09T11:45:00-04:00",
+      "open": 20840.75,
+      "high": 20879.75,
+      "low": 20832.0,
+      "close": 20878.25
+    },
+    {
+      "time": "12:00",
+      "timestamp": "2025-05-09T12:00:00-04:00",
+      "open": 20878.75,
+      "high": 20883.25,
+      "low": 20784.75,
+      "close": 20819.0
+    },
+    {
+      "time": "12:15",
+      "timestamp": "2025-05-09T12:15:00-04:00",
+      "open": 20819.25,
+      "high": 20833.5,
+      "low": 20802.5,
+      "close": 20809.5
+    },
+    {
+      "time": "12:30",
+      "timestamp": "2025-05-09T12:30:00-04:00",
+      "open": 20810.5,
+      "high": 20840.75,
+      "low": 20799.5,
+      "close": 20816.75
+    },
+    {
+      "time": "12:45",
+      "timestamp": "2025-05-09T12:45:00-04:00",
+      "open": 20815.75,
+      "high": 20821.75,
+      "low": 20780.5,
+      "close": 20796.25
+    },
+    {
+      "time": "13:00",
+      "timestamp": "2025-05-09T13:00:00-04:00",
+      "open": 20796.75,
+      "high": 20825.25,
+      "low": 20781.5,
+      "close": 20791.75
+    },
+    {
+      "time": "13:15",
+      "timestamp": "2025-05-09T13:15:00-04:00",
+      "open": 20791.5,
+      "high": 20835.75,
+      "low": 20770.0,
+      "close": 20812.25
+    },
+    {
+      "time": "13:30",
+      "timestamp": "2025-05-09T13:30:00-04:00",
+      "open": 20812.75,
+      "high": 20851.75,
+      "low": 20796.0,
+      "close": 20846.0
+    },
+    {
+      "time": "13:45",
+      "timestamp": "2025-05-09T13:45:00-04:00",
+      "open": 20845.75,
+      "high": 20869.5,
+      "low": 20836.25,
+      "close": 20864.5
+    },
+    {
+      "time": "14:00",
+      "timestamp": "2025-05-09T14:00:00-04:00",
+      "open": 20863.75,
+      "high": 20868.75,
+      "low": 20840.0,
+      "close": 20849.0
+    },
+    {
+      "time": "14:15",
+      "timestamp": "2025-05-09T14:15:00-04:00",
+      "open": 20848.5,
+      "high": 20858.5,
+      "low": 20818.5,
+      "close": 20832.75
+    },
+    {
+      "time": "14:30",
+      "timestamp": "2025-05-09T14:30:00-04:00",
+      "open": 20832.25,
+      "high": 20853.0,
+      "low": 20827.0,
+      "close": 20837.0
+    },
+    {
+      "time": "14:45",
+      "timestamp": "2025-05-09T14:45:00-04:00",
+      "open": 20836.75,
+      "high": 20862.0,
+      "low": 20833.75,
+      "close": 20850.0
+    },
+    {
+      "time": "15:00",
+      "timestamp": "2025-05-09T15:00:00-04:00",
+      "open": 20849.75,
+      "high": 20894.0,
+      "low": 20848.25,
+      "close": 20876.25
+    },
+    {
+      "time": "15:15",
+      "timestamp": "2025-05-09T15:15:00-04:00",
+      "open": 20876.5,
+      "high": 20883.0,
+      "low": 20852.0,
+      "close": 20865.5
+    },
+    {
+      "time": "15:30",
+      "timestamp": "2025-05-09T15:30:00-04:00",
+      "open": 20865.75,
+      "high": 20879.75,
+      "low": 20836.25,
+      "close": 20869.25
+    },
+    {
+      "time": "15:45",
+      "timestamp": "2025-05-09T15:45:00-04:00",
+      "open": 20868.75,
+      "high": 20877.75,
+      "low": 20839.25,
+      "close": 20844.75
+    }
+  ]
+}

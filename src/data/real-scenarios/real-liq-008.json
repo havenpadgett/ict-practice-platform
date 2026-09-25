@@ -1,0 +1,263 @@
+{
+  "exercise_id": "real-liq-008",
+  "concept": "Liquidity",
+  "answer_type": "level",
+  "answerLabel": "Buy-Side Liquidity",
+  "prompt": "Mark the strongest Buy-Side Liquidity, if there is one.",
+  "noAnswerLabel": "No Buy-Side Liquidity present",
+  "instrument": "NQ (real data)",
+  "timeframe": "15m",
+  "difficulty": 2,
+  "has_answer": true,
+  "answer": {
+    "type": "buy_side",
+    "price": 18265.8333,
+    "tolerance": 13.0
+  },
+  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] 3 highs land within 6.5 points of each other around 18265.8, stacking resting stops into one larger pool.",
+  "provenance": {
+    "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
+    "symbol": "NQ",
+    "date_range": {
+      "start": "2023-12-08T09:30:00-05:00",
+      "end": "2023-12-08T15:45:00-05:00"
+    },
+    "trading_date": "2023-12-08",
+    "session": "rth",
+    "context_start": null,
+    "timeframe": "15m",
+    "detection_rule": "equal_highs",
+    "candidate_id": "equal_highs-20231208T1445",
+    "detection_params": {
+      "rules": [
+        "fvg",
+        "equal_highs",
+        "equal_lows",
+        "mss",
+        "dealing_range",
+        "ny_am"
+      ],
+      "swing_lookback": 2,
+      "equal_tolerance_pct": 0.05,
+      "fvg_min_range_mult": 0.25,
+      "range_window": 100
+    },
+    "detection_notes": "3 touches within 6.5 points (tolerance 0.05% = 9.13 points)",
+    "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
+    "built_at": "2026-09-25T03:21:05+00:00",
+    "human_reviewed": false,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "review_notes": null
+  },
+  "candles": [
+    {
+      "time": "09:30",
+      "timestamp": "2023-12-08T09:30:00-05:00",
+      "open": 18107.0,
+      "high": 18175.0,
+      "low": 18098.25,
+      "close": 18173.75
+    },
+    {
+      "time": "09:45",
+      "timestamp": "2023-12-08T09:45:00-05:00",
+      "open": 18174.0,
+      "high": 18177.0,
+      "low": 18128.75,
+      "close": 18142.25
+    },
+    {
+      "time": "10:00",
+      "timestamp": "2023-12-08T10:00:00-05:00",
+      "open": 18148.75,
+      "high": 18239.75,
+      "low": 18148.75,
+      "close": 18233.5
+    },
+    {
+      "time": "10:15",
+      "timestamp": "2023-12-08T10:15:00-05:00",
+      "open": 18234.0,
+      "high": 18264.5,
+      "low": 18231.75,
+      "close": 18248.75
+    },
+    {
+      "time": "10:30",
+      "timestamp": "2023-12-08T10:30:00-05:00",
+      "open": 18249.0,
+      "high": 18254.0,
+      "low": 18171.25,
+      "close": 18193.0
+    },
+    {
+      "time": "10:45",
+      "timestamp": "2023-12-08T10:45:00-05:00",
+      "open": 18192.75,
+      "high": 18259.75,
+      "low": 18184.5,
+      "close": 18256.75
+    },
+    {
+      "time": "11:00",
+      "timestamp": "2023-12-08T11:00:00-05:00",
+      "open": 18256.75,
+      "high": 18263.25,
+      "low": 18208.0,
+      "close": 18217.5
+    },
+    {
+      "time": "11:15",
+      "timestamp": "2023-12-08T11:15:00-05:00",
+      "open": 18217.5,
+      "high": 18218.0,
+      "low": 18178.0,
+      "close": 18205.25
+    },
+    {
+      "time": "11:30",
+      "timestamp": "2023-12-08T11:30:00-05:00",
+      "open": 18205.25,
+      "high": 18213.75,
+      "low": 18161.0,
+      "close": 18175.0
+    },
+    {
+      "time": "11:45",
+      "timestamp": "2023-12-08T11:45:00-05:00",
+      "open": 18174.75,
+      "high": 18192.0,
+      "low": 18168.0,
+      "close": 18177.75
+    },
+    {
+      "time": "12:00",
+      "timestamp": "2023-12-08T12:00:00-05:00",
+      "open": 18178.25,
+      "high": 18188.75,
+      "low": 18151.25,
+      "close": 18153.75
+    },
+    {
+      "time": "12:15",
+      "timestamp": "2023-12-08T12:15:00-05:00",
+      "open": 18153.75,
+      "high": 18213.5,
+      "low": 18140.5,
+      "close": 18205.25
+    },
+    {
+      "time": "12:30",
+      "timestamp": "2023-12-08T12:30:00-05:00",
+      "open": 18205.5,
+      "high": 18216.25,
+      "low": 18191.0,
+      "close": 18211.0
+    },
+    {
+      "time": "12:45",
+      "timestamp": "2023-12-08T12:45:00-05:00",
+      "open": 18211.0,
+      "high": 18221.25,
+      "low": 18206.25,
+      "close": 18218.75
+    },
+    {
+      "time": "13:00",
+      "timestamp": "2023-12-08T13:00:00-05:00",
+      "open": 18218.25,
+      "high": 18232.75,
+      "low": 18213.0,
+      "close": 18230.5
+    },
+    {
+      "time": "13:15",
+      "timestamp": "2023-12-08T13:15:00-05:00",
+      "open": 18230.25,
+      "high": 18237.0,
+      "low": 18210.5,
+      "close": 18229.0
+    },
+    {
+      "time": "13:30",
+      "timestamp": "2023-12-08T13:30:00-05:00",
+      "open": 18229.5,
+      "high": 18231.5,
+      "low": 18211.5,
+      "close": 18217.75
+    },
+    {
+      "time": "13:45",
+      "timestamp": "2023-12-08T13:45:00-05:00",
+      "open": 18217.5,
+      "high": 18238.5,
+      "low": 18215.25,
+      "close": 18237.5
+    },
+    {
+      "time": "14:00",
+      "timestamp": "2023-12-08T14:00:00-05:00",
+      "open": 18237.5,
+      "high": 18245.0,
+      "low": 18232.0,
+      "close": 18244.5
+    },
+    {
+      "time": "14:15",
+      "timestamp": "2023-12-08T14:15:00-05:00",
+      "open": 18244.75,
+      "high": 18254.5,
+      "low": 18240.75,
+      "close": 18249.0
+    },
+    {
+      "time": "14:30",
+      "timestamp": "2023-12-08T14:30:00-05:00",
+      "open": 18249.25,
+      "high": 18263.5,
+      "low": 18243.75,
+      "close": 18260.75
+    },
+    {
+      "time": "14:45",
+      "timestamp": "2023-12-08T14:45:00-05:00",
+      "open": 18260.5,
+      "high": 18269.75,
+      "low": 18254.5,
+      "close": 18264.5
+    },
+    {
+      "time": "15:00",
+      "timestamp": "2023-12-08T15:00:00-05:00",
+      "open": 18264.5,
+      "high": 18266.25,
+      "low": 18238.75,
+      "close": 18256.25
+    },
+    {
+      "time": "15:15",
+      "timestamp": "2023-12-08T15:15:00-05:00",
+      "open": 18255.75,
+      "high": 18262.5,
+      "low": 18244.75,
+      "close": 18259.5
+    },
+    {
+      "time": "15:30",
+      "timestamp": "2023-12-08T15:30:00-05:00",
+      "open": 18259.5,
+      "high": 18268.5,
+      "low": 18252.75,
+      "close": 18257.75
+    },
+    {
+      "time": "15:45",
+      "timestamp": "2023-12-08T15:45:00-05:00",
+      "open": 18257.5,
+      "high": 18263.0,
+      "low": 18244.0,
+      "close": 18249.75
+    }
+  ]
+}

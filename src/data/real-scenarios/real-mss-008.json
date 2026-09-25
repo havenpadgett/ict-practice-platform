@@ -1,0 +1,263 @@
+{
+  "exercise_id": "real-mss-008",
+  "concept": "MSS",
+  "answer_type": "level",
+  "answerLabel": "Market Structure Shift",
+  "prompt": "Mark the swing level whose break confirmed the Market Structure Shift, if one occurred.",
+  "noAnswerLabel": "No Market Structure Shift present",
+  "instrument": "NQ (real data)",
+  "timeframe": "15m",
+  "difficulty": 1,
+  "has_answer": true,
+  "answer": {
+    "type": "bearish",
+    "price": 17411.0,
+    "tolerance": 19.75
+  },
+  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bearish Market Structure Shift: a candle body closed beyond the swing at 17411, against the prevailing trend.",
+  "provenance": {
+    "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
+    "symbol": "NQ",
+    "date_range": {
+      "start": "2023-06-13T09:30:00-04:00",
+      "end": "2023-06-13T15:45:00-04:00"
+    },
+    "trading_date": "2023-06-13",
+    "session": "rth",
+    "context_start": null,
+    "timeframe": "15m",
+    "detection_rule": "mss",
+    "candidate_id": "mss-bearish-20230613T1415",
+    "detection_params": {
+      "rules": [
+        "fvg",
+        "equal_highs",
+        "equal_lows",
+        "mss",
+        "dealing_range",
+        "ny_am"
+      ],
+      "swing_lookback": 2,
+      "equal_tolerance_pct": 0.05,
+      "fvg_min_range_mult": 0.25,
+      "range_window": 100
+    },
+    "detection_notes": "uptrend; body close 17375 below higher low 17411",
+    "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
+    "built_at": "2026-09-25T03:21:08+00:00",
+    "human_reviewed": false,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "review_notes": null
+  },
+  "candles": [
+    {
+      "time": "09:30",
+      "timestamp": "2023-06-13T09:30:00-04:00",
+      "open": 17445.25,
+      "high": 17478.25,
+      "low": 17411.75,
+      "close": 17435.25
+    },
+    {
+      "time": "09:45",
+      "timestamp": "2023-06-13T09:45:00-04:00",
+      "open": 17435.5,
+      "high": 17436.5,
+      "low": 17360.0,
+      "close": 17372.25
+    },
+    {
+      "time": "10:00",
+      "timestamp": "2023-06-13T10:00:00-04:00",
+      "open": 17372.25,
+      "high": 17398.25,
+      "low": 17311.25,
+      "close": 17330.75
+    },
+    {
+      "time": "10:15",
+      "timestamp": "2023-06-13T10:15:00-04:00",
+      "open": 17330.5,
+      "high": 17367.75,
+      "low": 17311.25,
+      "close": 17343.25
+    },
+    {
+      "time": "10:30",
+      "timestamp": "2023-06-13T10:30:00-04:00",
+      "open": 17343.5,
+      "high": 17388.5,
+      "low": 17326.75,
+      "close": 17372.25
+    },
+    {
+      "time": "10:45",
+      "timestamp": "2023-06-13T10:45:00-04:00",
+      "open": 17372.5,
+      "high": 17406.25,
+      "low": 17361.75,
+      "close": 17397.5
+    },
+    {
+      "time": "11:00",
+      "timestamp": "2023-06-13T11:00:00-04:00",
+      "open": 17397.75,
+      "high": 17449.75,
+      "low": 17379.75,
+      "close": 17444.5
+    },
+    {
+      "time": "11:15",
+      "timestamp": "2023-06-13T11:15:00-04:00",
+      "open": 17444.75,
+      "high": 17462.5,
+      "low": 17431.5,
+      "close": 17441.5
+    },
+    {
+      "time": "11:30",
+      "timestamp": "2023-06-13T11:30:00-04:00",
+      "open": 17441.5,
+      "high": 17445.0,
+      "low": 17409.0,
+      "close": 17419.5
+    },
+    {
+      "time": "11:45",
+      "timestamp": "2023-06-13T11:45:00-04:00",
+      "open": 17420.0,
+      "high": 17442.25,
+      "low": 17401.0,
+      "close": 17402.75
+    },
+    {
+      "time": "12:00",
+      "timestamp": "2023-06-13T12:00:00-04:00",
+      "open": 17403.0,
+      "high": 17437.25,
+      "low": 17386.75,
+      "close": 17431.0
+    },
+    {
+      "time": "12:15",
+      "timestamp": "2023-06-13T12:15:00-04:00",
+      "open": 17430.5,
+      "high": 17433.75,
+      "low": 17396.0,
+      "close": 17417.5
+    },
+    {
+      "time": "12:30",
+      "timestamp": "2023-06-13T12:30:00-04:00",
+      "open": 17418.0,
+      "high": 17441.5,
+      "low": 17412.25,
+      "close": 17437.75
+    },
+    {
+      "time": "12:45",
+      "timestamp": "2023-06-13T12:45:00-04:00",
+      "open": 17437.5,
+      "high": 17451.5,
+      "low": 17422.75,
+      "close": 17451.0
+    },
+    {
+      "time": "13:00",
+      "timestamp": "2023-06-13T13:00:00-04:00",
+      "open": 17451.25,
+      "high": 17464.0,
+      "low": 17411.0,
+      "close": 17427.75
+    },
+    {
+      "time": "13:15",
+      "timestamp": "2023-06-13T13:15:00-04:00",
+      "open": 17428.0,
+      "high": 17443.5,
+      "low": 17421.25,
+      "close": 17437.5
+    },
+    {
+      "time": "13:30",
+      "timestamp": "2023-06-13T13:30:00-04:00",
+      "open": 17438.5,
+      "high": 17454.75,
+      "low": 17435.0,
+      "close": 17452.75
+    },
+    {
+      "time": "13:45",
+      "timestamp": "2023-06-13T13:45:00-04:00",
+      "open": 17453.0,
+      "high": 17457.25,
+      "low": 17425.75,
+      "close": 17437.75
+    },
+    {
+      "time": "14:00",
+      "timestamp": "2023-06-13T14:00:00-04:00",
+      "open": 17437.75,
+      "high": 17444.25,
+      "low": 17395.75,
+      "close": 17418.25
+    },
+    {
+      "time": "14:15",
+      "timestamp": "2023-06-13T14:15:00-04:00",
+      "open": 17418.75,
+      "high": 17422.5,
+      "low": 17363.0,
+      "close": 17375.0
+    },
+    {
+      "time": "14:30",
+      "timestamp": "2023-06-13T14:30:00-04:00",
+      "open": 17375.75,
+      "high": 17385.75,
+      "low": 17360.25,
+      "close": 17382.25
+    },
+    {
+      "time": "14:45",
+      "timestamp": "2023-06-13T14:45:00-04:00",
+      "open": 17382.25,
+      "high": 17421.0,
+      "low": 17368.75,
+      "close": 17413.25
+    },
+    {
+      "time": "15:00",
+      "timestamp": "2023-06-13T15:00:00-04:00",
+      "open": 17412.75,
+      "high": 17427.75,
+      "low": 17407.5,
+      "close": 17422.75
+    },
+    {
+      "time": "15:15",
+      "timestamp": "2023-06-13T15:15:00-04:00",
+      "open": 17423.25,
+      "high": 17440.0,
+      "low": 17413.75,
+      "close": 17417.25
+    },
+    {
+      "time": "15:30",
+      "timestamp": "2023-06-13T15:30:00-04:00",
+      "open": 17416.75,
+      "high": 17437.0,
+      "low": 17409.75,
+      "close": 17420.5
+    },
+    {
+      "time": "15:45",
+      "timestamp": "2023-06-13T15:45:00-04:00",
+      "open": 17420.5,
+      "high": 17451.25,
+      "low": 17418.75,
+      "close": 17444.75
+    }
+  ]
+}
