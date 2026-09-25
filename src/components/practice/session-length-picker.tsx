@@ -14,7 +14,7 @@ export function SessionLengthPicker({
 
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+      <h1 className="page-title">
         {CONCEPTS[concept].pickerLabel}
       </h1>
       <p className="mt-1 text-sm text-muted">How many exercises do you want to practice?</p>

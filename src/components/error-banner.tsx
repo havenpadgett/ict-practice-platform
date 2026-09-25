@@ -6,15 +6,15 @@ export function ErrorBanner({
   onRetry?: () => void;
 }) {
   return (
-    <div className="rounded-lg border border-line bg-surface p-4 sm:p-5">
-      <p className="text-sm font-medium" style={{ color: "#e2685f" }}>
+    <div className="card">
+      <p className="text-sm font-medium text-danger">
         {message}
       </p>
       {onRetry && (
         <button
           type="button"
           onClick={onRetry}
-          className="mt-3 inline-flex min-h-11 items-center justify-center rounded-md border border-line px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-background"
+          className="mt-3 btn-secondary"
         >
           Try again
         </button>

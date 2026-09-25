@@ -10,8 +10,8 @@ export function SessionSummary({
   const total = session.exercise_order.length;
 
   return (
-    <div className="rounded-lg border border-line bg-surface p-5 sm:p-6">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted">
+    <div className="card">
+      <p className="eyebrow">
         Session Complete
       </p>
       <p className="mt-2 text-3xl font-semibold text-foreground">
@@ -26,7 +26,7 @@ export function SessionSummary({
             {session.missed_exercise_ids.map((id) => (
               <li
                 key={id}
-                className="rounded border border-line px-2 py-1 text-xs text-foreground/85"
+                className="rounded border border-line px-2 py-1 text-xs text-foreground"
               >
                 {id}
               </li>
@@ -40,7 +40,7 @@ export function SessionSummary({
       <button
         type="button"
         onClick={onPracticeAgain}
-        className="mt-6 inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
+        className="mt-6 btn-primary"
       >
         Practice again
       </button>

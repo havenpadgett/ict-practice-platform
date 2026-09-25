@@ -11,7 +11,7 @@ export function PrimaryButton({
   return (
     <Link
       href={href}
-      className="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-6 py-3 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
+      className="btn-primary"
     >
       {children}
     </Link>

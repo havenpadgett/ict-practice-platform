@@ -166,7 +166,7 @@ export default function PracticePage() {
   if (showPicker) {
     return (
       <div className="flex flex-1 flex-col">
-        <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-14">
+        <div className="page">
           {notice && (
             <p className="mb-6 rounded-md border border-line bg-surface p-3 text-sm text-foreground" role="status">
               {notice}
@@ -182,7 +182,7 @@ export default function PracticePage() {
   if (lengthPickerConcept) {
     return (
       <div className="flex flex-1 flex-col">
-        <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-14">
+        <div className="page">
           <SessionLengthPicker
             concept={lengthPickerConcept}
             onPick={(length) => handleStartSession(lengthPickerConcept, length)}
@@ -200,7 +200,7 @@ export default function PracticePage() {
   if (!session) {
     return (
       <div className="flex flex-1 flex-col">
-        <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-14" />
+        <div className="page" />
         <DisclaimerFooter />
       </div>
     );
@@ -214,8 +214,8 @@ export default function PracticePage() {
   if (session.completed) {
     return (
       <div className="flex flex-1 flex-col">
-        <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-14">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+        <div className="page">
+          <h1 className="page-title">
             {conceptMeta.title}
           </h1>
           <div className="mt-6">
@@ -235,8 +235,8 @@ export default function PracticePage() {
     // instead of crashing.
     return (
       <div className="flex flex-1 flex-col">
-        <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-14">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{conceptMeta.title}</h1>
+        <div className="page">
+          <h1 className="page-title">{conceptMeta.title}</h1>
           <p className="mt-4 text-sm text-foreground">
             The next exercise in this session is no longer available. It may have been withdrawn after review.
           </p>
@@ -249,14 +249,14 @@ export default function PracticePage() {
                 saveSession(next);
                 setSession(next);
               }}
-              className="inline-flex min-h-11 items-center rounded-md bg-accent px-5 text-sm font-medium text-accent-foreground"
+              className="btn-primary"
             >
               Skip it
             </button>
             <button
               type="button"
               onClick={handleBackToPicker}
-              className="inline-flex min-h-11 items-center rounded-md border border-line px-5 text-sm font-medium text-foreground"
+              className="btn-secondary"
             >
               Start a new session
             </button>
@@ -439,9 +439,9 @@ export default function PracticePage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-14">
+      <div className="page">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+          <h1 className="page-title">
             {conceptMeta.title}
           </h1>
           <p className="text-sm text-muted">
@@ -512,11 +512,11 @@ export default function PracticePage() {
             <div className="mt-5">
               {gradeError ? (
                 <div role="alert">
-                  <p className="text-sm" style={{ color: "#e2685f" }}>{gradeError}</p>
+                  <p className="text-sm text-danger">{gradeError}</p>
                   <button
                     type="button"
                     onClick={handleNext}
-                    className="mt-3 inline-flex min-h-11 items-center rounded-md bg-accent px-5 text-sm font-medium text-accent-foreground"
+                    className="mt-3 btn-primary"
                   >
                     Skip this exercise
                   </button>

@@ -120,8 +120,8 @@ export default function DashboardPage() {
   }));
 
   return (
-    <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-6 pb-10 sm:px-6 sm:pt-8 sm:pb-14">
-      <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+    <div className="page">
+      <h1 className="page-title">
         Dashboard
       </h1>
       <p className="mt-1 text-sm text-muted">
@@ -157,7 +157,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="mt-8">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted">
+            <p className="eyebrow">
               Accuracy by Concept
             </p>
             <div className="mt-3 grid grid-cols-2 gap-4">

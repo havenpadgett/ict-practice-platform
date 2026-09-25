@@ -12,7 +12,7 @@ export function MigrationPrompt({
   onDismiss: () => void;
 }) {
   return (
-    <div className="mb-6 rounded-lg border border-line bg-surface p-4 sm:p-5">
+    <div className="mb-6 card">
       <p className="text-sm font-medium text-foreground">
         Found {count} practice {count === 1 ? "attempt" : "attempts"} saved on this device.
       </p>
@@ -21,7 +21,7 @@ export function MigrationPrompt({
       </p>
 
       {error && (
-        <p className="mt-2 text-sm" style={{ color: "#e2685f" }}>
+        <p className="mt-2 text-sm text-danger">
           {error}
         </p>
       )}
@@ -31,7 +31,7 @@ export function MigrationPrompt({
           type="button"
           onClick={onMigrate}
           disabled={migrating}
-          className="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="btn-primary"
         >
           {migrating ? "Migrating…" : "Migrate"}
         </button>
@@ -39,7 +39,7 @@ export function MigrationPrompt({
           type="button"
           onClick={onDismiss}
           disabled={migrating}
-          className="inline-flex min-h-11 items-center justify-center rounded-md border border-line px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-50"
+          className="btn-secondary"
         >
           Dismiss
         </button>

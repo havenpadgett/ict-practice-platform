@@ -6,7 +6,7 @@ import { approveAction, rejectAction, type ReviewActionState } from "@/app/revie
 const initial: ReviewActionState = { error: null, done: null };
 
 function Status({ state }: { state: ReviewActionState }) {
-  if (state.error) return <p className="mt-2 text-sm" style={{ color: "#e2685f" }}>{state.error}</p>;
+  if (state.error) return <p className="mt-2 text-sm text-danger">{state.error}</p>;
   if (state.done) return <p className="mt-2 text-sm text-accent">{state.done}</p>;
   return null;
 }

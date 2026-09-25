@@ -6,39 +6,70 @@ Single source of truth for visual tokens. Defined once in `src/app/globals.css`;
 
 ## Color
 
+*Updated 2026-09-25 (AI-DRAFTED): near-black surfaces, plus control, danger and chart tokens.*
+
 | Token | Value | Use |
 |---|---|---|
-| `--background` | `#1e1e1e` | Page background |
-| `--surface` | `#262626` | Cards, panels — slightly lighter than background |
-| `--line` | `#343434` | Thin, subtle borders on cards and dividers |
-| `--foreground` | `#ececea` | Headings, high-contrast text |
-| `--muted` | `#9b9b9b` | Body copy, micro-labels, secondary text |
-| `--accent` | `#34d399` (mint green) | **The one accent.** Primary actions and active states only |
-| `--accent-foreground` | `#0b1f16` | Text/icons on top of a solid `--accent` fill |
+| `--background` | `#0d0e10` | Page background (near-black) |
+| `--surface` | `#15171a` | Cards and panels, barely lighter than the background |
+| `--line` | `#26292e` | Thin, subtle card borders and dividers (decorative) |
+| `--control` | `#666b73` | Border of anything interactive: inputs, outline and option buttons. 3:1 against both surfaces (WCAG 1.4.11) |
+| `--foreground` | `#ededea` | Headings, values, the user's own mark on a chart |
+| `--muted` | `#9ca0a7` | Body copy, micro-labels, secondary text |
+| `--accent` | `#34d399` (mint) | **The one accent.** Primary action, selected state, focus ring, the "correct" verdict, the correct answer drawn on a chart |
+| `--accent-foreground` | `#0b1f16` | Text on a solid accent fill |
+| `--danger` | `#f0766b` | Incorrect verdict, failed checks, errors. Always with a word or icon |
+| `--candle-up` / `--candle-down` | `#2fb380` / `#e0625a` | Candle bodies and wicks, slightly desaturated so answer overlays sit on top |
+| `--grid` | `#1c1f23` | Chart gridlines, deliberately faint |
 
-Tailwind classes: `bg-background`, `bg-surface`, `border-line`, `text-foreground`, `text-muted`, `bg-accent`, `text-accent`, `text-accent-foreground`.
+Tailwind classes follow the token names: `bg-background`, `bg-surface`, `border-line`, `border-control`, `text-foreground`, `text-muted`, `bg-accent`, `text-accent`, `text-danger`, `stroke-candle-up`, `stroke-grid`, and so on.
 
-**Accent discipline:** mint green is reserved for the primary Submit/CTA button and for marking an active/selected state (e.g. a chosen answer option, a current nav link). It does not appear on secondary buttons, borders, or as decoration — that's what makes it read as meaningful when it does show up. Secondary/outline actions use `border-line` + `text-foreground`, no accent.
+**Accent discipline:** mint marks what matters now. That means the one primary button on a screen, a selected option, keyboard focus, a correct result, and the correct answer overlay. It never appears on secondary buttons, card borders, or as decoration.
+
+**Hex values live only in `globals.css`.** The two exceptions: `global-error.tsx`, which renders without the stylesheet and mirrors the tokens inline, and the Google logo's brand colors.
+
+### Contrast (WCAG AA)
+
+| Pair | Ratio | Needs |
+|---|---|---|
+| foreground on background / surface | 16.5 / 15.3 | 4.5 |
+| muted on background / surface | 7.4 / 6.8 | 4.5 |
+| accent on background / surface | 10.1 / 9.3 | 4.5 |
+| danger on background / surface | 6.9 / 6.4 | 4.5 |
+| accent-foreground on accent | 8.9 | 4.5 |
+| control border on background / surface | 3.6 / 3.4 | 3.0 (non-text) |
+
+`--line` (1.3:1) is only used for decorative borders, never as the only boundary of a control.
 
 ## Typography
 
-- **Headings** (`h1`–`h4`, and any element styled as one): `var(--foreground)`, weight 600, `letter-spacing: -0.02em` — large, tight, high-contrast. Applied globally as a base style; pair with a Tailwind size utility (`text-xl sm:text-2xl`, etc.) per heading. Existing headings already add `tracking-tight` explicitly, which matches this base.
-- **Body text**: `var(--muted)` — comfortable line height (`line-height: 1.6`, set globally on `body`). Most paragraph/description text in the app already uses `text-muted` explicitly.
-- **Micro-labels / section eyebrows**: the `.eyebrow` utility class — small (11px), uppercase, monospace (`--font-mono`, i.e. Geist Mono), muted, letter-spacing `0.08em`. Use for a short label sitting above a heading or a stat value (see `StatCard`). Do not use `.eyebrow` for anything that isn't acting as a section/stat label.
+- **Headings** (`h1`–`h4`): `--foreground`, weight 600, `letter-spacing: -0.02em`, line-height 1.15. These are base styles. Page titles use `.page-title` (`text-2xl sm:text-3xl`), and the line under a title uses `.page-lede`.
+- **Body text:** `--muted`, line-height 1.6 (set on `body`).
+- **Eyebrows:** `.eyebrow`: 11px, uppercase, monospace (Geist Mono), muted, `0.08em` tracking. It goes above every section or stat. The old ad-hoc `text-xs uppercase tracking-wide` label is gone.
+- **Numbers that line up** (stats, percentages) use `tabular-nums`.
 
-## Spacing
+## Spacing and layout
 
-- `--spacing-section: 3.5rem` — generous vertical rhythm between major page sections. Available as any spacing utility: `mt-section`, `space-y-section`, `gap-section`, `py-section`. Prefer this over a one-off spacing value when stacking sections on a page (dashboard stat blocks, analytics sections, a multi-step exercise flow).
+- `.page`: the standard page column (`max-w-3xl`, `pt-10 sm:pt-14`, `pb-16`). Wider tools add `max-w-5xl`.
+- `--spacing-section` (3.5rem): the rhythm between major sections (`mt-section`, `space-y-section`).
 
-## Cards
+## Components (classes in `globals.css`)
 
-Recipe (see `StatCard` for the reference implementation): `rounded-lg border border-line bg-surface p-4 sm:p-5` (or `p-5 sm:p-6` for a larger card) — thin subtle border, minimal fill (just `--surface`, no gradients/shadows), generous padding. A card's label uses `.eyebrow`; its primary value/content uses `text-foreground` at a large size.
+| Class | Use |
+|---|---|
+| `.card` | `rounded-lg border-line bg-surface p-5 sm:p-6`: thin border, flat fill, generous padding |
+| `.btn-primary` | The one forward/commit action on a screen |
+| `.btn-secondary` | Every other button, including an alternative commit such as "No FVG present" |
+| `.btn-option` | A selectable answer or setting; `aria-pressed="true"` gives it the accent |
+| `.btn-link` | Quiet text action (Back, Export CSV) |
+| `.field` | Text inputs and textareas |
+| `.text-error` | Error messages |
 
-## Buttons
+All buttons are at least 44×44px. Option buttons (selection) and commit buttons are always separated by a divider (`border-t border-line pt-5`).
 
-- **Primary**: `bg-accent text-accent-foreground` (see `PrimaryButton`, and the Submit buttons in `ExerciseControls` / `ChoiceControls`). One per screen, reserved for the main forward action.
-- **Secondary/outline**: `border border-line text-foreground hover:bg-surface`, no accent (see the "No [X] present" button in `ExerciseControls`, the "Back" link in `SessionLengthPicker`).
-- **Active/selected state** (e.g. a picked choice option): `border-accent bg-accent/10 text-accent`.
+`Verdict` / `CheckRow` (`src/components/verdict.tsx`) show correct/incorrect as an icon shape (check vs cross) plus a word, with color only reinforcing it.
+
+Focus: one global `:focus-visible` style, a 2px mint ring offset by 2px.
 
 ## Scope note (2026-09-19)
 

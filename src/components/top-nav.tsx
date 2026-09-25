@@ -32,13 +32,13 @@ export function TopNav() {
               <Link href="/analytics" className={NAV_LINK}>
                 Analytics
               </Link>
-              <span className="hidden max-w-[10rem] truncate text-foreground/70 sm:inline">
+              <span className="hidden max-w-[10rem] truncate text-muted sm:inline">
                 {user.email}
               </span>
               <button
                 type="button"
                 onClick={() => signOut()}
-                className="ml-1 inline-flex min-h-11 items-center rounded-md border border-line px-3 text-foreground transition-colors hover:bg-surface"
+                className="ml-1 btn-secondary"
               >
                 Log out
               </button>

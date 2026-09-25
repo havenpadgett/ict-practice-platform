@@ -16,7 +16,7 @@ export function SaveStatus({
   if (!error) return null;
   return (
     <div className="mt-3 flex flex-wrap items-center gap-x-3 text-xs" role="alert">
-      <p style={{ color: "#e2685f" }}>
+      <p className="text-danger">
         {error.message} Your place in this session is kept.
       </p>
       {error.kind === "auth" ? (

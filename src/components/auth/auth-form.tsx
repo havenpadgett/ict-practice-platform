@@ -70,7 +70,7 @@ export function AuthForm() {
 
   return (
     <div className="w-full max-w-sm">
-      <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+      <h1 className="page-title">
         {mode === "sign_in" ? "Log in" : "Sign up"}
       </h1>
       <p className="mt-1 text-sm text-muted">
@@ -81,7 +81,7 @@ export function AuthForm() {
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div>
-          <label htmlFor="email" className="block text-xs font-medium uppercase tracking-wide text-muted">
+          <label htmlFor="email" className="eyebrow block">
             Email
           </label>
           <input
@@ -91,12 +91,12 @@ export function AuthForm() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1.5 min-h-11 w-full rounded-md border border-line bg-surface px-3 py-2 text-base text-foreground outline-none focus:border-accent sm:text-sm"
+            className="mt-1.5 w-full btn-secondary"
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-xs font-medium uppercase tracking-wide text-muted">
+          <label htmlFor="password" className="eyebrow block">
             Password
           </label>
           <input
@@ -107,12 +107,12 @@ export function AuthForm() {
             autoComplete={mode === "sign_in" ? "current-password" : "new-password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1.5 min-h-11 w-full rounded-md border border-line bg-surface px-3 py-2 text-base text-foreground outline-none focus:border-accent sm:text-sm"
+            className="mt-1.5 w-full btn-secondary"
           />
         </div>
 
         {error && (
-          <p className="text-sm" style={{ color: "#e2685f" }}>
+          <p className="text-sm text-danger">
             {error}
           </p>
         )}
@@ -121,7 +121,7 @@ export function AuthForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="inline-flex w-full min-h-11 items-center justify-center rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full btn-primary"
         >
           {submitting ? "Please wait…" : mode === "sign_in" ? "Log in" : "Sign up"}
         </button>

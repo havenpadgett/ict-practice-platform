@@ -4,36 +4,57 @@
  * Single source of truth for color, type, and spacing. Documented in
  * docs/DESIGN-SYSTEM.md. Change values here, not in individual components
  * — everything else consumes these through the Tailwind theme mapping
- * below (bg-background, text-muted, bg-accent, etc.) or the base element
- * styles further down, so a token change cascades everywhere it's used
- * instead of needing to be hand-applied component by component.
+ * below (bg-background, text-muted, bg-accent, etc.), the component
+ * classes further down (.btn-primary, .card, ...), or the base element
+ * styles, so a token change cascades everywhere it's used.
+ *
+ * Every text/background pair is checked against WCAG AA in
+ * docs/DESIGN-SYSTEM.md (Contrast).
  */
 :root {
-  /* Surfaces: background, then a slightly lighter surface for cards, then
-   * a subtle line for thin card/nav borders. */
-  --background: #1e1e1e;
-  --surface: #262626;
-  --line: #343434;
+  /* Surfaces: near-black background, a barely lighter surface for cards,
+   * a subtle line for card and divider borders. */
+  --background: #0d0e10;
+  --surface: #15171a;
+  --line: #26292e;
+  /* Borders that identify an interactive control (inputs, outline and
+   * choice buttons) — 3:1 against both surfaces (WCAG 1.4.11). */
+  --control: #666b73;
 
-  /* Text: high-contrast foreground for headings, muted grey for body copy
-   * and micro-labels. */
-  --foreground: #ececea;
-  --muted: #9b9b9b;
+  /* Text: high-contrast foreground for headings and values, muted grey for
+   * body copy and micro-labels. */
+  --foreground: #ededea;
+  --muted: #9ca0a7;
 
-  /* The one accent — mint green. Reserved for primary actions and active
-   * states only; never used for decoration or general emphasis. */
+  /* The one accent — mint green. Primary actions, the active/selected
+   * state, focus rings, and the "correct" verdict. Never decoration. */
   --accent: #34d399;
   --accent-foreground: #0b1f16;
+
+  /* Status: incorrect answers, errors, failed checks. Always paired with a
+   * word or icon, never color alone. */
+  --danger: #f0766b;
+
+  /* Chart. Candles are slightly desaturated so the answer overlays (user:
+   * --foreground, correct: --accent) sit on top of them, not among them. */
+  --candle-up: #2fb380;
+  --candle-down: #e0625a;
+  --grid: #1c1f23;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-line: var(--line);
+  --color-control: var(--control);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-danger: var(--danger);
+  --color-candle-up: var(--candle-up);
+  --color-candle-down: var(--candle-down);
+  --color-grid: var(--grid);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
@@ -50,10 +71,8 @@ body {
   line-height: 1.6;
 }
 
-/* Headings: large, tight letter-spacing, high contrast. Components already
- * pair these with a size utility (text-xl, text-2xl, ...) per heading; this
- * base rule is what makes that the default instead of something every new
- * heading has to opt into by hand. */
+/* Headings: large, tight letter-spacing, high contrast. Components pair
+ * these with a size utility (text-2xl sm:text-3xl, ...) per heading. */
 h1,
 h2,
 h3,
@@ -61,6 +80,15 @@ h4 {
   color: var(--foreground);
   font-weight: 600;
   letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+/* One focus style everywhere: a mint ring outside the element, keyboard
+ * focus only. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
 /* Micro-label: small uppercase monospace, muted — used as a section
@@ -70,6 +98,61 @@ h4 {
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.08em;
+  line-height: 1.4;
   text-transform: uppercase;
   color: var(--muted);
+}
+
+@layer components {
+  /* ---- Page layout ---------------------------------------------------- */
+  /* Standard page column: centered, with generous top/bottom rhythm. */
+  .page {
+    @apply mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-14;
+  }
+  /* Page title, and the muted line under it. */
+  .page-title {
+    @apply text-2xl sm:text-3xl;
+  }
+  .page-lede {
+    @apply mt-2 text-sm text-muted sm:text-base;
+  }
+
+  /* ---- Cards ---------------------------------------------------------- */
+  .card {
+    @apply rounded-lg border border-line bg-surface p-5 sm:p-6;
+  }
+
+  /* ---- Buttons -------------------------------------------------------- */
+  /* All buttons share one size so rows of them line up: 44px tall (touch
+   * target), medium weight. */
+  /* The one forward action on a screen. */
+  .btn-primary {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 bg-accent text-accent-foreground hover:bg-accent/90;
+  }
+  /* Everything else that is a button. */
+  .btn-secondary {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 border border-control text-foreground hover:bg-surface;
+  }
+  /* A selectable option (answer choice, bias, speed); aria-pressed marks
+   * the chosen one. */
+  .btn-option {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 border border-control text-foreground hover:bg-surface;
+  }
+  .btn-option[aria-pressed="true"] {
+    @apply border-accent bg-accent/10 text-accent;
+  }
+  /* Quiet text-style action (Back, Export CSV). */
+  .btn-link {
+    @apply inline-flex min-h-11 min-w-11 items-center text-sm text-muted underline underline-offset-4 hover:text-foreground;
+  }
+
+  /* ---- Form fields ---------------------------------------------------- */
+  .field {
+    @apply mt-1.5 min-h-11 w-full rounded-md border border-control bg-background px-3 py-2 text-base text-foreground sm:text-sm;
+  }
+
+  /* ---- Status text ---------------------------------------------------- */
+  .text-error {
+    @apply text-sm text-danger;
+  }
 }

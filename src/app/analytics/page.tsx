@@ -66,8 +66,8 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-6 pb-10 sm:px-6 sm:pt-8 sm:pb-14">
-      <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+    <div className="page">
+      <h1 className="page-title">
         Analytics
       </h1>
       <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
@@ -126,7 +126,7 @@ function AnalyticsContent({ attempts }: { attempts: DbAttempt[] }) {
       </section>
 
       <section>
-        <p className="text-xs font-medium uppercase tracking-wide text-muted">
+        <p className="eyebrow">
           Accuracy by Concept
         </p>
         <div className="mt-3">
@@ -136,7 +136,7 @@ function AnalyticsContent({ attempts }: { attempts: DbAttempt[] }) {
 
       {Object.keys(byDifficulty).length > 0 && (
         <section>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted">
+          <p className="eyebrow">
             Accuracy by Difficulty
           </p>
           <div className="mt-3">
@@ -164,7 +164,7 @@ function AnalyticsContent({ attempts }: { attempts: DbAttempt[] }) {
 
       {guidedSteps.length > 0 && (
         <section>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted">
+          <p className="eyebrow">
             Guided Entry — Accuracy by Step
           </p>
           <p className="mt-1 text-xs text-muted">
@@ -201,7 +201,7 @@ function AnalyticsContent({ attempts }: { attempts: DbAttempt[] }) {
 
       {highlights && (
         <section>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted">
+          <p className="eyebrow">
             Strongest &amp; Weakest
           </p>
           <div className="mt-3">
@@ -211,7 +211,7 @@ function AnalyticsContent({ attempts }: { attempts: DbAttempt[] }) {
       )}
 
       <section>
-        <p className="text-xs font-medium uppercase tracking-wide text-muted">
+        <p className="eyebrow">
           Accuracy by Exercise
         </p>
         <p className="mt-1 text-xs text-muted">Most-missed exercises first.</p>
@@ -221,7 +221,7 @@ function AnalyticsContent({ attempts }: { attempts: DbAttempt[] }) {
       </section>
 
       <section>
-        <p className="text-xs font-medium uppercase tracking-wide text-muted">Response Time</p>
+        <p className="eyebrow">Response Time</p>
         <div className="mt-3">
           <ResponseTimeStatsView stats={responseTime} />
         </div>

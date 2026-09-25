@@ -10,7 +10,7 @@ export function FeatureList() {
       {FEATURES.map((feature) => (
         <li
           key={feature}
-          className="flex gap-3 text-sm text-foreground/85 sm:text-base"
+          className="flex gap-3 text-sm text-foreground sm:text-base"
         >
           <span
             aria-hidden

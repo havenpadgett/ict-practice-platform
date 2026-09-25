@@ -15,7 +15,7 @@ export function ExerciseControls({
         type="button"
         onClick={onSubmit}
         disabled={!canSubmit}
-        className="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        className="btn-primary"
       >
         Submit
       </button>
@@ -24,7 +24,7 @@ export function ExerciseControls({
       <button
         type="button"
         onClick={onNoAnswer}
-        className="inline-flex min-h-11 items-center justify-center rounded-md border border-line px-6 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-surface"
+        className="btn-secondary"
       >
         {noAnswerLabel}
       </button>

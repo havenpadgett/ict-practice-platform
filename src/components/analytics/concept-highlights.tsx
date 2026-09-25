@@ -17,15 +17,15 @@ export function ConceptHighlights({
   return (
     <div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-lg border border-line bg-surface p-4 sm:p-5">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted">Strongest</p>
+        <div className="card">
+          <p className="eyebrow">Strongest</p>
           <p className="mt-2 text-lg font-semibold text-foreground">
             {conceptLabel(strongest.concept)}
           </p>
           <p className="mt-1 text-sm text-muted">{strongest.accuracy}% accuracy</p>
         </div>
-        <div className="rounded-lg border border-line bg-surface p-4 sm:p-5">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted">Weakest</p>
+        <div className="card">
+          <p className="eyebrow">Weakest</p>
           <p className="mt-2 text-lg font-semibold text-foreground">
             {conceptLabel(weakest.concept)}
           </p>

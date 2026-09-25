@@ -9,7 +9,7 @@ export function RecommendedSession({ recommendation }: { recommendation: Recomme
   const { concept, difficulty, length, reason, href } = recommendation;
   const label = CONCEPTS[concept].pickerLabel;
   return (
-    <div className="rounded-lg border border-line bg-surface p-4 sm:p-5">
+    <div className="card">
       <p className="eyebrow">Recommended next session</p>
       <p className="mt-2 text-base font-semibold text-foreground">
         {label} · {DIFFICULTY_LABELS[difficulty]} · {length === "all" ? "all exercises" : `${length} exercises`}
@@ -17,7 +17,7 @@ export function RecommendedSession({ recommendation }: { recommendation: Recomme
       <p className="mt-1 text-sm text-muted">{reason}</p>
       <Link
         href={href}
-        className="mt-4 inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-5 py-2 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
+        className="mt-4 btn-primary"
       >
         Start this session
       </Link>

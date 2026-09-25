@@ -43,8 +43,9 @@ export function AdaptiveBreakdown({ attempts }: { attempts: DbAttempt[] }) {
                   <td className="py-2 pr-3 text-muted">{c.attempts}</td>
                   <td className="py-2 pr-3 text-muted">{pct(c.accuracy)}</td>
                   <td className="py-2 pr-3 text-muted">{pct(c.recentAccuracy)}</td>
-                  <td className={`py-2 pr-3 font-medium ${isWeak(c) ? "text-[#e2685f]" : "text-foreground"}`}>
+                  <td className={`py-2 pr-3 font-medium ${isWeak(c) ? "text-danger" : "text-foreground"}`}>
                     {pct(c.score)}
+                    {isWeak(c) && <span className="ml-1.5 text-xs">weak</span>}
                   </td>
                   <td className="py-2 text-muted">{sub ? `${sub.name} (${pct(sub.accuracy)})` : "—"}</td>
                 </tr>

@@ -1,3 +1,4 @@
+import { Verdict } from "@/components/verdict";
 import type { GradeResult } from "@/lib/grading";
 
 export function FeedbackPanel({
@@ -9,30 +10,19 @@ export function FeedbackPanel({
   onNext: () => void;
   nextLabel: string;
 }) {
-  const verdictColor = result.isCorrect ? "#4caf82" : "#e2685f";
-
   return (
-    <div className="rounded-lg border border-line bg-surface p-4 sm:p-5">
-      <p
-        className="text-sm font-semibold uppercase tracking-wide"
-        style={{ color: verdictColor }}
-      >
-        {result.isCorrect ? "Correct" : "Not Quite"}
-      </p>
+    <div className="card" role="status" aria-live="polite">
+      <Verdict correct={result.isCorrect} />
 
-      {result.failureMessage && (
-        <p className="mt-2 text-sm text-foreground/90">{result.failureMessage}</p>
-      )}
+      {result.failureMessage && <p className="mt-3 text-base text-foreground">{result.failureMessage}</p>}
 
-      <p className="mt-2 text-sm text-muted">{result.explanation}</p>
+      <p className="mt-3 text-sm text-muted">{result.explanation}</p>
 
-      <button
-        type="button"
-        onClick={onNext}
-        className="mt-5 inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
-      >
-        {nextLabel}
-      </button>
+      <div className="mt-6 border-t border-line pt-5">
+        <button type="button" onClick={onNext} className="btn-primary">
+          {nextLabel}
+        </button>
+      </div>
     </div>
   );
 }

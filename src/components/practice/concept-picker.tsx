@@ -13,7 +13,7 @@ export function ConceptPicker({
 }) {
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+      <h1 className="page-title">
         What do you want to practice?
       </h1>
       <p className="mt-1 text-sm text-muted">Pick a concept to start a session.</p>
@@ -31,7 +31,7 @@ export function ConceptPicker({
         </button>
       )}
       {adaptiveError && (
-        <p className="mt-2 text-sm" style={{ color: "#e2685f" }}>
+        <p className="mt-2 text-sm text-danger">
           {adaptiveError}
         </p>
       )}

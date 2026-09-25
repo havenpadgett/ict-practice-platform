@@ -12,8 +12,8 @@ export default function Error({ error, retry }: { error: Error & { digest?: stri
   }, [error]);
 
   return (
-    <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-14">
-      <h1 className="text-xl font-semibold tracking-tight text-foreground">Something went wrong on this page</h1>
+    <div className="page">
+      <h1 className="page-title">Something went wrong on this page</h1>
       <p className="mt-2 text-sm text-muted">
         Your recorded attempts are safe. Try again, or start over if it keeps happening.
       </p>
@@ -21,7 +21,7 @@ export default function Error({ error, retry }: { error: Error & { digest?: stri
         <button
           type="button"
           onClick={() => retry()}
-          className="inline-flex min-h-11 items-center rounded-md bg-accent px-5 text-sm font-medium text-accent-foreground"
+          className="btn-primary"
         >
           Try again
         </button>
@@ -33,7 +33,7 @@ export default function Error({ error, retry }: { error: Error & { digest?: stri
             // eslint-disable-next-line @next/next/no-location-assign-relative-destination
             window.location.assign("/dashboard");
           }}
-          className="inline-flex min-h-11 items-center rounded-md border border-line px-5 text-sm font-medium text-foreground"
+          className="btn-secondary"
         >
           Start over
         </button>

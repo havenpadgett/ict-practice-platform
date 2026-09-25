@@ -18,8 +18,8 @@ export default async function ReviewPage() {
   const reviewer = await getReviewer();
   if (!reviewer) {
     return (
-      <div className="mx-auto w-full max-w-3xl px-4 py-10 text-sm text-muted">
-        <h1 className="text-lg font-semibold text-foreground">Scenario review</h1>
+      <div className="page">
+        <h1 className="page-title">Scenario review</h1>
         <p className="mt-2">Not authorized. Add your account email to REVIEWER_EMAILS in .env.local and restart the dev server.</p>
       </div>
     );
@@ -30,8 +30,8 @@ export default async function ReviewPage() {
   const writable = canWrite();
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-8">
-      <h1 className="text-lg font-semibold text-foreground">Scenario review</h1>
+    <div className="page max-w-5xl">
+      <h1 className="page-title">Scenario review</h1>
       <p className="mt-1 text-sm text-muted">
         {pending.length} awaiting review · {scenarios.length - pending.length} approved · signed in as {reviewer.email}
       </p>
@@ -40,14 +40,14 @@ export default async function ReviewPage() {
         it. Both add a Review Log row. Commit the changes to make them live.
       </p>
       {!writable && (
-        <p className="mt-2 text-sm" style={{ color: "#e2685f" }}>
+        <p className="mt-2 text-sm text-danger">
           Read-only: reviews edit repo files, so they can only be saved from the local dev server.
         </p>
       )}
 
       {broken.length > 0 && (
         <div className="mt-6 rounded border border-line p-3 text-sm" role="alert">
-          <p style={{ color: "#e2685f" }}>{broken.length} scenario file(s) on disk can&apos;t be read:</p>
+          <p className="text-danger">{broken.length} scenario file(s) on disk can&apos;t be read:</p>
           <ul className="mt-2 list-disc pl-5 text-muted">
             {broken.map((b) => (
               <li key={b.file}>
@@ -60,7 +60,7 @@ export default async function ReviewPage() {
 
       {invalidRealScenarios.length > 0 && (
         <div className="mt-6 rounded border border-line p-3 text-sm" role="alert">
-          <p style={{ color: "#e2685f" }}>
+          <p className="text-danger">
             {invalidRealScenarios.length} registered scenario file(s) failed validation and are hidden everywhere:
           </p>
           <ul className="mt-2 list-disc pl-5 text-muted">
@@ -76,7 +76,7 @@ export default async function ReviewPage() {
       {pending.map((s) => {
         const p = s.provenance;
         return (
-          <section key={s.exercise_id} className="mt-8 rounded-lg border border-line bg-surface p-4">
+          <section key={s.exercise_id} className="mt-8 card">
             <h2 className="text-base font-semibold text-foreground">
               {s.exercise_id} · {s.concept} · {p.timeframe} · difficulty {s.difficulty}
             </h2>

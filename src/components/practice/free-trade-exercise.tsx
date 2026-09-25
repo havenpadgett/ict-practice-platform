@@ -351,7 +351,7 @@ export function FreeTradeExercise({
             )}
 
             {placing && trade && (
-              <div className="rounded-lg border border-line bg-surface p-4 sm:p-5">
+              <div className="card">
                 <p className="text-sm text-foreground">
                   {trade.direction === "long" ? "Long" : "Short"} at {formatPrice(trade.entry)} — place your stop and
                   target on the chart.
@@ -379,7 +379,7 @@ export function FreeTradeExercise({
                   </p>
                 )}
                 {(stopError || targetError) && (
-                  <p className="mt-2 text-sm" style={{ color: "#e2685f" }}>
+                  <p className="mt-2 text-sm text-danger">
                     {stopError ?? targetError}
                   </p>
                 )}
