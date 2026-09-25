@@ -516,6 +516,8 @@ export default function PracticePage() {
                   candles={exercise.candles}
                   interactive={false}
                   fvgZone={exercise.answer.fvg_zone}
+                  dealingRange={exercise.answer.dealing_range}
+                  showEquilibrium={result !== null}
                 />
               )}
             </div>

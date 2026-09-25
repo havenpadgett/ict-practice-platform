@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { Candle } from "@/data/exercises";
+import type { Candle, DealingRange } from "@/data/exercises";
 import { ChartTimeBackground, ChartTimeLabels } from "@/components/practice/chart-time-layer";
 import type { UserRegion } from "@/lib/grading";
 import { buildTimeContext } from "@/lib/time-context";
@@ -65,11 +65,19 @@ type LevelProps = CommonProps & {
 /** No drawing at all — the chart is purely observational. Choice exercises
  * (FVG respected/disrespected) test whether the user can read price action
  * after a gap that's already shown, not whether they can find it, so the
- * gap is highlighted from the start rather than revealed after grading. */
+ * gap is highlighted from the start rather than revealed after grading.
+ * Premium/Discount marks its dealing range the same way; its equilibrium
+ * line appears only once `showEquilibrium` is set (after grading). */
 type ChoiceProps = CommonProps & {
   answerType: "choice";
-  fvgZone: CorrectZone;
+  fvgZone?: CorrectZone | null;
+  dealingRange?: DealingRange | null;
+  showEquilibrium?: boolean;
 };
+
+/** Premium/Discount: within this fraction of the range either side of the
+ * midpoint counts as equilibrium (docs/CURRICULUM.md). */
+const EQUILIBRIUM_BAND = 0.05;
 
 export type GuidedLevelField = "entry" | "stop" | "target";
 
@@ -248,7 +256,9 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
       ? regionToPixelRect(layout, props.userRegion)
       : null;
   const zoneToShow =
-    props.answerType === "zone" ? props.correctZone : props.answerType === "choice" ? props.fvgZone : null;
+    props.answerType === "zone" ? props.correctZone : props.answerType === "choice" ? props.fvgZone ?? null : null;
+  const dealingRange = props.answerType === "choice" ? props.dealingRange ?? null : null;
+  const showEquilibrium = props.answerType === "choice" && props.showEquilibrium === true;
   const correctZoneRect = zoneToShow
     ? regionToPixelRect(layout, {
         priceLow: zoneToShow.price_low,
@@ -382,6 +392,73 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
           strokeDasharray="4 3"
         />
       )}
+
+      {/* Premium/Discount: the dealing range's swing high and low, from the
+          first of the two swings to the right edge; equilibrium (and its
+          band) once graded. */}
+      {dealingRange &&
+        (() => {
+          const x1 = candleIndexToX(layout, Math.min(dealingRange.high_index, dealingRange.low_index));
+          const mid = (dealingRange.high + dealingRange.low) / 2;
+          const band = (dealingRange.high - dealingRange.low) * EQUILIBRIUM_BAND;
+          const lines: [number, string][] = [
+            [dealingRange.high, "RANGE HIGH"],
+            [dealingRange.low, "RANGE LOW"],
+          ];
+          return (
+            <g>
+              {showEquilibrium && (
+                <rect
+                  x={x1}
+                  y={priceToY(layout, mid + band)}
+                  width={bounds.right - x1}
+                  height={priceToY(layout, mid - band) - priceToY(layout, mid + band)}
+                  className="fill-accent/15"
+                />
+              )}
+              {lines.map(([price, label]) => (
+                <g key={label}>
+                  <line
+                    x1={x1}
+                    x2={bounds.right}
+                    y1={priceToY(layout, price)}
+                    y2={priceToY(layout, price)}
+                    className="stroke-muted"
+                    strokeWidth={1.25}
+                    strokeDasharray="5 4"
+                  />
+                  <text
+                    x={x1 + 4}
+                    y={priceToY(layout, price) + (label === "RANGE HIGH" ? -5 : 12)}
+                    className="fill-muted text-[10px] font-medium"
+                  >
+                    {label}
+                  </text>
+                </g>
+              ))}
+              {showEquilibrium && (
+                <g>
+                  <line
+                    x1={x1}
+                    x2={bounds.right}
+                    y1={priceToY(layout, mid)}
+                    y2={priceToY(layout, mid)}
+                    className="stroke-accent"
+                    strokeWidth={1.5}
+                    strokeDasharray="4 3"
+                  />
+                  <text
+                    x={x1 + 4}
+                    y={priceToY(layout, mid + band) - 4}
+                    className="fill-accent text-[10px] font-medium"
+                  >
+                    EQUILIBRIUM
+                  </text>
+                </g>
+              )}
+            </g>
+          );
+        })()}
 
       {/* The user's drawn box — live while dragging, frozen after submit */}
       {liveBoxRect && (

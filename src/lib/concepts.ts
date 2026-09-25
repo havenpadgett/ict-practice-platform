@@ -3,9 +3,26 @@
 // handful of strings that vary by concept so nothing else has to hardcode
 // "FVG" or "Liquidity" text.
 
-export type Concept = "FVG" | "Liquidity" | "MSS" | "IFVG" | "GuidedEntry" | "FreeTrade" | "TimeLiquidity";
+export type Concept =
+  | "FVG"
+  | "Liquidity"
+  | "MSS"
+  | "IFVG"
+  | "GuidedEntry"
+  | "FreeTrade"
+  | "TimeLiquidity"
+  | "PremiumDiscount";
 
-export const CONCEPT_LIST: Concept[] = ["FVG", "Liquidity", "MSS", "IFVG", "TimeLiquidity", "GuidedEntry", "FreeTrade"];
+export const CONCEPT_LIST: Concept[] = [
+  "FVG",
+  "Liquidity",
+  "MSS",
+  "IFVG",
+  "TimeLiquidity",
+  "PremiumDiscount",
+  "GuidedEntry",
+  "FreeTrade",
+];
 
 type ConceptMeta = {
   /** Page heading shown above the exercise, e.g. "FVG Practice". */
@@ -41,6 +58,11 @@ export const CONCEPTS: Record<Concept, ConceptMeta> = {
     title: "Time-Based Liquidity Practice",
     pickerLabel: "Time-Based Liquidity",
     pickerDescription: "Mark previous day, NY AM session, and weekly highs and lows.",
+  },
+  PremiumDiscount: {
+    title: "Premium & Discount Practice",
+    pickerLabel: "Premium & Discount",
+    pickerDescription: "Read where price sits in its dealing range: premium, discount, or equilibrium.",
   },
   GuidedEntry: {
     title: "Guided Entry Practice",

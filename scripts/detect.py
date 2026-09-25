@@ -19,6 +19,11 @@ disagree, the curriculum is right and this is a bug:
                       highs and last two swing lows both rising), the first
                       close below the most recent higher low (bearish);
                       mirrored for a downtrend (bullish). Level = the swing.
+  dealing_range       Premium/discount at the end of each session: the most
+                      recent confirmed swing high and swing low that price
+                      has not traded beyond since. Equilibrium = midpoint;
+                      the last close is premium above 55% of the range,
+                      discount below 45%, equilibrium in between.
   previous_day_high/low   Prior trading day's high/low (trading day = 18:00 ET
                       to 17:00 ET), as a level for the following day.
   ny_am_high/low      High/low of the 9:30-11:00 ET session (complete sessions
@@ -61,7 +66,7 @@ FVG_MIN_RANGE_MULT = 0.25
 RANGE_WINDOW = 100
 EQUAL_TOLERANCE_PCT = 0.05
 
-ALL_RULES = ["fvg", "equal_highs", "equal_lows", "mss", "previous_day", "ny_am", "weekly"]
+ALL_RULES = ["fvg", "equal_highs", "equal_lows", "mss", "dealing_range", "previous_day", "ny_am", "weekly"]
 
 
 def ts(candles: List[Candle], i: int) -> str:
@@ -221,10 +226,36 @@ def to_global(c: Dict[str, Any], offset: int) -> Dict[str, Any]:
     """Shift a candidate's session-relative indices to indices in the full series."""
     c["involved_indices"] = [i + offset for i in c["involved_indices"]]
     c["anchor_index"] += offset
-    for key in ("swing_index", "break_index"):
+    for key in ("swing_index", "break_index", "high_index", "low_index"):
         if key in c:
             c[key] += offset
     return c
+
+
+# ---- Dealing range (premium / discount) --------------------------------------
+
+EQUILIBRIUM_BAND = 0.05  # +/- this fraction of the range around the midpoint
+
+
+def detect_dealing_range(candles: List[Candle], highs: List[int], lows: List[int], n: int) -> List[Dict[str, Any]]:
+    """Where the session's last close sits in its current dealing range."""
+    i = len(candles) - 1
+    sh = [s for s in highs if s + n <= i]
+    sl = [s for s in lows if s + n <= i]
+    if not sh or not sl:
+        return []
+    h_i, l_i = sh[-1], sl[-1]
+    high, low = candles[h_i]["high"], candles[l_i]["low"]
+    first = min(h_i, l_i)
+    if any(c["high"] > high or c["low"] < low for c in candles[first:i + 1]):
+        return []  # price has already left the range - it no longer frames the market
+    pos = (candles[i]["close"] - low) / (high - low)
+    zone = "premium" if pos > 0.5 + EQUILIBRIUM_BAND else "discount" if pos < 0.5 - EQUILIBRIUM_BAND else "equilibrium"
+    leg = "bullish" if l_i < h_i else "bearish"
+    return [candidate("dealing_range", zone, cid("dealing_range", candles, i, zone), candles, [first, max(h_i, l_i), i], i,
+                      {"high": high, "low": low, "equilibrium": (high + low) / 2},
+                      f"{leg} leg {low:g}-{high:g}; last close {candles[i]['close']:g} at {pos:.0%} of the range -> {zone}",
+                      {"high_index": h_i, "low_index": l_i, "position": round(pos, 4)})]
 
 
 # ---- Time-based levels -----------------------------------------------------
@@ -337,6 +368,8 @@ def main(argv: Optional[List[str]] = None) -> int:
             in_core += detect_equal(core, highs, "highs", args.equal_tolerance_pct)
         if "equal_lows" in rules:
             in_core += detect_equal(core, lows, "lows", args.equal_tolerance_pct)
+        if "dealing_range" in rules and core:
+            in_core += detect_dealing_range(core, highs, lows, n)
         found += [to_global(c, core_offset) for c in in_core]
         if "mss" in rules:
             for c in detect_mss(day, swing_highs(day, n), swing_lows(day, n), n):

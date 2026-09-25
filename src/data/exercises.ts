@@ -4,6 +4,7 @@
 // cross-reference with the doc.
 
 import { freeTradeScenarios } from "@/data/free-trade-scenarios";
+import { premiumDiscountExercises } from "@/data/premium-discount-exercises";
 import { realScenarios } from "@/data/real-scenarios";
 import { timeLiquidityExercises } from "@/data/time-liquidity-exercises";
 import type { Concept } from "@/lib/concepts";
@@ -59,19 +60,32 @@ export type ChoiceOption = {
   label: string;
 };
 
+/** A swing high and swing low marked on a Premium/Discount chart. Shown
+ * from the start (the exercise tests reading price's location in the range,
+ * not finding the range); the equilibrium line is revealed after grading. */
+export type DealingRange = {
+  high: number;
+  low: number;
+  high_index: number;
+  low_index: number;
+};
+
 export type ChoiceAnswer = {
   correct_choice: string;
-  /** The Fair Value Gap this exercise is asking about. Unlike zone
-   * grading's revealed-after-submit answer, this is shown on the chart from
-   * the start — the exercise isn't testing whether the user can find the
-   * gap, only whether they can read what price did after it, so hiding it
-   * would just make the chart harder to read for no pedagogical reason. */
-  fvg_zone: {
+  /** The Fair Value Gap this exercise is asking about (FVG/IFVG respected
+   * vs. disrespected). Unlike zone grading's revealed-after-submit answer,
+   * this is shown on the chart from the start — the exercise isn't testing
+   * whether the user can find the gap, only whether they can read what
+   * price did after it, so hiding it would just make the chart harder to
+   * read for no pedagogical reason. */
+  fvg_zone?: {
     price_low: number;
     price_high: number;
     candle_start: number;
     candle_end: number;
   };
+  /** Premium/Discount exercises: the dealing range being asked about. */
+  dealing_range?: DealingRange;
 };
 
 /** Where a real-data scenario came from and whether a human has checked it
@@ -2880,6 +2894,7 @@ const conceptExercises: Exercise[] = [
 export const exercises: Exercise[] = [
   ...conceptExercises,
   ...timeLiquidityExercises,
+  ...premiumDiscountExercises,
   ...freeTradeScenarios,
   ...realScenarios,
 ];

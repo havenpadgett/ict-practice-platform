@@ -111,6 +111,23 @@ Swing highs (lows) count as equal when they are within **0.05% of the first touc
 
 **Confirmation:** the flip is confirmed the same way as [respected/disrespected](#fair-value-gap--respected-vs-disrespected) above — by a candle body close, not a wick.
 
+## Premium and Discount
+
+**Provenance:** AI-DRAFTED (2026-09-24) — the core definition was given by Haven; the operational details (which swings, how current price is read, the equilibrium band) were chosen by Claude. Pending Haven's review.
+
+**Dealing range:** the range between a swing high and a swing low. **Equilibrium** is its midpoint.
+- **Premium:** price above equilibrium, the expensive half of the range, where **selling is favoured**.
+- **Discount:** price below equilibrium, the cheap half, where **buying is favoured**.
+
+**Operational details (AI-DRAFTED):**
+- **Which swings:** the most recent swing high and swing low (the same fractal swings as MSS, lookback 2) that price has not traded beyond since they formed. Once price breaks out of the range, that range no longer frames the market, and a new range forms from the next swings.
+- **Current price** is the last candle's **close**. A wick that pokes into the other half and gets rejected doesn't move price there, consistent with the body-close rule used for FVG respect and MSS.
+- **Equilibrium band:** a close within **5% of the range's height either side of the midpoint** (45–55% of the range) is *at equilibrium*: neither premium nor discount has an edge from location alone. On a 180-point range that is ±9 points. The band exists because a close a point or two from the midpoint would otherwise flip between answers on noise. The teaching point is that location only helps when price is clearly in one half.
+
+**Exercises** (`src/data/premium-discount-exercises.ts`, choice answer type): the chart marks the dealing range's swing high and swing low. The user answers Premium, Discount, or At equilibrium (neither). The equilibrium line and band are revealed after grading. Five constructed exercises cover a deep discount, a high premium, a close-call premium, a discount where a wick spikes above equilibrium but the close doesn't, and one at equilibrium.
+
+**Detection:** `scripts/detect.py` rule `dealing_range`. At the end of each session it reports the current dealing range, its equilibrium, and whether the last close is premium, discount, or equilibrium.
+
 ## Guided Entry
 
 **Provenance:** AI-DRAFTED — approved by Haven on a read-through, not independently verified. Exercises have been built against this definition on that approval; treat the definition itself as still needing review before anyone other than Haven uses the app.
