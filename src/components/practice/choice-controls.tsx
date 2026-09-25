@@ -31,7 +31,7 @@ export function ChoiceControls({
       {/* Submit is a commit action, not another option in the group above —
           a separate, top-bordered row keeps it from being mistaken for one
           more choice and prevents mis-clicks right after selecting. */}
-      <div className="mt-5 flex justify-end border-t border-line pt-4">
+      <div className="mt-5 flex justify-end border-t border-line pt-5">
         <button
           type="button"
           onClick={onSubmit}

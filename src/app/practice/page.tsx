@@ -440,17 +440,35 @@ export default function PracticePage() {
   return (
     <div className="flex flex-1 flex-col">
       <div className="page">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <h1 className="page-title">
+        {/* Everything above the chart is quiet: where you are (eyebrow +
+            thin progress line), then the prompt, then the score as a
+            footnote. The chart is the focus. */}
+        <div className="flex items-baseline justify-between gap-4">
+          <h1 className="eyebrow">
             {conceptMeta.title}
+            {isAdaptive && <> · {getConceptMeta(exercise.concept).pickerLabel}</>}
           </h1>
-          <p className="text-sm text-muted">
-            Exercise {session.current_index + 1} of {session.exercise_order.length} · Score{" "}
-            {session.correct_count}/{attemptedCount} · Difficulty {exercise.difficulty}/3
+          <p className="eyebrow tabular-nums">
+            {session.current_index + 1} / {session.exercise_order.length}
           </p>
         </div>
-        {isAdaptive && <p className="eyebrow mt-3">{getConceptMeta(exercise.concept).pickerLabel}</p>}
-        <p className="mt-2 text-sm text-muted">{exercise.prompt}</p>
+        <div
+          className="mt-3 h-0.5 overflow-hidden rounded-full bg-line"
+          role="progressbar"
+          aria-label="Session progress"
+          aria-valuemin={0}
+          aria-valuemax={session.exercise_order.length}
+          aria-valuenow={session.current_index}
+        >
+          <div
+            className="h-full bg-accent transition-[width]"
+            style={{ width: `${(session.current_index / session.exercise_order.length) * 100}%` }}
+          />
+        </div>
+        <p className="mt-6 text-lg leading-snug text-foreground sm:text-xl">{exercise.prompt}</p>
+        <p className="mt-1.5 text-xs text-muted tabular-nums">
+          Score {session.correct_count}/{attemptedCount} · Difficulty {exercise.difficulty} of 3
+        </p>
 
         {exercise.answer_type === "free" ? (
           <div className="mt-6">
@@ -537,6 +555,11 @@ export default function PracticePage() {
                 />
               ) : (
                 <ExerciseControls
+                  hint={
+                    exercise.answer_type === "zone"
+                      ? "Drag on the chart to draw a box around your answer."
+                      : "Click the chart to place a line. Drag to adjust it."
+                  }
                   canSubmit={canSubmit}
                   onSubmit={handleSubmit}
                   onNoAnswer={handleNoAnswer}
