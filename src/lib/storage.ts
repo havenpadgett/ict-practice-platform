@@ -15,6 +15,10 @@
 
 import { CONCEPT_LIST } from "@/lib/concepts";
 
+/** SessionState.concept for an adaptive session, which mixes concepts
+ * (src/lib/recommendations.ts). */
+export const ADAPTIVE_SESSION = "Adaptive";
+
 /** Bump this whenever SessionState's shape changes. loadSession() discards
  * anything saved under an older (or missing/mismatched) version instead of
  * trusting it — this is what caught the Phase 3 -> Phase 4 session shape
@@ -74,7 +78,7 @@ function isValidSessionState(value: unknown): value is SessionState {
     v.version === SESSION_SCHEMA_VERSION &&
     typeof v.session_id === "string" &&
     typeof v.concept === "string" &&
-    CONCEPT_LIST.includes(v.concept as (typeof CONCEPT_LIST)[number]) &&
+    (CONCEPT_LIST.includes(v.concept as (typeof CONCEPT_LIST)[number]) || v.concept === ADAPTIVE_SESSION) &&
     Array.isArray(v.exercise_order) &&
     v.exercise_order.every((id) => typeof id === "string") &&
     typeof v.current_index === "number" &&

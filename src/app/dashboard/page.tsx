@@ -5,9 +5,9 @@ import { MigrationPrompt } from "@/components/auth/migration-prompt";
 import { ErrorBanner } from "@/components/error-banner";
 import { LoadingState } from "@/components/loading-state";
 import { PrimaryButton } from "@/components/primary-button";
+import { RecommendedSession } from "@/components/recommended-session";
 import { StatCard } from "@/components/stat-card";
 import { useRequireAuth } from "@/hooks/use-require-auth";
-import { getStrongestAndWeakestConcept } from "@/lib/analytics";
 import {
   fetchAttempts,
   getAccuracyByConcept,
@@ -18,6 +18,7 @@ import {
 } from "@/lib/attempts";
 import { CONCEPTS, type Concept } from "@/lib/concepts";
 import { fetchProfile } from "@/lib/profiles";
+import { recommendSession } from "@/lib/recommendations";
 import { clearLocalAttempts, getSessionScoreLabel, loadAttempts, loadSession } from "@/lib/storage";
 
 export default function DashboardPage() {
@@ -102,7 +103,6 @@ export default function DashboardPage() {
 
   const accuracy = attempts ? getOverallAccuracy(attempts) : null;
   const byConcept = attempts ? getAccuracyByConcept(attempts) : {};
-  const highlights = getStrongestAndWeakestConcept(byConcept);
 
   const STATS = [
     { label: "Overall Accuracy", value: accuracy === null ? "—" : `${accuracy}%` },
@@ -169,12 +169,9 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {highlights && (
+          {attempts && (
             <div className="mt-8">
-              <PrimaryButton href={`/practice?concept=${encodeURIComponent(highlights.weakest.concept)}`}>
-                Practice my weakest concept (
-                {CONCEPTS[highlights.weakest.concept as Concept]?.pickerLabel ?? highlights.weakest.concept})
-              </PrimaryButton>
+              <RecommendedSession recommendation={recommendSession(attempts)} />
             </div>
           )}
         </>

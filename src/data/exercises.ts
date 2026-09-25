@@ -2928,6 +2928,11 @@ export function getExerciseIdsByConcept(concept: Concept): string[] {
     .map((exercise) => exercise.exercise_id);
 }
 
+/** Practice-ready exercises for a concept (see getExerciseIdsByConcept). */
+export function getPracticeExercises(concept: Concept): Exercise[] {
+  return exercises.filter((exercise) => exercise.concept === concept && isPracticeReady(exercise));
+}
+
 /** Fixed session-length caps offered in the UI, in addition to "all". */
 const SESSION_LENGTH_CAPS = [5, 10] as const;
 
@@ -2957,7 +2962,15 @@ function shuffle<T>(items: T[]): T[] {
 /** Builds a randomly-ordered exercise list for a new session — `length`
  * caps how many exercises are included ("all" uses every exercise for the
  * concept, order still randomized). */
-export function buildSessionExerciseIds(concept: Concept, length: SessionLength): string[] {
-  const shuffled = shuffle(getExerciseIdsByConcept(concept));
-  return length === "all" ? shuffled : shuffled.slice(0, Math.min(length, shuffled.length));
+export function buildSessionExerciseIds(concept: Concept, length: SessionLength, difficulty?: 1 | 2 | 3): string[] {
+  const pool = getPracticeExercises(concept);
+  if (difficulty === undefined) {
+    const shuffled = shuffle(pool.map((e) => e.exercise_id));
+    return length === "all" ? shuffled : shuffled.slice(0, Math.min(length, shuffled.length));
+  }
+  // Closest difficulty first, so a session asked for at one level still
+  // fills up from the next nearest when that level runs short.
+  const ordered = shuffle(pool).sort((a, b) => Math.abs(a.difficulty - difficulty) - Math.abs(b.difficulty - difficulty));
+  const ids = ordered.map((e) => e.exercise_id);
+  return shuffle(length === "all" ? ids : ids.slice(0, Math.min(length, ids.length)));
 }

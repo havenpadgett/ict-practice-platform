@@ -10,7 +10,7 @@ import { FreeTradeStatsView } from "@/components/analytics/free-trade-stats";
 import { GuidedStepAccuracyBars } from "@/components/analytics/guided-step-accuracy-bars";
 import { ImprovementChart } from "@/components/analytics/improvement-chart";
 import { OverviewStats } from "@/components/analytics/overview-stats";
-import { RecommendedPractice } from "@/components/analytics/recommended-practice";
+import { AdaptiveBreakdown } from "@/components/analytics/adaptive-breakdown";
 import { ResponseTimeStatsView } from "@/components/analytics/response-time-stats";
 import { ErrorBanner } from "@/components/error-banner";
 import { LoadingState } from "@/components/loading-state";
@@ -184,11 +184,12 @@ function AnalyticsContent({ attempts }: { attempts: DbAttempt[] }) {
         </div>
       </section>
 
-      {highlights && (
-        <section>
-          <RecommendedPractice weakest={highlights.weakest} />
-        </section>
-      )}
+      <section>
+        <p className="eyebrow">Adaptive Practice</p>
+        <div className="mt-3">
+          <AdaptiveBreakdown attempts={attempts} />
+        </div>
+      </section>
     </div>
   );
 }

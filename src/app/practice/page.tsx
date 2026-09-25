@@ -14,19 +14,26 @@ import { SessionLengthPicker } from "@/components/practice/session-length-picker
 import { SessionSummary } from "@/components/practice/session-summary";
 import { buildSessionExerciseIds, getExercise, type SessionLength } from "@/data/exercises";
 import { useRequireAuth } from "@/hooks/use-require-auth";
-import { insertAttempt, nextAttemptNumber, NULL_FREE_TRADE_FIELDS } from "@/lib/attempts";
+import { fetchAttempts, insertAttempt, nextAttemptNumber, NULL_FREE_TRADE_FIELDS } from "@/lib/attempts";
 import { CONCEPT_LIST, getConceptMeta, type Concept } from "@/lib/concepts";
 import { gradeAttempt, type GradeResult, type UserAnswer, type UserRegion } from "@/lib/grading";
 import type { FreeTradeGradeResult } from "@/lib/free-trade-grading";
 import type { GuidedGradeResult, GuidedUserAnswer } from "@/lib/guided-grading";
 import { recordSessionCompletion } from "@/lib/profiles";
+import { buildAdaptiveSession } from "@/lib/recommendations";
 import {
+  ADAPTIVE_SESSION,
   clearSession,
   createSession,
   loadSession,
   saveSession,
   type SessionState,
 } from "@/lib/storage";
+
+/** Response time for an attempt — called from event handlers only. */
+function msSince(start: number): number {
+  return Date.now() - start;
+}
 
 export default function PracticePage() {
   const { user, loading: authLoading } = useRequireAuth();
@@ -41,31 +48,9 @@ export default function PracticePage() {
   const [result, setResult] = useState<GradeResult | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [adaptiveError, setAdaptiveError] = useState<string | null>(null);
   const exerciseStartRef = useRef<number>(0);
 
-  // Resume an in-progress (or just-completed) session from a prior visit;
-  // otherwise honor a ?concept= deep link (e.g. from the analytics page's
-  // "recommended next practice" link, or the dashboard's "practice weakest
-  // concept" button) by starting that concept directly with every exercise
-  // included (skipping the length picker — a deep link is a "just start"
-  // action); otherwise show the concept picker. Reading localStorage/
-  // location is a one-time sync from browser-only state (neither is
-  // available during SSR) and can't be done in render, so the
-  // setState-in-effect here is intentional.
-  useEffect(() => {
-    const existing = loadSession();
-    if (existing) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSession(existing);
-      return;
-    }
-    const requestedConcept = new URLSearchParams(window.location.search).get("concept");
-    if (requestedConcept && CONCEPT_LIST.includes(requestedConcept as Concept)) {
-      handleStartSession(requestedConcept as Concept, "all");
-      return;
-    }
-    setShowPicker(true);
-  }, []);
 
   // Reset the response-time clock whenever a new exercise becomes active.
   useEffect(() => {
@@ -77,8 +62,22 @@ export default function PracticePage() {
     setLengthPickerConcept(concept);
   }
 
-  function handleStartSession(concept: Concept, length: SessionLength) {
-    const fresh = createSession(concept, buildSessionExerciseIds(concept, length));
+  function handleStartSession(concept: Concept, length: SessionLength, difficulty?: 1 | 2 | 3) {
+    beginSession(concept, buildSessionExerciseIds(concept, length, difficulty));
+  }
+
+  async function handleStartAdaptive() {
+    if (!user) return;
+    setAdaptiveError(null);
+    try {
+      beginSession(ADAPTIVE_SESSION, buildAdaptiveSession(await fetchAttempts(user.id)));
+    } catch (err) {
+      setAdaptiveError(err instanceof Error ? err.message : "Couldn't load your history to build the session.");
+    }
+  }
+
+  function beginSession(kind: string, exerciseIds: string[]) {
+    const fresh = createSession(kind, exerciseIds);
     saveSession(fresh);
     setSession(fresh);
     setShowPicker(false);
@@ -88,6 +87,36 @@ export default function PracticePage() {
     setUserChoice(null);
     setResult(null);
   }
+
+  // A deep link (?concept=…[&difficulty=…&length=…], e.g. the dashboard's
+  // recommended session) is a "start this now" action: it replaces any
+  // session in progress, then the URL is cleaned so a reload resumes
+  // instead of restarting. Otherwise resume an in-progress (or
+  // just-completed) session from a prior visit, or show the concept picker.
+  // Reading localStorage/location is a one-time sync from browser-only
+  // state (neither is available during SSR) and can't be done in render, so
+  // the setState-in-effect here is intentional.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedConcept = params.get("concept");
+    if (requestedConcept && CONCEPT_LIST.includes(requestedConcept as Concept)) {
+      const d = Number(params.get("difficulty"));
+      const lengthParam = params.get("length");
+      const length: SessionLength = lengthParam && /^\d+$/.test(lengthParam) ? Number(lengthParam) : "all";
+      window.history.replaceState(null, "", "/practice");
+      handleStartSession(requestedConcept as Concept, length, d === 1 || d === 2 || d === 3 ? d : undefined);
+      return;
+    }
+    const existing = loadSession();
+    if (existing) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSession(existing);
+      return;
+    }
+    setShowPicker(true);
+    // Mount-only: reads the URL/localStorage once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleBackToPicker() {
     clearSession();
@@ -109,7 +138,7 @@ export default function PracticePage() {
     return (
       <div className="flex flex-1 flex-col">
         <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-14">
-          <ConceptPicker onPick={handlePickConcept} />
+          <ConceptPicker onPick={handlePickConcept} onPickAdaptive={handleStartAdaptive} adaptiveError={adaptiveError} />
         </div>
         <DisclaimerFooter />
       </div>
@@ -143,7 +172,10 @@ export default function PracticePage() {
     );
   }
 
-  const conceptMeta = getConceptMeta(session.concept);
+  const isAdaptive = session.concept === ADAPTIVE_SESSION;
+  const conceptMeta = isAdaptive
+    ? { title: "Adaptive Practice", pickerLabel: "Adaptive", pickerDescription: "" }
+    : getConceptMeta(session.concept);
 
   if (session.completed) {
     return (
@@ -201,7 +233,7 @@ export default function PracticePage() {
 
     setSaving(true);
     setSaveError(null);
-    const responseTimeMs = Date.now() - exerciseStartRef.current;
+    const responseTimeMs = msSince(exerciseStartRef.current);
     const isRegion = answer.type === "region";
     const isLevel = answer.type === "level";
     const isChoice = answer.type === "choice";
@@ -268,7 +300,7 @@ export default function PracticePage() {
 
     setSaving(true);
     setSaveError(null);
-    const responseTimeMs = Date.now() - exerciseStartRef.current;
+    const responseTimeMs = msSince(exerciseStartRef.current);
 
     const stepResult = (step: "bias" | "entry" | "stop" | "target") =>
       grade.steps.find((s) => s.step === step)?.isCorrect ?? null;
@@ -335,7 +367,7 @@ export default function PracticePage() {
 
     setSaving(true);
     setSaveError(null);
-    const responseTimeMs = Date.now() - exerciseStartRef.current;
+    const responseTimeMs = msSince(exerciseStartRef.current);
     const { position, exit } = attempt;
     const checkResult = (id: FreeTradeGradeResult["checks"][number]["id"]) => {
       const status = grade.checks.find((c) => c.id === id)?.status;
@@ -455,6 +487,7 @@ export default function PracticePage() {
             {session.correct_count}/{attemptedCount} · Difficulty {exercise.difficulty}/3
           </p>
         </div>
+        {isAdaptive && <p className="eyebrow mt-3">{getConceptMeta(exercise.concept).pickerLabel}</p>}
         <p className="mt-2 text-sm text-muted">{exercise.prompt}</p>
 
         {exercise.answer_type === "free" ? (
