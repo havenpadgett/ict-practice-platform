@@ -11,18 +11,24 @@ export type OverallStats = {
   totalSessions: number;
 };
 
-/** A gap this long between two consecutive attempts (any concept) is
- * treated as the boundary between practice sessions. Attempts aren't
- * tagged with a session id in the database — SessionState (storage.ts) is
- * local, ephemeral UI state and was never part of the Supabase move — so
- * "how many sessions" has to be inferred from timing. 30 minutes is
+/** For attempts recorded before session_id was stored (2026-09-25), a gap
+ * this long between two consecutive attempts (any concept) is treated as
+ * the boundary between practice sessions. 30 minutes is
  * generous enough that reading feedback or a short break mid-session never
  * splits it into two, and tight enough that a same-day return visit counts
  * as a new one. Cheap to author, easy to retune later — same reasoning as
  * grading.ts's fixed tolerances. */
 const SESSION_GAP_MS = 30 * 60 * 1000;
 
+/** Attempts recorded since 2026-09-25 carry their session_id, so those
+ * sessions are counted exactly; older attempts (null) fall back to the
+ * 30-minute gap rule. */
 function countSessions(attemptsAscending: DbAttempt[]): number {
+  const tagged = new Set(attemptsAscending.map((a) => a.session_id).filter((id): id is string => !!id));
+  return tagged.size + countSessionsByGap(attemptsAscending.filter((a) => !a.session_id));
+}
+
+function countSessionsByGap(attemptsAscending: DbAttempt[]): number {
   if (attemptsAscending.length === 0) return 0;
   let sessions = 1;
   for (let i = 1; i < attemptsAscending.length; i++) {

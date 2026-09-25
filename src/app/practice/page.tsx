@@ -326,7 +326,7 @@ export default function PracticePage() {
     const responseTimeMs = msSince(exerciseStartRef.current);
 
     await saveAttempt(user.id, exercise!.exercise_id, (attemptNumber) =>
-      buildAnswerAttempt(exercise!, answer, grade, { responseTimeMs, attemptNumber }),
+      buildAnswerAttempt(exercise!, answer, grade, { sessionId: session.session_id, responseTimeMs, attemptNumber }),
     );
   }
 
@@ -351,7 +351,7 @@ export default function PracticePage() {
 
 
     await saveAttempt(user.id, exercise!.exercise_id, (attemptNumber) =>
-      buildGuidedAttempt(exercise! as GuidedExerciseData, answer, grade, { responseTimeMs, attemptNumber }),
+      buildGuidedAttempt(exercise! as GuidedExerciseData, answer, grade, { sessionId: session.session_id, responseTimeMs, attemptNumber }),
     );
   }
 
@@ -376,7 +376,7 @@ export default function PracticePage() {
     const { position, exit } = attempt;
 
     await saveAttempt(user.id, exercise!.exercise_id, (attemptNumber) =>
-      buildFreeTradeAttempt(exercise! as FreeTradeExerciseData, position, exit, grade, { responseTimeMs, attemptNumber }),
+      buildFreeTradeAttempt(exercise! as FreeTradeExerciseData, position, exit, grade, { sessionId: session.session_id, responseTimeMs, attemptNumber }),
     );
   }
 

@@ -13,6 +13,10 @@ export type DbAttempt = {
   id: string;
   user_id: string;
   exercise_id: string;
+  /** The practice session this attempt belongs to (SessionState.session_id,
+   * PRD Section 9). Null for attempts recorded before the column existed
+   * (supabase/migrations/..._attempts_session_id_and_indexes.sql). */
+  session_id: string | null;
   concept: string;
   /** The exercise's difficulty (1-3) at the time of the attempt. Null for
    * attempts recorded before this column existed (supabase/migrations/
@@ -173,6 +177,7 @@ export async function migrateLocalAttempts(
     const exercise = getExerciseMeta(a.exercise_id);
     return {
       user_id: userId,
+      session_id: a.session_id,
       exercise_id: a.exercise_id,
       concept: a.concept,
       difficulty: exercise?.difficulty ?? null,

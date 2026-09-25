@@ -27,6 +27,7 @@ export const EXPORT_COLUMNS: { name: string; value: (a: DbAttempt, u: ExportUser
   { name: "attempt_id", value: (a) => a.id },
   { name: "user_id", value: (a) => a.user_id },
   { name: "user_email", value: (_a, u) => u.email },
+  { name: "session_id", value: (a) => a.session_id },
   { name: "attempted_at_utc", value: (a) => new Date(a.created_at).toISOString() },
   { name: "attempted_date_utc", value: (a) => new Date(a.created_at).toISOString().slice(0, 10) },
   { name: "exercise_id", value: (a) => a.exercise_id },

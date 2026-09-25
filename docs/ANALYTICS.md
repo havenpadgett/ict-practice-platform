@@ -24,6 +24,7 @@ Source: `src/lib/export.ts` (the column list) and `src/app/api/export/attempts/r
 | `attempt_id` | Unique id of the attempt (the `attempts` row id). |
 | `user_id` | Supabase user id. |
 | `user_email` | The user's email at export time. |
+| `session_id` | The practice session the attempt was part of. Blank for attempts recorded before 2026-09-25, when the column was added. |
 | `attempted_at_utc` | When the attempt was recorded, UTC, ISO 8601. |
 | `attempted_date_utc` | The UTC calendar date of `attempted_at_utc`, for daily grouping. |
 

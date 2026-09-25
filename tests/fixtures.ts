@@ -127,6 +127,7 @@ export function attempt(concept: string, isCorrect: boolean, extra: Partial<DbAt
     id: `a${seq}`,
     user_id: "u",
     exercise_id: "x",
+    session_id: "s1",
     concept,
     difficulty: 1,
     answer_type: "zone",

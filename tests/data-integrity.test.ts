@@ -37,7 +37,7 @@ const SECTION_9: Record<string, { column: string; dbDefault?: boolean }> = {
   timestamp: { column: "created_at", dbDefault: true },
 };
 
-const meta = { responseTimeMs: 4200, attemptNumber: 3 };
+const meta = { sessionId: "session_abc", responseTimeMs: 4200, attemptNumber: 3 };
 
 function rows() {
   const z = zone();
@@ -66,6 +66,7 @@ describe("attempts record every PRD Section 9 field", () => {
   it("a zone attempt carries the raw box, coverage, precision and timing", () => {
     const r = rows().zone;
     expect(r).toMatchObject({
+      session_id: "session_abc",
       exercise_id: "t-zone",
       concept: "FVG",
       user_answer_type: "region",

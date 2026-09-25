@@ -8,7 +8,7 @@ import type { FreeTradeExit, FreeTradeGradeResult, FreeTradePosition } from "@/l
 import type { GradeResult, UserAnswer } from "@/lib/grading";
 import type { GuidedGradeResult, GuidedUserAnswer } from "@/lib/guided-grading";
 
-export type AttemptMeta = { responseTimeMs: number; attemptNumber: number };
+export type AttemptMeta = { sessionId: string; responseTimeMs: number; attemptNumber: number };
 
 const NULL_GUIDED_FIELDS = {
   guided_bias_choice: null,
@@ -41,6 +41,7 @@ export function buildAnswerAttempt(exercise: Exercise, answer: UserAnswer, grade
   const isRegion = answer.type === "region";
   return {
     exercise_id: exercise.exercise_id,
+    session_id: meta.sessionId,
     concept: exercise.concept,
     difficulty: exercise.difficulty,
     answer_type: exercise.answer_type,
@@ -74,6 +75,7 @@ export function buildGuidedAttempt(
     grade.steps.find((s) => s.step === step)?.isCorrect ?? null;
   return {
     exercise_id: exercise.exercise_id,
+    session_id: meta.sessionId,
     concept: exercise.concept,
     difficulty: exercise.difficulty,
     answer_type: "guided",
@@ -111,6 +113,7 @@ export function buildFreeTradeAttempt(
   };
   return {
     exercise_id: exercise.exercise_id,
+    session_id: meta.sessionId,
     concept: exercise.concept,
     difficulty: exercise.difficulty,
     answer_type: "free",

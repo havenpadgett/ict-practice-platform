@@ -83,7 +83,7 @@ The data's license is unverified (personal use only; see [docs/SCENARIO-VALIDATI
 - **`npm test`:** Vitest suite for grading (every answer type and the no-answer matrix), attempt records against PRD Section 9, session-data validation, RLS policies, the recommendation engine, error handling and the CSV export.
 - **`npm run test:py`:** detection-rule fixtures.
 
-One test fails on purpose, until a pending migration is applied: attempts don't yet record `session_id` (PRD Bug Log, 2026-09-25).
+All tests pass except one live Row Level Security check, which is skipped unless two test accounts' credentials are set.
 
 ### Mobile
 
