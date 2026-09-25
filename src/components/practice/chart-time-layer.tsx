@@ -64,9 +64,9 @@ export function ChartTimeBackground({
             y={bounds.top}
             width={slotW * (run.end - run.start + 1)}
             height={bounds.bottom - bounds.top}
-            className="fill-foreground/[0.05]"
+            className="fill-foreground/[0.035]"
           />
-          <text x={xAt(run.start) + 3} y={bounds.top + 10} className="fill-muted text-[9px]">
+          <text x={xAt(run.start) + 3} y={bounds.top + 10} className="chart-tag fill-muted">
             NY AM
           </text>
         </g>
@@ -134,7 +134,7 @@ export function ChartTimeLabels({
           key={`lbl-${label.index}`}
           x={bounds.left + slotW * label.index + 2}
           y={bounds.bottom + 15}
-          className={`text-[10px] ${label.isDate ? "fill-foreground" : "fill-muted"}`}
+          className={label.isDate ? "chart-time fill-foreground" : "chart-time"}
         >
           {label.text}
         </text>

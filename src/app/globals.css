@@ -151,6 +151,19 @@ h4 {
     @apply mt-1.5 min-h-11 w-full rounded-md border border-control bg-background px-3 py-2 text-base text-foreground sm:text-sm;
   }
 
+  /* ---- Chart text (SVG; sizes are viewBox units = CSS px on a phone) -- */
+  .chart-axis {
+    @apply fill-muted text-[11px] tabular-nums;
+  }
+  .chart-time {
+    @apply fill-muted text-[10px] tabular-nums;
+  }
+  /* Small uppercase tag naming an overlay: YOUR ANSWER, CORRECT, STOP… */
+  .chart-tag {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    @apply text-[10px] font-semibold tracking-[0.06em];
+  }
+
   /* ---- Status text ---------------------------------------------------- */
   .text-error {
     @apply text-sm text-danger;

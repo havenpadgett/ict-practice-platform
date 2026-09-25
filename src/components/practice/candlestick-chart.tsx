@@ -38,9 +38,10 @@ const PRICE_TICK_COUNT = 5;
  * threshold applies there. */
 const DRAG_THRESHOLD = 5;
 
-const UP_COLOR = "#4caf82";
-const DOWN_COLOR = "#e2685f";
-const USER_MARK_COLOR = "#e9eaec";
+// Colors come from the tokens in globals.css via classes: candles
+// (stroke/fill-candle-up/-down), the user's own mark (foreground, solid) and
+// the correct answer (accent, dashed) — two different colors *and* two
+// different line styles, each labelled once grading reveals both.
 /** Free Trade gets a little more headroom than the default so a stop just
  * beyond the revealed swing extreme can still be placed. Symmetric, so it
  * says nothing about which way price goes next. */
@@ -192,13 +193,28 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
       const x = b.left + w * index + w / 2;
       const bodyTop = priceToY(layout, Math.max(candle.open, candle.close));
       const bodyBottom = priceToY(layout, Math.min(candle.open, candle.close));
-      const color = candle.close >= candle.open ? UP_COLOR : DOWN_COLOR;
-      const bodyWidth = w * 0.6;
+      const up = candle.close >= candle.open;
+      const bodyWidth = Math.max(1.5, w * 0.62);
       return (
         // Index, not time: multi-day real data repeats "HH:MM" labels.
         <g key={index}>
-          <line x1={x} x2={x} y1={priceToY(layout, candle.high)} y2={priceToY(layout, candle.low)} stroke={color} strokeWidth={1} />
-          <rect x={x - bodyWidth / 2} y={bodyTop} width={bodyWidth} height={Math.max(1, bodyBottom - bodyTop)} fill={color} />
+          <line
+            x1={x}
+            x2={x}
+            y1={priceToY(layout, candle.high)}
+            y2={priceToY(layout, candle.low)}
+            className={up ? "stroke-candle-up" : "stroke-candle-down"}
+            strokeWidth={1}
+            shapeRendering="crispEdges"
+          />
+          <rect
+            x={x - bodyWidth / 2}
+            y={bodyTop}
+            width={bodyWidth}
+            height={Math.max(1, bodyBottom - bodyTop)}
+            rx={Math.min(1, bodyWidth / 6)}
+            className={up ? "fill-candle-up" : "fill-candle-down"}
+          />
         </g>
       );
     });
@@ -356,7 +372,15 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
       ? ""
       : "touch-none [-webkit-touch-callout:none]";
 
+  // After grading, a legend names the two overlays so they're told apart
+  // by label and line style (solid vs dashed), not only by color.
+  const answerShown =
+    (props.answerType === "zone" && correctZoneRect !== null) ||
+    (props.answerType === "level" && correctLevelY !== null);
+  const userShown = liveBoxRect !== null || userLevelY !== null;
+
   return (
+    <>
     <svg
       ref={svgRef}
       viewBox={`0 0 ${viewBox.width} ${viewBox.height}`}
@@ -376,14 +400,15 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
               x2={bounds.right}
               y1={y}
               y2={y}
-              className="stroke-line"
+              className="stroke-grid"
               strokeWidth={1}
+              shapeRendering="crispEdges"
             />
             <text
               x={bounds.right + 8}
               y={y}
               dominantBaseline="middle"
-              className="fill-muted text-[11px]"
+              className="chart-axis"
             >
               {price.toFixed(0)}
             </text>
@@ -397,19 +422,6 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
       {candleMarks}
 
       {timeContext && <ChartTimeLabels ctx={timeContext} bounds={bounds} slotW={slotW} hideDates={props.hideDates} />}
-
-      {/* The true zone, shown only after grading */}
-      {correctZoneRect && (
-        <rect
-          x={correctZoneRect.left}
-          y={correctZoneRect.top}
-          width={correctZoneRect.right - correctZoneRect.left}
-          height={correctZoneRect.bottom - correctZoneRect.top}
-          className="fill-accent/20 stroke-accent"
-          strokeWidth={1.5}
-          strokeDasharray="4 3"
-        />
-      )}
 
       {/* Premium/Discount: the dealing range's swing high and low, from the
           first of the two swings to the right edge; equilibrium (and its
@@ -448,7 +460,7 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
                   <text
                     x={x1 + 4}
                     y={priceToY(layout, price) + (label === "RANGE HIGH" ? -5 : 12)}
-                    className="fill-muted text-[10px] font-medium"
+                    className="chart-tag fill-muted"
                   >
                     {label}
                   </text>
@@ -463,12 +475,12 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
                     y2={priceToY(layout, mid)}
                     className="stroke-accent"
                     strokeWidth={1.5}
-                    strokeDasharray="4 3"
+                    strokeDasharray="5 3"
                   />
                   <text
                     x={x1 + 4}
                     y={priceToY(layout, mid + band) - 4}
-                    className="fill-accent text-[10px] font-medium"
+                    className="chart-tag fill-accent"
                   >
                     EQUILIBRIUM
                   </text>
@@ -480,40 +492,61 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
 
       {/* The user's drawn box — live while dragging, frozen after submit */}
       {liveBoxRect && (
-        <rect
-          x={liveBoxRect.left}
-          y={liveBoxRect.top}
-          width={liveBoxRect.right - liveBoxRect.left}
-          height={liveBoxRect.bottom - liveBoxRect.top}
-          fill="rgba(233, 234, 236, 0.12)"
-          stroke={USER_MARK_COLOR}
-          strokeWidth={1.5}
-        />
+        <g>
+          <rect
+            x={liveBoxRect.left}
+            y={liveBoxRect.top}
+            width={liveBoxRect.right - liveBoxRect.left}
+            height={liveBoxRect.bottom - liveBoxRect.top}
+            className="fill-foreground/10 stroke-foreground"
+            strokeWidth={1.5}
+          />
+        </g>
       )}
 
-      {/* The true level, shown only after grading */}
-      {correctLevelY !== null && (
-        <line
-          x1={bounds.left}
-          x2={bounds.right}
-          y1={correctLevelY}
-          y2={correctLevelY}
-          className="stroke-accent"
-          strokeWidth={1.5}
-          strokeDasharray="4 3"
-        />
+      {/* The true zone, shown only after grading: accent, dashed. On a
+          choice exercise it's context, not an answer, so it isn't tagged. */}
+      {correctZoneRect && (
+        <g>
+          <rect
+            x={correctZoneRect.left}
+            y={correctZoneRect.top}
+            width={correctZoneRect.right - correctZoneRect.left}
+            height={correctZoneRect.bottom - correctZoneRect.top}
+            className="fill-accent/15 stroke-accent"
+            strokeWidth={1.5}
+            strokeDasharray="5 3"
+          />
+        </g>
       )}
 
       {/* The user's placed line — live while dragging, frozen after submit */}
       {userLevelY !== null && (
-        <line
-          x1={bounds.left}
-          x2={bounds.right}
-          y1={userLevelY}
-          y2={userLevelY}
-          stroke={USER_MARK_COLOR}
-          strokeWidth={1.5}
-        />
+        <g>
+          <line
+            x1={bounds.left}
+            x2={bounds.right}
+            y1={userLevelY}
+            y2={userLevelY}
+            className="stroke-foreground"
+            strokeWidth={1.5}
+          />
+        </g>
+      )}
+
+      {/* The true level, shown only after grading */}
+      {correctLevelY !== null && (
+        <g>
+          <line
+            x1={bounds.left}
+            x2={bounds.right}
+            y1={correctLevelY}
+            y2={correctLevelY}
+            className="stroke-accent"
+            strokeWidth={1.5}
+            strokeDasharray="5 3"
+          />
+        </g>
       )}
 
       {/* Free Trade, after grading: ideal entry zone (from the candle the
@@ -527,12 +560,12 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
             height={priceToY(layout, props.idealEntryZone.price_low) - priceToY(layout, props.idealEntryZone.price_high)}
             className="fill-accent/15 stroke-accent"
             strokeWidth={1}
-            strokeDasharray="4 3"
+            strokeDasharray="5 3"
           />
           <text
             x={candleIndexToX(layout, props.idealEntryZone.candle_start) - slotW / 2 + 4}
             y={priceToY(layout, props.idealEntryZone.price_high) - 4}
-            className="fill-accent text-[10px] font-medium"
+            className="chart-tag fill-accent"
           >
             IDEAL ENTRY
           </text>
@@ -545,17 +578,14 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
             y={priceToY(layout, props.idealStopZone.price_high)}
             width={bounds.right - bounds.left}
             height={priceToY(layout, props.idealStopZone.price_low) - priceToY(layout, props.idealStopZone.price_high)}
-            fill={DOWN_COLOR}
-            fillOpacity={0.12}
-            stroke={DOWN_COLOR}
+            className="fill-danger/10 stroke-danger"
             strokeWidth={1}
-            strokeDasharray="4 3"
+            strokeDasharray="5 3"
           />
           <text
             x={bounds.left + 4}
             y={priceToY(layout, props.idealStopZone.price_high) - 4}
-            fill={DOWN_COLOR}
-            className="text-[10px] font-medium"
+            className="chart-tag fill-danger"
           >
             STOP ZONE
           </text>
@@ -570,12 +600,12 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
             y2={priceToY(layout, props.idealTarget)}
             className="stroke-accent"
             strokeWidth={1.5}
-            strokeDasharray="4 3"
+            strokeDasharray="5 3"
           />
           <text
             x={bounds.left + 4}
             y={priceToY(layout, props.idealTarget) - 4}
-            className="fill-accent text-[10px] font-medium"
+            className="chart-tag fill-accent"
           >
             IDEAL TARGET
           </text>
@@ -588,7 +618,7 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
           cx={candleIndexToX(layout, props.entryIndex)}
           cy={priceToY(layout, props.entryPrice)}
           r={4}
-          fill={USER_MARK_COLOR}
+          className="fill-foreground"
         />
       )}
       {props.answerType === "free" && props.exit && (
@@ -597,7 +627,7 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
           cy={priceToY(layout, props.exit.price)}
           r={4}
           fill="none"
-          stroke={USER_MARK_COLOR}
+          className="stroke-foreground"
           strokeWidth={2}
         />
       )}
@@ -620,12 +650,12 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
                     y2={priceToY(layout, correctPrice)}
                     className="stroke-accent"
                     strokeWidth={1.5}
-                    strokeDasharray="4 3"
+                    strokeDasharray="5 3"
                   />
                   <text
                     x={bounds.left + 4}
                     y={priceToY(layout, correctPrice) - 4}
-                    className="fill-accent text-[10px] font-medium"
+                    className="chart-tag fill-accent"
                   >
                     {GUIDED_FIELD_LABELS[field]} (correct)
                   </text>
@@ -638,13 +668,13 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
                     x2={bounds.right}
                     y1={priceToY(layout, userPrice)}
                     y2={priceToY(layout, userPrice)}
-                    stroke={USER_MARK_COLOR}
+                    className="stroke-foreground"
                     strokeWidth={1.5}
                   />
                   <text
                     x={bounds.left + 90}
                     y={priceToY(layout, userPrice) - 4}
-                    className="fill-foreground text-[10px] font-medium"
+                    className="chart-tag fill-foreground"
                   >
                     {GUIDED_FIELD_LABELS[field]}
                   </text>
@@ -654,5 +684,20 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
           );
         })}
     </svg>
+    {answerShown && (
+      <div className="flex flex-wrap gap-x-5 gap-y-1 px-2 pt-2 pb-1 text-xs text-muted">
+        {userShown && (
+          <span className="inline-flex items-center gap-2">
+            <span aria-hidden className="inline-block h-3 w-5 rounded-sm border-[1.5px] border-foreground bg-foreground/10" />
+            Your answer
+          </span>
+        )}
+        <span className="inline-flex items-center gap-2">
+          <span aria-hidden className="inline-block h-3 w-5 rounded-sm border-[1.5px] border-dashed border-accent bg-accent/15" />
+          Correct answer
+        </span>
+      </div>
+    )}
+    </>
   );
 }
