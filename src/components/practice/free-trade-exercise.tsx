@@ -247,6 +247,9 @@ export function FreeTradeExercise({
         <CandlestickChart
           answerType="free"
           candles={candles}
+          // A real session's date would let the user look up what happened
+          // next; it's shown once the scenario is over.
+          hideDates={!done && exercise.provenance !== undefined}
           extraSlots={done ? 0 : PLAYBACK_EXTRA_SLOTS}
           interactive={placing}
           entryPrice={trade?.entry ?? null}

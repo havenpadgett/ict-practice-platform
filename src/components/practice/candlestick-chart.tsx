@@ -46,6 +46,8 @@ export type CorrectZone = {
 type CommonProps = {
   candles: Candle[];
   interactive: boolean;
+  /** Show times only, never dates, on the time axis. */
+  hideDates?: boolean;
 };
 
 type ZoneProps = CommonProps & {
@@ -378,7 +380,7 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
         );
       })}
 
-      {timeContext && <ChartTimeLabels ctx={timeContext} bounds={bounds} slotW={slotW} />}
+      {timeContext && <ChartTimeLabels ctx={timeContext} bounds={bounds} slotW={slotW} hideDates={props.hideDates} />}
 
       {/* The true zone, shown only after grading */}
       {correctZoneRect && (

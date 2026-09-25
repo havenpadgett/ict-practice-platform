@@ -260,6 +260,31 @@ All five are hand-authored prototype NQ 5m data (`src/data/free-trade-scenarios.
 - **ft-004 — Range Chop.** Sideways the entire session; no MSS in either direction, no qualifying FVG, and the one poke above the range is a wick with no follow-through. Correct decision: no trade.
 - **ft-005 — Too Close to Call.** A clean bearish MSS after a buy-side sweep, with a bearish FVG — but the nearest sell-side liquidity (equal lows) is so close that the best available R:R from the gap is about 1.4:1, and a typical fill is nearer 1:1. Correct decision: no trade. Price does reach the equal lows, then reverses back through the highs.
 
+### Real-data Free Trade scenarios (AI-DRAFTED, 2026-09-24 — pending Haven's review)
+
+Real sessions use the same setup finder as real Guided Entry (see above). Each scenario is one NY AM day on 5m:
+- **Visible at the start:** 07:00–09:25 ET, the structure context.
+- **Revealed one candle at a time:** the 9:30–11:00 session.
+
+The answer key comes from the detected levels:
+- **Entry zone:** the FVG or order block. Its earliest index is the candle after the zone forms.
+- **Stop zone:** from the setup extreme to 1× the median bar range beyond it. Inside the extreme is too tight; further out is too wide.
+- **Target:** the nearest untaken opposing swing.
+
+A valid setup is only used if **a later session candle actually closes inside the entry zone**. A Free Trade fill is at a candle's close, so a setup price never returns to can't be traded correctly, and sitting it out would be graded as a missed trade. The batch mixes 4 valid sessions with 6 no-trade sessions. That is one fewer valid than planned: after the Guided Entry batch took 6, only 4 takeable valid sessions were left in the dataset.
+
+**No lookahead:**
+- Only revealed candles are passed to the chart, and the price axis is scaled to them alone. This was already true for the hand-built scenarios.
+- **During playback on real data the time axis shows times only, not the date.** A date would let the user look up what the market did next. It appears once the scenario ends.
+- The title ("Real NY AM session N") doesn't name the day either.
+
+Verified 2026-09-24 against `real-ft-003` by scanning the rendered DOM after each revealed candle:
+- The candle count grew by exactly one per click.
+- No unrevealed price or timestamp appeared anywhere in the HTML.
+- The axis range matched the revealed candles only (19,414–19,488 before playback, when the hidden session goes down to 19,389.5).
+
+**Known limit:** the hidden candles are in the page's JavaScript data, as every exercise's answer key is. They are never in the DOM, but someone reading the source or React devtools could see them. Closing that means serving candles from the server one at a time, per user. That wasn't built; it matters once scores count for anything.
+
 ## Liquidity — Time-Based Levels
 
 **Provenance:** the list of levels and the NY AM window are HAVEN-VALIDATED. The session-boundary definitions below (trading day, trading week, which candles count toward a session) and all five exercises are **AI-DRAFTED** — not yet reviewed by Haven.

@@ -49,10 +49,14 @@ export function ChartTimeBackground({
   ctx,
   bounds,
   slotW,
+  hideDates = false,
 }: {
   ctx: TimeContext;
   bounds: Bounds;
   slotW: number;
+  /** Label day starts with the time instead of the date — Free Trade on real
+   * data, where a date would let the user look up what happened next. */
+  hideDates?: boolean;
 }) {
   const xAt = (index: number) => bounds.left + slotW * index;
   return (
@@ -91,10 +95,14 @@ export function ChartTimeLabels({
   ctx,
   bounds,
   slotW,
+  hideDates = false,
 }: {
   ctx: TimeContext;
   bounds: Bounds;
   slotW: number;
+  /** Label day starts with the time instead of the date — Free Trade on real
+   * data, where a date would let the user look up what happened next. */
+  hideDates?: boolean;
 }) {
   // Day-boundary labels win; plain time labels fill the gaps between them
   // wherever there's room.
@@ -102,7 +110,7 @@ export function ChartTimeLabels({
   const every = Math.max(1, Math.ceil(LABEL_MIN_SPACING / slotW));
   const labels: { index: number; text: string; isDate: boolean }[] = dayStarts.map((index) => ({
     index,
-    text: formatTradingDate(tradingDate(ctx.parts[index])),
+    text: hideDates ? formatEtTime(ctx.parts[index]) : formatTradingDate(tradingDate(ctx.parts[index])),
     isDate: true,
   }));
   for (let i = 0; i < ctx.parts.length; i += every) {
