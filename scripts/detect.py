@@ -7,9 +7,13 @@ disagree, the curriculum is right and this is a bug:
   fvg                 Three-candle Fair Value Gap: candle 1's high below
                       candle 3's low (bullish) or candle 1's low above
                       candle 3's high (bearish). Zone = the unfilled range.
-  equal_highs/lows    Two or more swing highs (lows) within --equal-tolerance
-                      points of each other, with no price trading beyond the
-                      pool between them. Level = their average.
+                      Gaps smaller than --fvg-min-range-mult x the median bar
+                      range over the trailing --range-window bars (ending at
+                      candle 1) are ignored.
+  equal_highs/lows    Two or more swing highs (lows) within
+                      --equal-tolerance-pct percent of price of each other,
+                      with no price trading beyond the pool between them.
+                      Level = their average.
   mss                 Market Structure Shift, confirmed by a candle BODY close
                       beyond the swing point: in an uptrend (last two swing
                       highs and last two swing lows both rising), the first
@@ -21,6 +25,11 @@ disagree, the curriculum is right and this is a bug:
                       only, timeframes of 30m or less).
   weekly_high/low     Prior trading week's high/low, as a level for the
                       following week.
+
+FVG, equal highs/lows, MSS and the swings they use are found within one
+session at a time (a trading day, 18:00 ET to 17:00 ET) - a setup never
+spans a session break, even when the data skips from one day's bars straight
+to the next (e.g. an NY AM-only slice).
 
 Swing points are fractals: a high strictly above the --swing-lookback bars to
 its left and at least as high as those to its right (mirrored for lows).
@@ -35,6 +44,7 @@ Example:
 from __future__ import annotations
 
 import argparse
+import bisect
 import sys
 from collections import OrderedDict
 from datetime import datetime, timezone
@@ -42,6 +52,11 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from common import Candle, in_ny_am, load_clean, round_price, trading_date, trading_week, write_json
+
+# Defaults - see docs/CURRICULUM.md (Detection Parameters).
+FVG_MIN_RANGE_MULT = 0.25
+RANGE_WINDOW = 100
+EQUAL_TOLERANCE_PCT = 0.05
 
 ALL_RULES = ["fvg", "equal_highs", "equal_lows", "mss", "previous_day", "ny_am", "weekly"]
 
@@ -74,18 +89,35 @@ def candidate(rule: str, direction: str, cid_: str, candles: List[Candle], invol
 
 # ---- FVG -------------------------------------------------------------------
 
-def detect_fvg(candles: List[Candle], min_size: float) -> List[Dict[str, Any]]:
+def trailing_median_range(candles: List[Candle], window: int) -> List[float]:
+    """For each bar, the median high-low range of the `window` bars ending at it
+    (fewer at the start of the series). Uses only past bars - no lookahead."""
+    out, win = [], []
+    for i, c in enumerate(candles):
+        bisect.insort(win, c["high"] - c["low"])
+        if i >= window:
+            old = candles[i - window]
+            del win[bisect.bisect_left(win, old["high"] - old["low"])]
+        m = len(win)
+        out.append(win[m // 2] if m % 2 else (win[m // 2 - 1] + win[m // 2]) / 2)
+    return out
+
+
+def detect_fvg(candles: List[Candle], min_sizes: List[float]) -> List[Dict[str, Any]]:
+    """min_sizes[i] is the smallest gap accepted when candle 1 is bar i."""
     out = []
     for k in range(1, len(candles) - 1):
         c1, c3 = candles[k - 1], candles[k + 1]
+        min_size = min_sizes[k - 1]
+        extra = {"min_size": round_price(min_size)}
         if c1["high"] < c3["low"] and c3["low"] - c1["high"] >= min_size:
             out.append(candidate("fvg", "bullish", cid("fvg", candles, k, "bullish"), candles, [k - 1, k, k + 1], k + 1,
                                  {"price_low": c1["high"], "price_high": c3["low"]},
-                                 f"candle 1 high {c1['high']:g} < candle 3 low {c3['low']:g}"))
+                                 f"candle 1 high {c1['high']:g} < candle 3 low {c3['low']:g}", extra))
         if c1["low"] > c3["high"] and c1["low"] - c3["high"] >= min_size:
             out.append(candidate("fvg", "bearish", cid("fvg", candles, k, "bearish"), candles, [k - 1, k, k + 1], k + 1,
                                  {"price_low": c3["high"], "price_high": c1["low"]},
-                                 f"candle 1 low {c1['low']:g} > candle 3 high {c3['high']:g}"))
+                                 f"candle 1 low {c1['low']:g} > candle 3 high {c3['high']:g}", extra))
     return out
 
 
@@ -111,7 +143,7 @@ def swing_lows(candles: List[Candle], n: int) -> List[int]:
 
 # ---- Equal highs / lows ----------------------------------------------------
 
-def detect_equal(candles: List[Candle], swings: List[int], side: str, tol: float) -> List[Dict[str, Any]]:
+def detect_equal(candles: List[Candle], swings: List[int], side: str, tol_pct: float) -> List[Dict[str, Any]]:
     key = "high" if side == "highs" else "low"
     out = []
     used = set()
@@ -119,6 +151,7 @@ def detect_equal(candles: List[Candle], swings: List[int], side: str, tol: float
         if a in used:
             continue
         cluster = [a]
+        tol = candles[a][key] * tol_pct / 100
         for b in swings[a_pos + 1:]:
             prices = [candles[i][key] for i in cluster] + [candles[b][key]]
             if max(prices) - min(prices) > tol:
@@ -138,7 +171,8 @@ def detect_equal(candles: List[Candle], swings: List[int], side: str, tol: float
             rule = f"equal_{side}"
             out.append(candidate(rule, "buy_side" if side == "highs" else "sell_side", cid(rule, candles, cluster[-1]),
                                  candles, cluster, cluster[-1], {"price": level},
-                                 f"{len(cluster)} touches within {max(prices) - min(prices):g} points (tolerance {tol:g})",
+                                 f"{len(cluster)} touches within {max(prices) - min(prices):g} points "
+                                 f"(tolerance {tol_pct:g}% = {tol:.2f} points)",
                                  {"touch_prices": [round_price(p) for p in prices]}))
     return out
 
@@ -178,6 +212,16 @@ def detect_mss(candles: List[Candle], highs: List[int], lows: List[int], n: int)
                                      + ("" if failed else " (NOTE: a new low printed before the break - check it's structural)"),
                                      {"swing_index": sh[-1], "break_index": i, "failed_new_extreme": failed}))
     return out
+
+
+def to_global(c: Dict[str, Any], offset: int) -> Dict[str, Any]:
+    """Shift a candidate's session-relative indices to indices in the full series."""
+    c["involved_indices"] = [i + offset for i in c["involved_indices"]]
+    c["anchor_index"] += offset
+    for key in ("swing_index", "break_index"):
+        if key in c:
+            c[key] += offset
+    return c
 
 
 # ---- Time-based levels -----------------------------------------------------
@@ -241,8 +285,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("-o", "--output", help="output JSON (default: <clean stem>.candidates.json)")
     ap.add_argument("--rules", default=",".join(ALL_RULES), help=f"comma-separated subset of: {', '.join(ALL_RULES)}")
     ap.add_argument("--swing-lookback", type=int, default=2, help="bars each side that define a swing point (default 2)")
-    ap.add_argument("--equal-tolerance", type=float, default=2.0, help="max spread in points for equal highs/lows (default 2)")
-    ap.add_argument("--fvg-min-size", type=float, default=0.0, help="ignore gaps smaller than this many points (default 0)")
+    ap.add_argument("--equal-tolerance-pct", type=float, default=EQUAL_TOLERANCE_PCT,
+                    help=f"max spread for equal highs/lows, as %% of the first touch's price (default {EQUAL_TOLERANCE_PCT:g})")
+    ap.add_argument("--fvg-min-range-mult", type=float, default=FVG_MIN_RANGE_MULT,
+                    help=f"ignore gaps smaller than this multiple of the trailing median bar range (default {FVG_MIN_RANGE_MULT:g})")
+    ap.add_argument("--range-window", type=int, default=RANGE_WINDOW,
+                    help=f"bars in the trailing median bar range window (default {RANGE_WINDOW})")
     args = ap.parse_args(argv)
 
     rules = [r.strip() for r in args.rules.split(",") if r.strip()]
@@ -255,17 +303,31 @@ def main(argv: Optional[List[str]] = None) -> int:
     candles = data["candles"]
     tf = data["meta"]["timeframe_minutes"]
     n = args.swing_lookback
-    highs, lows = swing_highs(candles, n), swing_lows(candles, n)
+    session = (data["meta"].get("selection") or {}).get("session", "all")
+    partial_rules = [r for r in ("previous_day", "weekly") if r in rules and session != "all"]
+    if partial_rules:
+        # A day's or week's high/low needs every bar of it, overnight included.
+        rules = [r for r in rules if r not in partial_rules]
+        print(f"NOTE: skipped {', '.join(partial_rules)} - the data holds only the {session} session, not full days.")
+    fvg_min_sizes = [m * args.fvg_min_range_mult for m in trailing_median_range(candles, args.range_window)]
 
     found: List[Dict[str, Any]] = []
-    if "fvg" in rules:
-        found += detect_fvg(candles, args.fvg_min_size)
-    if "equal_highs" in rules:
-        found += detect_equal(candles, highs, "highs", args.equal_tolerance)
-    if "equal_lows" in rules:
-        found += detect_equal(candles, lows, "lows", args.equal_tolerance)
-    if "mss" in rules:
-        found += detect_mss(candles, highs, lows, n)
+    swing_high_count = swing_low_count = 0
+    for idxs in group_indices(candles, trading_date).values():
+        offset, session = idxs[0], candles[idxs[0]:idxs[-1] + 1]
+        highs, lows = swing_highs(session, n), swing_lows(session, n)
+        swing_high_count += len(highs)
+        swing_low_count += len(lows)
+        in_session: List[Dict[str, Any]] = []
+        if "fvg" in rules:
+            in_session += detect_fvg(session, fvg_min_sizes[offset:offset + len(session)])
+        if "equal_highs" in rules:
+            in_session += detect_equal(session, highs, "highs", args.equal_tolerance_pct)
+        if "equal_lows" in rules:
+            in_session += detect_equal(session, lows, "lows", args.equal_tolerance_pct)
+        if "mss" in rules:
+            in_session += detect_mss(session, highs, lows, n)
+        found += [to_global(c, offset) for c in in_session]
     if "previous_day" in rules:
         found += period_levels(candles, group_indices(candles, trading_date), "previous_day", "trading day")
     if "ny_am" in rules:
@@ -274,7 +336,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         found += period_levels(candles, group_indices(candles, trading_week), "weekly", "week of")
     found.sort(key=lambda c: (c["anchor_index"], c["rule"]))
 
-    params = {"rules": rules, "swing_lookback": n, "equal_tolerance": args.equal_tolerance, "fvg_min_size": args.fvg_min_size}
+    params = {"rules": rules, "swing_lookback": n, "equal_tolerance_pct": args.equal_tolerance_pct,
+              "fvg_min_range_mult": args.fvg_min_range_mult, "range_window": args.range_window}
     out_path = Path(args.output) if args.output else Path(args.clean).with_name(Path(args.clean).name.replace(".clean.json", "") + ".candidates.json")
     write_json(out_path, {
         "meta": {**data["meta"], "detection_params": params, "clean_file": Path(args.clean).name,
@@ -286,7 +349,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     for c in found:
         counts[c["rule"]] = counts.get(c["rule"], 0) + 1
     print(f"Scanned {len(candles)} bars ({data['meta']['start']} -> {data['meta']['end']}), "
-          f"{len(highs)} swing highs, {len(lows)} swing lows (lookback {n}).")
+          f"{swing_high_count} swing highs, {swing_low_count} swing lows (lookback {n}).")
     print(f"Found {len(found)} candidate(s):")
     for rule, count in sorted(counts.items()):
         print(f"  {rule:<20} {count}")

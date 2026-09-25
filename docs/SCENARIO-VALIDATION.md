@@ -12,7 +12,7 @@ raw CSV ──ingest.py──▶ clean JSON ──detect.py──▶ candidates 
 
 | Stage | Tool | What it guarantees |
 |---|---|---|
-| 1. Source | — | Data comes from a named vendor/dataset whose license allows this use. Raw files go in `scripts/data/` (git-ignored — never commit licensed data). |
+| 1. Source | — | Data comes from a named vendor/dataset whose license allows this use. Raw files go in `data/raw/` (git-ignored — never commit licensed data); generated outputs go in `data/clean/` (also git-ignored). Every new source is checked against [Data quality lessons](#data-quality-lessons) before use. |
 | 2. Clean | `scripts/ingest.py` | Strict ordering, no duplicate timestamps, no gaps outside scheduled CME closures (holidays must be named with `--allow-gap-on`), bar integrity (`low ≤ open/close ≤ high`), sane bar ranges and jumps. Timestamps converted to ET. Any error aborts with nothing written. |
 | 3. Detect | `scripts/detect.py` | Every candidate is flagged by a rule that implements a CURRICULUM.md definition exactly: three-candle FVG, equal highs/lows, MSS by body close, previous day / NY AM / weekly highs and lows. Output lists each candidate's rule, timestamps, and price levels. |
 | 4. Build | `scripts/build_scenario.py` | Turns one chosen candidate plus a candle window into an exercise in the app's format. The answer key is copied from the detected levels. It refuses (unless `--allow-ambiguous`) if the window holds another candidate of the same rule — PRD Section 5: exactly one valid answer per scenario. Writes `provenance.human_reviewed: false` and a placeholder explanation marked `[DRAFT`. |
@@ -23,15 +23,53 @@ raw CSV ──ingest.py──▶ clean JSON ──detect.py──▶ candidates 
 
 ```bash
 pip install -r scripts/requirements.txt          # Python 3.9+
-python3 scripts/ingest.py scripts/data/nq_5m.csv --source "<vendor, dataset, license>" --source-tz UTC
-python3 scripts/detect.py scripts/data/nq_5m.clean.json
-python3 scripts/build_scenario.py scripts/data/nq_5m.clean.json scripts/data/nq_5m.candidates.json \
+CAL=(--calendar scripts/calendars/nq_2022_2025.txt --timestamp-label close --start 2022-12-27 --end 2025-12-11)
+python3 scripts/ingest.py data/raw/Dataset_NQ_1min_2022_2025.csv --source "$NQ_SOURCE" "${CAL[@]}" \
+    --session ny_am --resample 5 -o data/clean/nq_nyam_full.clean.json
+python3 scripts/ingest.py data/raw/Dataset_NQ_1min_2022_2025.csv --source "$NQ_SOURCE" "${CAL[@]}" \
+    --session rth --resample 15 --max-bar-range-pct 3.5 -o data/clean/nq_rth_full.clean.json
+python3 scripts/detect.py data/clean/nq_nyam_full.5m.clean.json
+python3 scripts/detect.py data/clean/nq_rth_full.15m.clean.json
+python3 scripts/build_scenario.py data/clean/nq_nyam_full.5m.clean.json data/clean/nq_nyam_full.5m.candidates.json \
     --candidate <candidate id> --exercise-id real-<concept>-<nnn> --difficulty <1-3>
 ```
+
+`scripts/calendars/nq_2022_2025.txt` lists every date in this file where the NY session is missing or unusual: exchange closures and early closes (`allow` — missing bars expected), and NYSE holidays with only a thin futures session plus days with holes in the vendor's data (`exclude` — the date is dropped). `--end 2025-12-11` leaves out the truncated final trading day. `--max-bar-range-pct 3.5` admits the real 601-point 1m bar at 13:19 ET on 2025-04-09 (tariff-pause announcement).
+
+### Timeframe and session constraints
+
+Detection runs within one session at a time, so a session must hold enough bars for the rules to work. A swing point needs `--swing-lookback` (2) bars on each side inside the session; MSS needs two swing highs and two swing lows before the break.
+
+| Timeframe | Session | Bars per session | Why |
+|---|---|---|---|
+| 5m | NY AM (9:30–11:00 ET) | 18 | Enough for FVGs, swings, equal highs/lows; MSS is rare (about 1 in 20 sessions) |
+| 15m | RTH (9:30–16:00 ET) | 26 | NY AM would be only 6 bars — at most two bars could ever be swings, so equal highs/lows and MSS are mathematically impossible |
+
+`previous_day_*` and `weekly_*` levels need every bar of the day or week, overnight included — `detect.py` skips them on NY AM- or RTH-only data. Build them from a `--session all` ingest.
 
 To try the pipeline without licensed data, generate synthetic bars first: `python3 scripts/sample/make_synthetic.py`, then run the same commands on `scripts/sample/synthetic_nq_5m.csv`. **Never promote a scenario built from synthetic data.**
 
 Previous-day and weekly levels span a full day or week; build those from 1h (or 4h) bars so the chart stays around 40 candles. `build_scenario.py` warns when a window exceeds 120 bars.
+
+## Data sources
+
+| Source | Vendor / dataset | Coverage | License | Allowed use |
+|---|---|---|---|---|
+| `data/raw/Dataset_NQ_1min_2022_2025.csv` (sha256 in each clean file's `meta.input_sha256`) | Kaggle, "NQ Futures 1min Bar 2022-2025" — redistributed CME data | NQ 1m bars, 2022-12-26 18:00 to 2025-12-11 20:51 ET (file truncated at Excel's row limit; trading day 2025-12-12 is incomplete) | **Unverified** | Personal use only |
+
+Pass this as `--source` (the `$NQ_SOURCE` above):
+`Kaggle, "NQ Futures 1min Bar 2022-2025" (redistributed CME data); license unverified - personal use only`
+
+**Before any public release, the license must be confirmed** — for this dataset that means establishing whether the uploader had the right to redistribute CME data and on what terms. Until then, scenarios built from it may be reviewed and practiced locally but must not ship in a public build.
+
+## Data quality lessons
+
+**Check which end of the bar the timestamp labels.** The Kaggle NQ file stamps each 1m bar with its *close* time: the 9:30–9:31 opening bar is labelled 9:31, every trading day starts at 18:01, and 734 bars sit at 17:00 — inside the daily CME halt, when no bar can open. The app and every pipeline stage treat a timestamp as the bar's *open*, so unshifted data puts every candle one bar late: session shading, day separators, NY AM levels and 5m/15m aggregation buckets all come out wrong without any visible error. Ingest it with `--timestamp-label close`.
+
+Any new data source must be checked for this before use:
+- Run `ingest.py --check-only` without `--timestamp-label`. Bars reported inside a scheduled closure (e.g. at 17:00 ET) almost always mean close-time labels.
+- Confirm independently: the RTH open's volume spike (and an RTH VWAP column resetting, if present) should land on the 9:30 bar, and the first bar of each trading day should be 18:00.
+- Record the convention in the Data sources table above.
 
 ## Provenance
 

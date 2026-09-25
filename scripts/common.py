@@ -10,6 +10,7 @@ mirror src/lib/time-context.ts on the app side:
 - A trading week runs Sunday 18:00 ET to Friday 17:00 ET, keyed by the
   Monday of its trading dates.
 - The NY AM session is 9:30-11:00 ET.
+- Regular trading hours (RTH) are 9:30-16:00 ET, the NYSE cash session.
 """
 
 from __future__ import annotations
@@ -31,6 +32,8 @@ TRADING_DAY_START = time(18, 0)
 DAILY_HALT_START = time(17, 0)
 NY_AM_START = time(9, 30)
 NY_AM_END = time(11, 0)
+RTH_START = time(9, 30)
+RTH_END = time(16, 0)
 
 Candle = Dict[str, Any]
 
@@ -68,6 +71,11 @@ def is_market_closed(dt: datetime) -> bool:
 def in_ny_am(dt: datetime) -> bool:
     t = dt.astimezone(ET).time()
     return NY_AM_START <= t < NY_AM_END
+
+
+def in_rth(dt: datetime) -> bool:
+    t = dt.astimezone(ET).time()
+    return RTH_START <= t < RTH_END
 
 
 def format_et(dt: datetime) -> str:

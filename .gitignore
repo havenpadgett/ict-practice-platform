@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# raw market data (large, licensed - never commit)
+/data/raw/
+
+# generated pipeline outputs (ingest/detect)
+/data/clean/

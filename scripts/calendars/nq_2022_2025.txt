@@ -1,0 +1,58 @@
+# Session calendar for NQ, Dec 2022 - Dec 2025, used by ingest.py --calendar.
+# Every date here was found by running ingest.py --check-only against the
+# Kaggle "NQ Futures 1min Bar 2022-2025" file and checked against the CME
+# holiday schedule. Format: YYYY-MM-DD allow|exclude  # reason
+#   allow   - missing bars that day are expected (exchange closed / early close)
+#   exclude - drop the trading date entirely (NYSE closed, or a hole in the data)
+
+# CME closed through the NY session (no NY AM / RTH bars at all)
+2023-01-02 allow    # New Year's Day (observed)
+2023-04-07 allow    # Good Friday - equity futures closed 9:15 ET
+2023-12-25 allow    # Christmas
+2024-01-01 allow    # New Year's Day
+2024-03-29 allow    # Good Friday
+2024-12-25 allow    # Christmas
+2025-01-01 allow    # New Year's Day
+2025-01-09 allow    # National Day of Mourning (President Carter) - equity futures halted 9:30 ET
+2025-04-18 allow    # Good Friday
+
+# NYSE closed, CME equity futures trade a thin session to 13:00 ET - not a real NY session
+2023-01-16 exclude  # Martin Luther King Jr. Day
+2023-02-20 exclude  # Presidents Day
+2023-05-29 exclude  # Memorial Day
+2023-06-19 exclude  # Juneteenth
+2023-07-04 exclude  # Independence Day
+2023-09-04 exclude  # Labor Day
+2023-11-23 exclude  # Thanksgiving
+2024-01-15 exclude  # Martin Luther King Jr. Day
+2024-02-19 exclude  # Presidents Day
+2024-05-27 exclude  # Memorial Day
+2024-06-19 exclude  # Juneteenth
+2024-07-04 exclude  # Independence Day
+2024-09-02 exclude  # Labor Day
+2024-11-28 exclude  # Thanksgiving
+2025-01-20 exclude  # Martin Luther King Jr. Day
+2025-02-17 exclude  # Presidents Day
+2025-05-26 exclude  # Memorial Day
+2025-06-19 exclude  # Juneteenth
+2025-07-04 exclude  # Independence Day
+2025-09-01 exclude  # Labor Day
+2025-11-27 exclude  # Thanksgiving
+
+# Early close: NYSE 13:00 ET, CME equity futures 13:15 ET (RTH runs 9:30-13:15)
+2023-07-03 allow
+2023-11-24 allow
+2024-07-03 allow
+2024-11-29 allow
+2024-12-24 allow
+2025-07-03 allow
+2025-11-28 allow    # also a CME outage 21:44 Nov 27 - 8:30 ET; NY session intact
+
+# Holes in the vendor's data during the NY session
+2023-04-05 exclude  # 14:02-20:00 ET missing (117 RTH bars)
+2024-07-19 exclude  # 9:56-10:07 ET missing (10 bars)
+2024-07-25 exclude  # 10:41-10:49 ET, 5 bars missing
+2024-08-02 exclude  # 11:53-12:02 ET missing (8 bars)
+2024-08-05 exclude  # 10:45-10:48 ET missing (2 bars)
+2024-09-19 exclude  # 13:53-13:57 ET missing (3 bars)
+2025-08-29 exclude  # 13:36-13:39 ET missing (2 bars)

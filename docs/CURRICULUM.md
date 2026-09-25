@@ -38,6 +38,40 @@ Source of truth for concept definitions. Every exercise's answer key is written 
 - **Not an MSS:** a break in the same direction as the trend — that is continuation, not a shift.
 - **Terminology:** this project uses MSS. Do not introduce BOS or CHoCH terminology.
 
+## Detection Parameters (real data)
+
+**Provenance:** AI-DRAFTED (2026-09-24) — chosen by Claude from the full Dec 2022–Dec 2025 NQ dataset under Haven's delegated authority; pending Haven's review. These are the defaults in `scripts/detect.py`. They decide which real-chart setups count as candidates (and therefore which answer keys exist), not how user answers are graded.
+
+**Why adaptive:** the first thresholds — a 10-point FVG floor and a 15-point equal-highs tolerance, set 2026-09-24 — came from ten unusually volatile sessions (Nov 10–21 2025, median 5m bar range 62.5 points). Across the full dataset the median 5m NY AM bar range varies from 21 to 65 points by month and price ranges from 11,500 to 25,000. A fixed 10-point floor threw away far more gaps in calm months than in volatile ones: the monthly FVG rate tracked volatility with a correlation of +0.80. A fixed 15 points is 0.06% of price at 25,000 but 0.13% at 11,500. Both thresholds now scale with the market.
+
+### FVG minimum size: 0.25 × trailing median bar range
+
+A gap counts as an FVG only if it is at least **0.25 × the median high–low range of the 100 bars ending at candle 1**. Only past bars are used, so there's no lookahead. The same multiple applies to every timeframe.
+
+**How it was chosen:**
+- **First test: do bigger gaps behave differently? They don't.** For every gap on 5m NY AM, 5m RTH and 15m RTH, the test measured how often price, after returning into the gap, moved one median bar range away in the gap's direction before a body closed through the far side. That was compared with a same-size, same-direction zone placed at a random bar in the same session. At every size from 0.05× to 1× the median range, real gaps did no better than the random zones: the difference was within about ±5 points on 5m RTH, the largest sample. The only exception was 15m gaps over 1×, at +12 points.
+- **So "noise" can't be defined by what happens after the gap.** It is defined by legibility instead: a beginner has to be able to see the gap. On a one-session chart the price span is typically 4.6× (5m NY AM) to 5.9× (15m RTH) the median bar range. At 0.25× a median-sized gap is about 16–21 px of the 380 px plot, roughly 8–10 px on a phone. At 0.1× it is 3–4 px on a phone, which can't be distinguished from candles touching.
+- 0.25 also sits just above the 0.2× that reproduced the earlier 10-point floor in November 2025.
+- **Consequence for the definition:** a three-candle gap smaller than the floor is not treated as an FVG in any real scenario. When real scenarios are built, windows are chosen so that no smaller gap is visible, so a beginner is never marked wrong for spotting one.
+
+### Equal highs/lows tolerance: 0.05% of price
+
+Swing highs (lows) count as equal when they are within **0.05% of the first touch's price**: about 6 points at 11,500 and 12.5 points at 25,000.
+
+**How it was chosen:** a liquidity exercise grades a placed line against the pool's average price with a tolerance of half the window's median bar range (`build_scenario.py`). For the answer key to be fair, every touch in a pool must sit inside that tolerance. 0.05% is the widest setting where that holds for 90% of the dataset on both timeframes: the spread is at most 0.43× the median bar range (5m) and 0.38× (15m) at the 90th percentile. At 0.06% the 5m figure is already 0.52×, over the line.
+
+| Tolerance | 5m NY AM highs / lows (per session) | 15m RTH highs / lows (per session) |
+|---|---|---|
+| 0.03% | 102 / 92 (0.26) | 213 / 181 (0.54) |
+| 0.04% | 138 / 118 (0.35) | 254 / 232 (0.66) |
+| **0.05%** | **168 / 139 (0.42)** | **298 / 267 (0.77)** |
+| 0.06% | 185 / 160 (0.47) | 332 / 299 (0.86) |
+| 0.08% | 242 / 205 (0.61) | 404 / 353 (1.03) |
+| 0.10% | 278 / 231 (0.69) | 454 / 416 (1.18) |
+| 0.12% | 301 / 255 (0.76) | 491 / 458 (1.29) |
+
+> Superseded (2026-09-24, same day): FVG minimum 10 points on 5m and equal tolerance 15 points (both HAVEN-VALIDATED from the Nov 2025 slice). An interim adaptive version (0.2×, 0.06%) calibrated to reproduce those point values in November 2025 was never committed.
+
 ## Fair Value Gap — Respected vs. Disrespected
 
 **Provenance:** AI-DRAFTED — approved by Haven on a read-through, not independently verified. (The body-close-not-wicks principle this definition applies is itself HAVEN-VALIDATED, below — what's AI-drafted here is its application to gap invalidation specifically.)
