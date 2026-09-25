@@ -67,6 +67,21 @@ python3 scripts/pick_candidates.py $R.clean.json $R.candidates.json --rules mss 
 
 That is 30 scenarios (`real-fvg-001`…`010`, `real-liq-001`…`010`, `real-mss-001`…`010`), each with `human_reviewed: false`. They are registered in `src/data/real-scenarios/index.ts`, so they're visible at `/review` but never served in practice until approved.
 
+### Guided Entry and Free Trade batches
+
+`scripts/build_trade_scenarios.py` classifies every NY AM session with the setup finder in `scripts/setups.py` (see CURRICULUM.md, Guided Entry → Real-data scenarios). It builds a planned mix of valid and no-trade sessions, spread across the date range and never reusing a session another trade scenario already uses. `scripts/register_scenarios.py` then rewrites the import list in `src/data/real-scenarios/index.ts`.
+
+```bash
+N=data/clean/nq_nyam_ctx.5m
+python3 scripts/build_trade_scenarios.py $N.clean.json $N.candidates.json --mode guided \
+    --plan valid=6,no_shift=1,no_sweep=1,no_entry=1,low_rr=1 --prefix real-guided
+python3 scripts/build_trade_scenarios.py $N.clean.json $N.candidates.json --mode free \
+    --plan valid=4,no_shift=2,no_sweep=2,no_entry=1,low_rr=1 --prefix real-ft --seed 2
+python3 scripts/register_scenarios.py
+```
+
+Every step explanation and the overall verdict are drafts. `/review` asks for each of them to be rewritten before approving.
+
 To try the pipeline without licensed data, generate synthetic bars first: `python3 scripts/sample/make_synthetic.py`, then run the same commands on `scripts/sample/synthetic_nq_5m.csv`. **Never promote a scenario built from synthetic data.**
 
 Previous-day and weekly levels span a full day or week; build those from 1h (or 4h) bars so the chart stays around 40 candles. `build_scenario.py` warns when a window exceeds 120 bars.

@@ -13,7 +13,7 @@
 
 import { promises as fs } from "fs";
 import path from "path";
-import { parseRealScenario, type RealScenario } from "@/data/real-scenarios";
+import { parseRealScenario, reviewTexts, type RealScenario } from "@/data/real-scenarios";
 
 const ROOT = process.cwd();
 const SCENARIO_DIR = path.join(ROOT, "src", "data", "real-scenarios");
@@ -73,14 +73,32 @@ function today(): string {
   return new Date().toLocaleDateString("en-CA");
 }
 
-export async function approveScenario(id: string, reviewer: string, explanation: string, notes: string): Promise<void> {
+function setPath(obj: Record<string, unknown>, key: string, value: string): void {
+  const parts = key.split(".");
+  let node = obj;
+  for (const part of parts.slice(0, -1)) node = node[part] as Record<string, unknown>;
+  node[parts[parts.length - 1]] = value;
+}
+
+/** `texts` maps each reviewTexts() key to the reviewer's rewritten text. */
+export async function approveScenario(
+  id: string,
+  reviewer: string,
+  texts: Record<string, string>,
+  notes: string,
+): Promise<void> {
   if (!canWrite()) throw new Error("Reviews can only be saved from the local dev server (they edit repo files).");
-  const text = explanation.trim();
-  if (!text) throw new Error("Write the explanation users will see before approving.");
-  if (text.includes(DRAFT_MARKER)) throw new Error("The explanation still contains the [DRAFT marker — rewrite it first.");
   const s = await readScenario(id);
   if (s.provenance.human_reviewed) throw new Error(`${id} is already approved.`);
-  s.explanation = text;
+  for (const field of reviewTexts(s as unknown as RealScenario)) {
+    const text = (texts[field.key] ?? "").trim();
+    if (!text) throw new Error(`${field.label}: write the text users will see before approving.`);
+    if (text.includes(DRAFT_MARKER)) throw new Error(`${field.label} still contains the [DRAFT marker — rewrite it first.`);
+    setPath(s, field.key, text);
+  }
+  if (s.answer_type === "guided") {
+    s.explanation = (s.answer as { overall_explanation: string }).overall_explanation;
+  }
   s.provenance = {
     ...s.provenance,
     human_reviewed: true,

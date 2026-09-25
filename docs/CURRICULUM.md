@@ -198,6 +198,32 @@ R:R = (target − entry) / (entry − stop)     // for a long; mirrored for a sh
 
 **Why grade the process, not the outcome (PRD Section 13):** a setup that satisfies all four steps and clears 2:1 is a *valid* setup even if the trade would have lost — market structure describes probability, not certainty. Conversely, a setup that happened to work out but skipped a step (no real entry level, R:R below 2:1, bias never actually confirmed) is not a good decision that got lucky. Guided Entry exercises are graded against whether the four-step process was followed correctly, never against what price did afterward.
 
+### Real-data Guided Entry scenarios (AI-DRAFTED, 2026-09-24 — pending Haven's review)
+
+`scripts/setups.py` applies the four steps above to a real session (5m NY AM, structure read from 07:00 ET) as a chain. Each level comes from detected structure, not typed in:
+
+1. **Bias:** the session's first MSS that breaks inside 9:30–11:00. The setup swing (the extreme between the broken swing and the break) must have **taken the previous confirmed swing on the opposing side** first: for a long, the setup low traded below the prior swing low. An MSS without that sweep is scored *unclear*, as the definition above says ("unclear which side's liquidity was actually targeted").
+2. **Entry:** the first Fair Value Gap (at or above the FVG floor) left by the move from the setup extreme to the break, with its third candle at most two bars after the break. If there is none, the [order block](#order-blocks) whose displacement made the break. The entry price is the **zone's midpoint**, and the tolerance is half the zone, so anywhere inside the gap or block passes.
+3. **Stop:** **0.1× the median bar range beyond the setup extreme**. That is just past the swing whose violation proves the read wrong, rounded to the tick.
+4. **Target:** the **nearest confirmed swing high (low for a short) that is still untaken** when the entry level forms and sits beyond both the entry and current price. This is the next opposing liquidity; not a round number or an arbitrary extension.
+5. **R:R** is measured from the entry midpoint. Below 2:1 means no trade.
+
+The stop and target tolerances are half the median bar range, the same rule as liquidity exercises.
+
+**The chart ends three candles after the entry level forms** (or three after the break, or at the session end, when there's no level). The user decides from what was knowable then, not from what price did next. The hand-built Guided Entry charts show the aftermath; real ones deliberately don't.
+
+**How rare valid setups are:** of the 736 NY AM sessions, only **20 (2.7%)** pass the whole chain. The rest:
+
+| Outcome | Sessions |
+|---|---|
+| No MSS inside the session | 362 |
+| MSS but no FVG or order block to enter from | 124 |
+| MSS without a liquidity sweep | 104 |
+| Best R:R below 2:1 | 71 |
+| No untaken target beyond the entry | 55 |
+
+No-trade is the correct answer most days. The real batch mixes 6 valid setups with 4 no-trade sessions, one for each reason except "no untaken target". Those sessions are skipped because there's no clean reference level to teach from.
+
 ## Free Trade
 
 **Provenance:** AI-DRAFTED — the mode's rules and all five scenario definitions below were written by AI and have **not** been reviewed by Haven yet. Treat every scenario answer key as pending review before anyone other than Haven uses the app.

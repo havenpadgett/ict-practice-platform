@@ -31,5 +31,45 @@ export function ReviewChart({ exercise }: { exercise: Exercise }) {
       />
     );
   }
+  if (exercise.answer_type === "guided") {
+    const a = exercise.answer;
+    return (
+      <CandlestickChart
+        answerType="guided"
+        candles={exercise.candles}
+        interactive={false}
+        entryPrice={null}
+        stopPrice={null}
+        targetPrice={null}
+        activeField={null}
+        onActiveFieldChange={noop}
+        correctEntry={a.entry?.price ?? null}
+        correctStop={a.stop?.price ?? null}
+        correctTarget={a.target?.price ?? null}
+      />
+    );
+  }
+  if (exercise.answer_type === "free") {
+    // Internal review only: the whole session, with the ideal levels.
+    const a = exercise.answer;
+    return (
+      <CandlestickChart
+        answerType="free"
+        candles={[...exercise.candles, ...exercise.hidden_candles]}
+        interactive={false}
+        extraSlots={0}
+        entryPrice={null}
+        stopPrice={null}
+        targetPrice={null}
+        activeField={null}
+        onActiveFieldChange={noop}
+        entryIndex={null}
+        exit={null}
+        idealEntryZone={a.entry_zone ? { ...a.entry_zone, candle_start: a.entry_zone.earliest_index } : null}
+        idealStopZone={a.stop_zone}
+        idealTarget={a.target}
+      />
+    );
+  }
   return <p className="text-sm text-muted">No chart preview for answer type {exercise.answer_type}.</p>;
 }

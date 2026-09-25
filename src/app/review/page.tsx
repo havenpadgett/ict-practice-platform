@@ -7,6 +7,7 @@
 import { ReviewChart } from "@/app/review/review-chart";
 import { ReviewForms } from "@/app/review/review-forms";
 import { getReviewer } from "@/lib/review/access";
+import { reviewTexts } from "@/data/real-scenarios";
 import { canWrite, listScenarios } from "@/lib/review/store";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +54,12 @@ export default async function ReviewPage() {
             <h2 className="text-base font-semibold text-foreground">
               {s.exercise_id} · {s.concept} · {p.timeframe} · difficulty {s.difficulty}
             </h2>
+            {s.answer_type === "free" && (
+              <p className="mt-1 text-xs text-muted">
+                Review view shows the whole session. In practice the user sees the first {s.candles.length} candles, and the
+                remaining {s.hidden_candles.length} are revealed one at a time.
+              </p>
+            )}
             <p className="mt-1 text-sm text-foreground">{s.prompt}</p>
             <div className="mt-3 overflow-hidden rounded border border-line p-2">
               <ReviewChart exercise={s} />
@@ -82,7 +89,7 @@ export default async function ReviewPage() {
             </div>
             <ReviewForms
               id={s.exercise_id}
-              draftExplanation={s.explanation.replace(DRAFT_PREFIX, "")}
+              texts={reviewTexts(s).map((t) => ({ key: t.key, label: t.label, draft: t.value.replace(DRAFT_PREFIX, "") }))}
               disabled={!writable}
             />
           </section>

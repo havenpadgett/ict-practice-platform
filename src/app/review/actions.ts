@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { getReviewer } from "@/lib/review/access";
 import { approveScenario, rejectScenario } from "@/lib/review/store";
 
+const TEXT_PREFIX = "text:";
+
 export type ReviewActionState = { error: string | null; done: string | null };
 
 async function run(fn: (email: string) => Promise<string>): Promise<ReviewActionState> {
@@ -22,7 +24,11 @@ async function run(fn: (email: string) => Promise<string>): Promise<ReviewAction
 export async function approveAction(_prev: ReviewActionState, formData: FormData): Promise<ReviewActionState> {
   const id = String(formData.get("id") ?? "");
   return run(async (email) => {
-    await approveScenario(id, email, String(formData.get("explanation") ?? ""), String(formData.get("notes") ?? ""));
+    const texts: Record<string, string> = {};
+    for (const [name, value] of formData.entries()) {
+      if (name.startsWith(TEXT_PREFIX)) texts[name.slice(TEXT_PREFIX.length)] = String(value);
+    }
+    await approveScenario(id, email, texts, String(formData.get("notes") ?? ""));
     return `${id} approved.`;
   });
 }
