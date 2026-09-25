@@ -21,7 +21,7 @@ export async function createClient() {
           }
         } catch {
           // Called from a Server Component, where cookies can't be
-          // written. Safe to ignore — middleware refreshes the session
+          // written. Safe to ignore — src/proxy.ts refreshes the session
           // cookie on every request regardless.
         }
       },

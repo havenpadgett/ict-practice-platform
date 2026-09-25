@@ -17,7 +17,7 @@ raw CSV ──ingest.py──▶ clean JSON ──detect.py──▶ candidates 
 | 3. Detect | `scripts/detect.py` | Every candidate is flagged by a rule that implements a CURRICULUM.md definition exactly: three-candle FVG, equal highs/lows, MSS by body close, previous day / NY AM / weekly highs and lows. Output lists each candidate's rule, timestamps, and price levels. |
 | 4. Build | `scripts/build_scenario.py` | Turns one chosen candidate plus a candle window into an exercise in the app's format. The answer key is copied from the detected levels. It refuses (unless `--allow-ambiguous`) if the window holds another candidate of the same rule — PRD Section 5: exactly one valid answer per scenario. Writes `provenance.human_reviewed: false` and a placeholder explanation marked `[DRAFT`. |
 | 5. Review | a human, this checklist | The candidate really is what the rule says, in curriculum terms; the chart is fair to a beginner; the explanation is rewritten in plain language. |
-| 6. Promote or reject | `src/data/real-scenarios/index.ts` + the log below | Approved: review fields filled in, file registered. Rejected: file deleted, reason logged. |
+| 6. Promote or reject | `/review` (or by hand) + the log below | Approved: explanation rewritten, review fields filled in. Rejected: file deleted and unregistered, reason logged. Commit to make it live. |
 
 ### Commands
 
@@ -136,11 +136,20 @@ Work through every item for each candidate. One "no" means reject (or fix and re
 **Copy**
 - [ ] The `[DRAFT` explanation is rewritten in plain, beginner-friendly language — no candle numbers, states the correct answer explicitly (PRD Section 6.3)
 
-**Promote**
+**Promote** — use `/review`, which does the first three steps:
 - [ ] Set `human_reviewed: true`, `reviewed_by`, `reviewed_at`, and `review_notes` if anything is worth recording
-- [ ] Import the file in `src/data/real-scenarios/index.ts` and add it to `registered`
+- [ ] Make sure the file is imported in `src/data/real-scenarios/index.ts` and listed in `registered` (`build_scenario.py` output must be registered by hand; the first batch already is)
 - [ ] Add a row to the Review Log below
 - [ ] Run the app and complete the exercise once, both correct and incorrect
+- [ ] Commit the scenario file, `index.ts` and this doc
+
+### The /review page
+
+`/review` is internal tooling. It needs a login (`src/proxy.ts`), and the signed-in email must be listed in `REVIEWER_EMAILS` in `.env.local` (comma-separated; unset means nobody). For each unreviewed scenario it shows the chart with the detected answer key drawn on it, the provenance, and two forms:
+- **Approve:** requires the rewritten explanation (it refuses anything still containing `[DRAFT`). It updates the JSON file and appends an "Approved" row below.
+- **Reject:** requires a reason. It deletes the JSON file, removes it from `index.ts`, and appends a "Rejected" row with the reason.
+
+Scenarios stay in the repo, not the database, so saving only works on the local dev server. A deployed build shows the page read-only. Changes go live once committed and deployed.
 
 ## Review Log
 
