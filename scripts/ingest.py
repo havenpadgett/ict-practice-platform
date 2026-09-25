@@ -53,7 +53,7 @@ import re
 import statistics
 import sys
 from collections import Counter, OrderedDict
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -91,38 +91,45 @@ def parse_timestamp(raw: str, source_tz) -> datetime:
     return local
 
 
-def session_bounds(d: date, session: str) -> "tuple[datetime, datetime]":
-    """[start, end) of a trading date's session, in UTC."""
+def session_bounds(d: date, session: str, context_start: Optional[time] = None) -> "tuple[datetime, datetime]":
+    """[start, end) of a trading date's session, in UTC - starting at
+    context_start instead when structure context bars are kept."""
     if SESSIONS[session]:
         start, end = (datetime.combine(d, t, tzinfo=ET) for t in SESSIONS[session])
+        if context_start:
+            start = datetime.combine(d, context_start, tzinfo=ET)
     else:
         start = datetime.combine(d - timedelta(days=1), TRADING_DAY_START, tzinfo=ET)
         end = datetime.combine(d, DAILY_HALT_START, tzinfo=ET)
     return start.astimezone(timezone.utc), end.astimezone(timezone.utc)
 
 
-def session_start(dt: datetime, session: str) -> datetime:
+def session_start(dt: datetime, session: str, context_start: Optional[time] = None) -> datetime:
     """Start of the session a bar belongs to, in UTC."""
-    return session_bounds(trading_date(dt), session)[0]
+    return session_bounds(trading_date(dt), session, context_start)[0]
 
 
-def resample(rows: List[dict], src_tf: int, tf: int, session: str) -> "tuple[List[dict], List[str]]":
-    """Aggregate bars into tf-minute buckets anchored at each session's start."""
+def resample(rows: List[dict], src_tf: int, tf: int, session: str,
+             context_start: Optional[time] = None) -> "tuple[List[dict], List[str]]":
+    """Aggregate bars into tf-minute buckets anchored at each session's start
+    (its context start, if any). Context and session bars never share a
+    bucket as long as the session start sits on the tf grid."""
     step = timedelta(minutes=tf)
     buckets: "OrderedDict[datetime, List[dict]]" = OrderedDict()
     for r in rows:
-        start = session_start(r["dt"], session)
+        start = session_start(r["dt"], session, context_start)
         key = start + ((r["dt"] - start) // step) * step
         buckets.setdefault(key, []).append(r)
     out, partial = [], []
     for key, group in buckets.items():
         # One bucket per session, by construction; this guards the invariant.
-        assert len({session_start(r["dt"], session) for r in group}) == 1, f"bucket {format_et(key)} spans sessions"
+        assert len({session_start(r["dt"], session, context_start) for r in group}) == 1, f"bucket {format_et(key)} spans sessions"
+        assert len({r.get("context", False) for r in group}) == 1, f"bucket {format_et(key)} mixes context and session bars"
         if len(group) < tf // src_tf:
             partial.append(f"{format_et(key)} ({len(group)}/{tf // src_tf} source bars)")
         out.append({"dt": key, "open": group[0]["open"], "high": max(r["high"] for r in group),
                     "low": min(r["low"] for r in group), "close": group[-1]["close"],
-                    "volume": sum(r["volume"] for r in group)})
+                    "volume": sum(r["volume"] for r in group), "context": group[0].get("context", False)})
     return out, partial
 
 
@@ -135,6 +142,7 @@ def to_candles(rows: List[dict]) -> List[dict]:
             "low": round_price(r["low"]),
             "close": round_price(r["close"]),
             "volume": r["volume"],
+            **({"context": True} if r.get("context") else {}),
         }
         for r in rows
     ]
@@ -153,6 +161,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--end", metavar="YYYY-MM-DD", help="last trading date to keep")
     ap.add_argument("--session", choices=list(SESSIONS), default="all",
                     help="keep only bars in this session: all, ny_am (9:30-11:00 ET) or rth (9:30-16:00 ET) (default all)")
+    ap.add_argument("--context-start", metavar="HH:MM",
+                    help="with --session ny_am/rth: also keep bars from this ET time up to the session start, "
+                         "flagged context: true (structure context for MSS - see docs/CURRICULUM.md)")
     ap.add_argument("--resample", metavar="N[,N...]", help="also write N-minute aggregates, e.g. 5,15")
     ap.add_argument("--check-only", action="store_true", help="validate and report; write nothing")
     ap.add_argument("-o", "--output", help="output JSON (default: <csv stem>.clean.json next to the input)")
@@ -179,6 +190,10 @@ def main(argv: Optional[List[str]] = None) -> int:
             (allowed_gap_dates if fields[1] == "allow" else excluded_dates).add(date.fromisoformat(fields[0]))
     start_date = date.fromisoformat(args.start) if args.start else None
     end_date = date.fromisoformat(args.end) if args.end else None
+    context_start = time.fromisoformat(args.context_start) if args.context_start else None
+    if context_start and (not SESSIONS[args.session] or context_start >= SESSIONS[args.session][0]):
+        print("ERROR: --context-start needs --session ny_am or rth and a time before the session opens.")
+        return 1
     resample_tfs = sorted({int(x) for x in args.resample.split(",")}) if args.resample else []
     in_path = Path(args.csv)
     raw_bytes = in_path.read_bytes()
@@ -275,15 +290,22 @@ def main(argv: Optional[List[str]] = None) -> int:
             warnings.append(f"file has exactly {EXCEL_MAX_DATA_ROWS:,} data rows (Excel's sheet limit) - confirm it wasn't cut off")
 
     # Selection.
+    def is_context(dt: datetime) -> bool:
+        return bool(context_start) and dt.astimezone(ET).weekday() < 5 and \
+            context_start <= dt.astimezone(ET).time() < SESSIONS[args.session][0]
+
     def selected(dt: datetime) -> bool:
         d = trading_date(dt)
         if (start_date and d < start_date) or (end_date and d > end_date) or d in excluded_dates:
             return False
         in_session = SESSION_FILTERS.get(args.session)
-        return in_session is None or (dt.astimezone(ET).weekday() < 5 and in_session(dt))
+        return in_session is None or (dt.astimezone(ET).weekday() < 5 and in_session(dt)) or is_context(dt)
 
     total_rows = len(rows)
     rows = [r for r in rows if selected(r["dt"])]
+    for r in rows:
+        if is_context(r["dt"]):
+            r["context"] = True
     if not rows:
         errors.append("selection (--start/--end/--session) matched no bars")
     for d in sorted(incomplete_days & {trading_date(r["dt"]) for r in rows}):
@@ -302,7 +324,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         if rows:
             first_day = start_date or trading_date(rows[0]["dt"])
             last_day = end_date or trading_date(rows[-1]["dt"])
-            edges = [{"dt": session_bounds(first_day, args.session)[0] - step}, {"dt": session_bounds(last_day, args.session)[1]}]
+            edges = [{"dt": session_bounds(first_day, args.session, context_start)[0] - step},
+                     {"dt": session_bounds(last_day, args.session, context_start)[1]}]
         seq = edges[:1] + rows + edges[1:]
         for prev, cur in zip(seq, seq[1:]):
             if cur["dt"] <= prev["dt"]:
@@ -364,7 +387,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         "source_timestamp_label": args.timestamp_label,
         "input_file": in_path.name,
         "input_sha256": hashlib.sha256(raw_bytes).hexdigest(),
-        "selection": {"start": args.start, "end": args.end, "session": args.session},
+        "selection": {"start": args.start, "end": args.end, "session": args.session, "context_start": args.context_start},
         "allowed_gap_dates": sorted(d.isoformat() for d in allowed_gap_dates),
         "excluded_dates": sorted(d.isoformat() for d in excluded_dates),
         "calendar_file": Path(args.calendar).name if args.calendar else None,
@@ -373,7 +396,7 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     outputs = [(tf, out_path, rows, [])]
     for n in resample_tfs:
-        agg, partial = resample(rows, tf, n, args.session)
+        agg, partial = resample(rows, tf, n, args.session, context_start)
         stem = out_path.name[: -len(".clean.json")] if out_path.name.endswith(".clean.json") else out_path.stem
         outputs.append((n, out_path.with_name(f"{stem}.{n}m.clean.json"), agg, partial))
 

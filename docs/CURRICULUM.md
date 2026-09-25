@@ -38,6 +38,24 @@ Source of truth for concept definitions. Every exercise's answer key is written 
 - **Not an MSS:** a break in the same direction as the trend — that is continuation, not a shift.
 - **Terminology:** this project uses MSS. Do not introduce BOS or CHoCH terminology.
 
+**Structure context on session charts (AI-DRAFTED, 2026-09-24 — pending Haven's review).** When a chart covers only the NY AM session (9:30–11:00 ET), the trend and swing points are read from **07:00 ET** onward. The break that confirms the MSS must still happen inside the session. Real NY AM scenarios therefore show the 07:00–9:30 bars as context. Nothing else changed: swing lookback 2 and the body-close confirmation are the same.
+
+*Why:* only 35 MSS were found in 736 NY AM sessions, and 18 of 37 months had none. The investigation (5m bars, Dec 2022–Dec 2025) showed the cause is the 90-minute window, not the confirmation rule:
+- **Structure has to start from nothing at 9:30.** With 18 bars and a lookback of 2, only 34% of sessions ever confirm the two swing highs and two swing lows a trend needs, and only 24% ever show a clear up- or downtrend.
+- **Body-close confirmation is not the bottleneck.** On NY AM-only charts, a wick through the swing happens in 7% of sessions and a body close in 6%. With context, the figures are 75% and 61%.
+- **A shorter lookback isn't the answer.** Lookback 1 raises NY AM-only MSS to 228, but only by treating minor internal swings as structure — the "weak or invalid" case above. Lookback 3 or 4 leaves almost none (2 and 0).
+- **Structure before the open is what's missing.** With the same rule, counting only breaks inside 9:30–11:00:
+
+| Structure read from | Lookback 2 | Lookback 3 | Months with none (lookback 2) |
+|---|---|---|---|
+| 9:30 (session only) | 35 | 2 | 18 / 37 |
+| 8:30 | 202 | 63 | 0 / 37 |
+| 8:00 | 349 | 161 | 0 / 37 |
+| **7:00** | **435** | **312** | **0 / 37** |
+| 4:00 | 437 | 364 | 0 / 37 |
+
+  07:00 captures essentially all of it: going back to 04:00 adds 2 at lookback 2. It keeps a chart to 48 bars at 5m. Over a full 5m RTH session the rule finds 1.63 MSS per session, so shifts are common; the 90-minute window was simply too short to show the structure they break. The 15m RTH data (26 bars per session) already has enough structure and is unchanged.
+
 ## Detection Parameters (real data)
 
 **Provenance:** AI-DRAFTED (2026-09-24) — chosen by Claude from the full Dec 2022–Dec 2025 NQ dataset under Haven's delegated authority; pending Haven's review. These are the defaults in `scripts/detect.py`. They decide which real-chart setups count as candidates (and therefore which answer keys exist), not how user answers are graded.

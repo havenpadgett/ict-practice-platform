@@ -8,8 +8,8 @@ disagree, the curriculum is right and this is a bug:
                       candle 3's low (bullish) or candle 1's low above
                       candle 3's high (bearish). Zone = the unfilled range.
                       Gaps smaller than --fvg-min-range-mult x the median bar
-                      range over the trailing --range-window bars (ending at
-                      candle 1) are ignored.
+                      range over the trailing --range-window session bars
+                      (ending at candle 1) are ignored.
   equal_highs/lows    Two or more swing highs (lows) within
                       --equal-tolerance-pct percent of price of each other,
                       with no price trading beyond the pool between them.
@@ -29,7 +29,10 @@ disagree, the curriculum is right and this is a bug:
 FVG, equal highs/lows, MSS and the swings they use are found within one
 session at a time (a trading day, 18:00 ET to 17:00 ET) - a setup never
 spans a session break, even when the data skips from one day's bars straight
-to the next (e.g. an NY AM-only slice).
+to the next (e.g. an NY AM-only slice). When the data carries structure
+context bars (ingest.py --context-start, flagged context: true), MSS reads
+swings from them too but only a break inside the session is a setup; every
+other rule ignores the context bars.
 
 Swing points are fractals: a high strictly above the --swing-lookback bars to
 its left and at least as high as those to its right (mirrored for lows).
@@ -309,25 +312,39 @@ def main(argv: Optional[List[str]] = None) -> int:
         # A day's or week's high/low needs every bar of it, overnight included.
         rules = [r for r in rules if r not in partial_rules]
         print(f"NOTE: skipped {', '.join(partial_rules)} - the data holds only the {session} session, not full days.")
-    fvg_min_sizes = [m * args.fvg_min_range_mult for m in trailing_median_range(candles, args.range_window)]
+    # Trailing median range over session bars only: quiet context bars would
+    # otherwise lower the floor for the session that follows.
+    session_idx = [i for i, c in enumerate(candles) if not c.get("context")]
+    fvg_min_sizes = [0.0] * len(candles)
+    for i, m in zip(session_idx, trailing_median_range([candles[i] for i in session_idx], args.range_window)):
+        fvg_min_sizes[i] = m * args.fvg_min_range_mult
 
     found: List[Dict[str, Any]] = []
     swing_high_count = swing_low_count = 0
     for idxs in group_indices(candles, trading_date).values():
-        offset, session = idxs[0], candles[idxs[0]:idxs[-1] + 1]
-        highs, lows = swing_highs(session, n), swing_lows(session, n)
+        offset, day = idxs[0], candles[idxs[0]:idxs[-1] + 1]
+        # Leading bars flagged context (ingest.py --context-start) are
+        # structure context for MSS only; every other rule sees the session.
+        n_ctx = next((k for k, c in enumerate(day) if not c.get("context")), len(day))
+        core_offset, core = offset + n_ctx, day[n_ctx:]
+        highs, lows = swing_highs(core, n), swing_lows(core, n)
         swing_high_count += len(highs)
         swing_low_count += len(lows)
-        in_session: List[Dict[str, Any]] = []
+        in_core: List[Dict[str, Any]] = []
         if "fvg" in rules:
-            in_session += detect_fvg(session, fvg_min_sizes[offset:offset + len(session)])
+            in_core += detect_fvg(core, fvg_min_sizes[core_offset:core_offset + len(core)])
         if "equal_highs" in rules:
-            in_session += detect_equal(session, highs, "highs", args.equal_tolerance_pct)
+            in_core += detect_equal(core, highs, "highs", args.equal_tolerance_pct)
         if "equal_lows" in rules:
-            in_session += detect_equal(session, lows, "lows", args.equal_tolerance_pct)
+            in_core += detect_equal(core, lows, "lows", args.equal_tolerance_pct)
+        found += [to_global(c, core_offset) for c in in_core]
         if "mss" in rules:
-            in_session += detect_mss(session, highs, lows, n)
-        found += [to_global(c, offset) for c in in_session]
+            for c in detect_mss(day, swing_highs(day, n), swing_lows(day, n), n):
+                if n_ctx:
+                    # A break inside the context bars isn't a session setup,
+                    # but stays listed so build_scenario can see it on a chart.
+                    c["context"] = c["break_index"] < n_ctx
+                found.append(to_global(c, offset))
     if "previous_day" in rules:
         found += period_levels(candles, group_indices(candles, trading_date), "previous_day", "trading day")
     if "ny_am" in rules:
@@ -346,13 +363,19 @@ def main(argv: Optional[List[str]] = None) -> int:
     })
 
     counts: "OrderedDict[str, int]" = OrderedDict()
+    context_count = 0
     for c in found:
+        if c.get("context"):
+            context_count += 1
+            continue
         counts[c["rule"]] = counts.get(c["rule"], 0) + 1
     print(f"Scanned {len(candles)} bars ({data['meta']['start']} -> {data['meta']['end']}), "
           f"{swing_high_count} swing highs, {swing_low_count} swing lows (lookback {n}).")
-    print(f"Found {len(found)} candidate(s):")
+    print(f"Found {len(found) - context_count} candidate(s):")
     for rule, count in sorted(counts.items()):
         print(f"  {rule:<20} {count}")
+    if context_count:
+        print(f"  (+{context_count} MSS breaking inside the context bars - listed with context: true, not setups)")
     if "ny_am" in rules and tf > 30:
         print(f"  (ny_am skipped: {tf}m bars are too coarse for a 9:30-11:00 session)")
     print(f"Wrote {out_path}")

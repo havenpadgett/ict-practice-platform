@@ -25,12 +25,12 @@ raw CSV ──ingest.py──▶ clean JSON ──detect.py──▶ candidates 
 pip install -r scripts/requirements.txt          # Python 3.9+
 CAL=(--calendar scripts/calendars/nq_2022_2025.txt --timestamp-label close --start 2022-12-27 --end 2025-12-11)
 python3 scripts/ingest.py data/raw/Dataset_NQ_1min_2022_2025.csv --source "$NQ_SOURCE" "${CAL[@]}" \
-    --session ny_am --resample 5 -o data/clean/nq_nyam_full.clean.json
+    --session ny_am --context-start 07:00 --resample 5 -o data/clean/nq_nyam_ctx.clean.json
 python3 scripts/ingest.py data/raw/Dataset_NQ_1min_2022_2025.csv --source "$NQ_SOURCE" "${CAL[@]}" \
     --session rth --resample 15 --max-bar-range-pct 3.5 -o data/clean/nq_rth_full.clean.json
-python3 scripts/detect.py data/clean/nq_nyam_full.5m.clean.json
+python3 scripts/detect.py data/clean/nq_nyam_ctx.5m.clean.json
 python3 scripts/detect.py data/clean/nq_rth_full.15m.clean.json
-python3 scripts/build_scenario.py data/clean/nq_nyam_full.5m.clean.json data/clean/nq_nyam_full.5m.candidates.json \
+python3 scripts/build_scenario.py data/clean/nq_nyam_ctx.5m.clean.json data/clean/nq_nyam_ctx.5m.candidates.json \
     --candidate <candidate id> --exercise-id real-<concept>-<nnn> --difficulty <1-3>
 ```
 
@@ -42,7 +42,7 @@ Detection runs within one session at a time, so a session must hold enough bars 
 
 | Timeframe | Session | Bars per session | Why |
 |---|---|---|---|
-| 5m | NY AM (9:30–11:00 ET) | 18 | Enough for FVGs, swings, equal highs/lows; MSS is rare (about 1 in 20 sessions) |
+| 5m | NY AM (9:30–11:00 ET), plus 07:00–9:30 context bars | 18 (+30 context) | Enough for FVGs, swings and equal highs/lows. On the 18 session bars alone MSS was rare (35 in 736 sessions); with `--context-start 07:00` the swings are read from 07:00 and there are 435 (see CURRICULUM.md, MSS). Only MSS uses the context bars. |
 | 15m | RTH (9:30–16:00 ET) | 26 | NY AM would be only 6 bars — at most two bars could ever be swings, so equal highs/lows and MSS are mathematically impossible |
 
 `previous_day_*` and `weekly_*` levels need every bar of the day or week, overnight included — `detect.py` skips them on NY AM- or RTH-only data. Build them from a `--session all` ingest.
