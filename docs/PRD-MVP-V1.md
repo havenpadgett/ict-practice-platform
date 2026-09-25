@@ -3,7 +3,30 @@
 **Version:** 1.0 (draft for review)
 **Owner:** Haven Padgett — Product Owner / Business Analyst
 **Date:** September 9, 2026
-**Status:** Draft — pending sign-off on Open Decisions (Section 13)
+**Status:** Draft — pending sign-off on Open Decisions (Section 13). Milestone 1 (Section 10) is complete; the build has gone well beyond V1 scope. See Build Status below. *Last updated 2026-09-25.*
+
+---
+
+## Build Status by Phase
+
+*Added 2026-09-25 (AI-DRAFTED, pending Haven's review).* This PRD never had a phase table. The phase numbers below come from the commit history and from where the PRD itself mentions "Phase 5" (database) and "Phase 7" (real data). Phases 6, 9 and 10 are inferred from build order.
+
+| Phase | Scope | Status | Landed |
+|---|---|---|---|
+| 1 | UI shell: landing, dashboard, practice pages | ✅ Done | 2026-09-09 |
+| 2 | One working FVG exercise with zone grading | ✅ Done | 2026-09-09 |
+| 3 | Full 5-exercise FVG session with local persistence (Milestone 1, Section 10) | ✅ Done | 2026-09-09 |
+| 4 | Multiple concepts: Liquidity (level answers), then MSS, FVG respected/disrespected (choice), IFVG | ✅ Done | 2026-09-09 → 09-19 |
+| 5 | Accounts and database: Supabase Auth, `profiles` + `attempts` with RLS, local-attempt migration | ✅ Done | 2026-09-10 |
+| 6 | User-facing analytics page | ✅ Done, extended 2026-09-24 (trend line, difficulty × concept, real vs constructed, process vs outcome) | 2026-09-10 |
+| 7 | Real historical NQ data with a validation process: pipeline, provenance, review gate, `/review` | ✅ Built. **0 of 50 real scenarios approved yet**, so none are live | 2026-09-24 |
+| 8 | Guided Entry mode (bias → entry → stop → target) | ✅ Done, including 10 real-data scenarios awaiting review | 2026-09-20 |
+| 9 | Free Trade mode (candle-by-candle playback, graded on process) | ✅ Done, including 10 real sessions awaiting review | 2026-09-24 |
+| 10 | Adaptive practice: recommendation engine, adaptive session mix | ✅ Done | 2026-09-24 |
+| — | Order Blocks, Premium & Discount, Time-based liquidity concepts | ✅ Done (constructed exercises) | 2026-09-24 |
+| — | Hardening: automated tests, error handling, CSV export, performance | ✅ Done. One known-failing test (`session_id`, Bug Log) | 2026-09-25 |
+
+**Still open from the original requirements:** NFR-1/2 have never been verified on a real phone (Decision Log 2026-09-14 and 2026-09-24). D-3's tolerances still need re-checking against real beginner attempts. D-4 (product name) is still open.
 
 ---
 
@@ -341,6 +364,8 @@ Accounts and login · database and server · concepts other than FVG · real his
 
 Every one of these is in the vision document and most will get built. None belong in V1.
 
+> **Update 2026-09-25:** V1 shipped, and most of this list has since been built on Haven's instruction: accounts, database, more concepts, real data, Guided Entry, Free Trade, playback, No Trade decisions, adaptive recommendations and streaks. See Build Status at the top and Backlog (Section 15) for what's still out.
+
 ---
 
 ## 13. Open Decisions — Need Sign-Off
@@ -354,7 +379,7 @@ Every one of these is in the vision document and most will get built. None belon
 
 ---
 
-## 14. Decision Log (seeded)
+## 14. Decision Log
 
 | Date | Decision | Why | Alternatives considered |
 |------|----------|-----|-------------------------|
@@ -371,22 +396,52 @@ Every one of these is in the vision document and most will get built. None belon
 | 2026-09-11 | Liquidity definition corrected: it rests above any swing high and below any swing low, with equal highs/lows representing a larger pool rather than the only valid case. Exercises re-authored to test strength ("mark the strongest...") rather than existence. See `docs/CURRICULUM.md`. | The earlier working definition treated liquidity as valid *only* at equal highs/lows, which is wrong — a single wick always has a pool above it, just a smaller one. Testing existence under that wrong definition meant every exercise except one had a trivially "no" answer, since equal highs/lows are rare; testing strength is the honest version of the skill. | Narrow V1 to equal highs/lows only, treating that as the whole of "liquidity" — rejected, it would teach an incomplete mental model that has to be un-learned later |
 | 2026-09-11 | New York AM session (for the not-yet-examinable time-based liquidity levels) defined as 9:30–11:00 ET | Haven's actual practice window is roughly 9:30–10:30 or 11:00. The wider 11:00 boundary was chosen deliberately so a high forming between 10:30 and 11:00 isn't marked incorrect once these exercises exist. | Use the narrower 9:30–10:30 window matching practice exactly — rejected for now, since it would falsely mark a legitimate late-session high as outside the window; revisit once time-based exercises are actually built |
 | 2026-09-14 | Mobile touch drawing (FVG box drag, Liquidity line placement) is implemented, not deferred — but NFR-1/NFR-2 are only partially verified: confirmed at a 375px viewport with realistically-timed *synthetic* pointer/touch events (see Polish Backlog, 2026-09-10), never yet on a real phone. Treat NFR-1 as unmet until a real-device pass confirms the same behavior, and re-verify before other users get access or before Guided Entry / Free Trade modes are built, since both add more on-chart interaction surface for touch to break on. | Synthetic events can't reproduce real touch quirks (multi-touch, momentum scrolling, browser chrome insets, actual finger imprecision), so "verified" here means "not known broken," not "confirmed working for a beginner on their own phone." | Ship without a real-device pass — rejected for V1 speed, but the risk is logged rather than assumed away |
-
 | 2026-09-24 | Free Trade (Mode 3) graded on process, not outcome; overall pass = every applicable check passes | Consistent with Section 13 and Guided Entry — a loss with good process is a good decision, a win with bad process isn't. A candle touching both stop and target is scored as a stop (order within a candle is unknowable; assume the worse case). Attempts are stored with `answer_type = 'free'` as the mode discriminator, matching how Guided Entry used `'guided'`. | Grade on win/loss — rejected, rewards luck. Separate `mode` column — rejected, `answer_type` already plays that role |
+| 2026-09-24 | Real data enters through a Python pipeline (`scripts/`). **Answer keys are derived by code from the curriculum's rules, never typed in, and no real scenario is served until a human approves it.** Every scenario carries provenance (source, raw-file hash, trading date, session, timeframe, rule, reviewer). | Phase 7's open problem was answer validity, not candles. Code applies a rule consistently; a human checks the rule fits what's on the chart. The app enforces the gate (`isPracticeReady`, `parseRealScenario`). | Hand-label real charts — rejected, the key is only as good as the labeller. Trust detection alone — rejected, rules match things a trader wouldn't call the concept. |
+| 2026-09-24 | Data source: Kaggle "NQ Futures 1min Bar 2022-2025" (redistributed CME data). **License unverified; personal use only** until confirmed. The vendor stamps bars with their close time, so ingest shifts them to open time. The file is truncated at Excel's row limit (last day dropped). Holidays and data holes are listed in `scripts/calendars/nq_2022_2025.txt`. | The only 1-minute NQ history available. Close-time labels would have put every candle one bar late without any visible error (docs/SCENARIO-VALIDATION.md, data quality lessons). | Buy vendor data — not yet, pending a decision on public release |
+| 2026-09-24 | Detection runs within one trading session. No setup may span a session break, and full-day levels are skipped on session-only data. | Gluing 10:55 one day to 9:30 the next produced fake FVGs and MSS (Bug Log 2026-09-24). | — |
+| 2026-09-24 | **Adaptive detection thresholds (AI-DRAFTED):** FVG minimum = 0.25× the trailing median bar range; equal highs/lows within 0.05% of price. These replace the HAVEN-VALIDATED 10 points / 15 points, which came from ten unusually volatile sessions. | Across the full dataset, fixed points filtered far more in calm months. 0.25× is chosen for on-chart legibility, because no gap size predicted price reaction better than a random zone. 0.05% keeps every touch inside the level-grading tolerance. Details and counts in CURRICULUM.md → Detection Parameters. | Calibrate to the Nov 2025 slice — rejected, the slice was the problem |
+| 2026-09-24 | RTH defined as 9:30–16:00 ET, the NYSE cash session (Haven's call). | The levels traders watch are cash-session levels. | CME's 16:15 close — rejected |
+| 2026-09-24 | **MSS structure is read from 07:00 ET on NY AM charts (AI-DRAFTED).** The break must still happen in 9:30–11:00. | Only 35 MSS in 736 NY AM sessions, because 18 bars can't form the four swings the rule needs. Body-close and lookback weren't the cause. 07:00 context gives 435, with no empty months. CURRICULUM.md → MSS. | Lookback 1 — rejected, it counts minor internal swings as structure |
+| 2026-09-24 | **Premium & Discount and Order Blocks added (definitions from Haven, operational details AI-DRAFTED).** P/D: the most recent unbroken swing range; judged on the last close; within 45–55% of the range counts as equilibrium. OB: last opposing candle before a 1–3 candle displacement of at least 2× median range that breaks a swing; zone = full candle range; invalidated by a body close through it. | Each operational detail is needed to derive an answer key by code. Choices and counts are in CURRICULUM.md. | — |
+| 2026-09-24 | `/review` approves or rejects scenarios by editing repo files (dev server only), with access limited to logged-in `REVIEWER_EMAILS`. The same change moved `middleware.ts` to `src/proxy.ts`. | Exercise content stays version-controlled, never in the database (supabase migration header). The move to `src/proxy.ts` was a fix: at the repo root, Next 16 never ran the middleware, so pages were only protected client-side. | Store approvals in Supabase — rejected, it would split exercise content across code and the database |
+| 2026-09-24 | **Real Guided Entry / Free Trade scenarios come from one setup finder (AI-DRAFTED):** MSS with a prior sweep → the FVG or OB it left (entry at the midpoint) → stop 0.1× median beyond the setup extreme → nearest untaken opposing swing as target → ≥ 2:1. No-trade sessions are built the same way. Real Guided charts end 3 bars after the entry forms. Real Free Trade hides dates during playback and only uses valid setups price actually returned to. | Levels must be derived, not assumed. Showing the aftermath or the date would leak the outcome. Only 20 of 736 sessions pass the whole chain, so no-trade is the usual correct answer. CURRICULUM.md → Guided Entry / Free Trade. | — |
+| 2026-09-25 | Tests: Vitest for the TypeScript logic, Python `unittest` for detection (no new Python dependencies). **Tests that fail against current code are left failing and logged as bugs, never edited to pass.** | Grading, detection and the recommendation engine are the parts where a silent regression would teach users something wrong. | Jest — heavier setup for the same coverage |
+| 2026-09-25 | Error handling: the app never renders blank. It has an error boundary; invalid scenario files are skipped and listed on /review; stale sessions and empty concepts are recovered; failed saves show plain messages with Retry or Log in again (Bug Log 2026-09-25). | A beginner who hits a crash loses trust in the grading too. | — |
+| 2026-09-25 | CSV export for BI is user-scoped, has one denormalized row per attempt, and uses 1/0 booleans (docs/ANALYTICS.md). | RLS limits the anon key to the caller's rows. An all-users export needs a service-role key and an admin check that don't exist yet. | Build the Power BI dashboard in-app — deferred (Backlog) |
 | 2026-09-24 | **Adaptive practice (AI-DRAFTED, pending Haven's review).** `src/lib/recommendations.ts` is pure logic, separate from the UI. **Skill score per concept:** accuracy weighted by recency (half-life of 10 attempts within the concept), shrunk toward the user's overall accuracy with 4 pseudo-attempts, so 1–2 answers can't make a concept look weak or strong. **Weak** means a score below 70%. **Recommendation:** practice the weakest concept if it's weak, otherwise start the first concept not yet tried, otherwise push the weakest at a harder level. Difficulty comes from the score (<60% easy, <80% medium, else hard). Length is 5 when weak, else 10 (or "all" if fewer exist). For Guided Entry / Free Trade it also names the weakest step or check (at least 3 reached). The reason quotes the last-20 accuracy against overall, and notes when the last 5 are clearly better. **Adaptive session:** 10 exercises; if any concept is weak, 60% of slots come from weak concepts and 40% from the rest. Within each group a concept is drawn with weight (1 − score + 0.15), then a practice-ready exercise at the matching difficulty; the order is shuffled. Free Trade is left out of the mix (a long playback, its own mode). Surfaced on the dashboard (one-click recommended session) and analytics (full table). | The request asked for "PRD Phase 10", which isn't defined in this PRD. The adaptive engine was listed under Backlog → MAYBE and in Section 12 (out of scope for V1). It's built now on Haven's instruction. The constants are first guesses, chosen so behaviour is explainable. Revisit with real attempt data. | Plain lowest-accuracy concept (what the dashboard did) — rejected: one wrong answer on a new concept made it "weakest". Pure weighted-random mix — rejected: with many concepts, a weak one got only ~16% of slots, so the session didn't lean toward it. |
 | 2026-09-24 | **Mobile audit at 375px and 414px (emulated viewport, synthetic touch events; still not a real device, so NFR-1 stays "not known broken" per 2026-09-14).** It covered box drawing, line placement, choice buttons, Guided Entry, Free Trade playback and stop/target placement, the concept and length pickers, the signed-in nav, and the /review forms. **Fixed:** (1) chart text rendered at ~4px on a phone, because the 800-unit viewBox was scaled down whole; the viewBox now tracks the rendered width (≥280 units, height ≥300), so axis and time labels stay 10–11px. The analytics trend line does the same. (2) Tap targets were 20–42px high; every button, nav link, Back link, playback speed toggle and review field is now at least 44×44 (`min-h-11`). (3) The signed-in nav (brand + 3 links + Log out) was wider than 375px; it now wraps to a second row. (4) Text inputs are 16px on mobile so iOS doesn't zoom on focus. (5) The practice header wraps instead of squeezing. **Verified unchanged:** zone and level charts, and Free Trade/Guided while a level is placeable, have `touch-action: none`, so a drag draws instead of scrolling. A touch-type drag produced the expected box and line with the new viewBox mapping. Choice charts and non-placing phases keep normal scrolling. No horizontal overflow at either width. | 44px follows Apple HIG and WCAG 2.5.5 (AAA). WCAG 2.2 AA's 24px minimum was already met by most controls, but not by the nav links or speed toggles. | Separate mobile components — rejected, the fixes are size and layout only |
 | 2026-09-25 | **Performance pass (AI-DRAFTED).** (1) **Payload:** /dashboard and /analytics were shipping every exercise's candles (a 468 KB data chunk) just to read labels, concepts and difficulties. They now read `src/data/exercise-catalog.json`, candle-free metadata generated by `npm run catalog`. `tests/catalog.test.ts` fails if it goes stale, and /review updates it on approve/reject. Production JS: dashboard 1,296→858 KB raw (323→249 KB gzip), analytics 1,313→875 KB (328→253 KB gzip); practice +21 KB raw (+1.5 KB gzip) for the catalog. (2) **Queries:** the dashboard and adaptive-session loads select 16 of the 44 attempt columns (`DASHBOARD_COLUMNS`), about 1.25 KB → 0.45 KB per row. Analytics and the CSV export still need full rows. (3) **Re-renders:** the chart rebuilt its layout, time context and every candle mark on each pointer move while drawing. These are now memoized on the candles and chart size, and Free Trade memoizes its revealed-candle array. React Profiler, 200 drag moves on a 48-candle chart (dev build): 2.40 → 1.56 ms average render, 12.8 → 4.2 ms worst. (4) **Indexes:** `supabase/migrations/20260925120000_attempts_session_id_and_indexes.sql` (not yet applied) adds (user_id, created_at) for the ordered history fetch and (user_id, exercise_id) for the per-save attempt count, and drops the now-redundant user_id index. | Each change targets a path that runs on every page load or every pointer move. No database timing was possible without production access, so the indexes are justified by query shape, not a measured plan. | Code-splitting exercises per concept — deferred: the practice page needs the whole set for mixed adaptive sessions, and the dashboard/analytics saving came from the catalog alone |
 ---
 
-## 15. Backlog (seeded)
+## 15. Backlog
 
-**NOW** — FR-1 through FR-17
+*Rewritten 2026-09-25 (AI-DRAFTED). The seeded NOW/NEXT/LATER lists were all delivered apart from the items below. Status per phase is in Build Status at the top.*
 
-**NEXT** — 5 more FVG exercises · "no valid FVG here" exercise type · liquidity (BSL/SSL) concept · accuracy-by-concept view
+**NEXT**
+- Review the 50 real scenarios at `/review`. Nothing real is live until this happens.
+- Apply migration `20260925120000_attempts_session_id_and_indexes.sql`, then write `session_id` on attempts (Bug Log 2026-09-25).
+- Confirm the Kaggle NQ data's license before any public release (docs/SCENARIO-VALIDATION.md).
+- Real-device mobile pass (NFR-1/2).
+- Re-check grading tolerances (D-3) against real beginner attempts.
+- Haven to review every AI-DRAFTED definition and decision (CURRICULUM.md, this log).
 
-**LATER** — accounts + database · real historical NQ scenarios + validation process · remaining Mode 1 concepts: MSS (or BOS/CHoCH — terminology TBC) and IFVG · SMT Divergence — needs a dual-chart view (comparing two correlated instruments side by side); deferred until that component exists · Guided Entry mode · analytics page · Power BI internal dashboard · multi-level liquidity exercises — user places multiple lines for several liquidity levels on one chart. Requires partial-credit grading design.
+**LATER**
+- Real scenarios for Order Blocks, Premium & Discount, IFVG and time-based liquidity. Detection exists for all but IFVG; no batch has been built.
+- Serve Free Trade candles from the server one at a time. Today unrevealed candles are never in the DOM, but they are in the page's JavaScript (CURRICULUM.md, Free Trade → no lookahead).
+- An all-users CSV export for BI. It needs a server-side service-role key and an admin check (docs/ANALYTICS.md).
+- Multi-level liquidity exercises (several lines on one chart). Needs a partial-credit grading design.
+- Free Trade target grading (currently judged only through R:R; CURRICULUM.md "Known V1 gap").
 
-**MAYBE** — Free Trade simulation · adaptive practice engine · AI-generated feedback · XP/streaks/leaderboards · ES and SMT pairs · native mobile
+**DEFERRED, with reasons**
+- **SMT Divergence:** needs a dual-chart component for two correlated instruments (Decision Log 2026-09-10). Not started.
+- **ES and SMT pairs:** depend on the dual-chart component above.
+- **Internal Power BI dashboard:** replaced by the CSV export (`/api/export/attempts`, docs/ANALYTICS.md). A dashboard can be built in Power BI from that file without the app hosting one.
+- **Google sign-in:** fully wired but switched off (`src/lib/auth-flags.ts`) until a Google Cloud OAuth client is configured in Supabase.
+- **AI-generated feedback:** not started. Every explanation is written, and for real data human-reviewed, against the curriculum, which is the point of the validation process. Generated feedback would bypass it.
+- **XP, levels, leaderboards:** only practice streaks were built. The rest adds competition before the practice loop is proven with real users.
+- **Chart pan/zoom:** still out (Decision Log 2026-09-09), since coordinate math is where drawing bugs come from.
+- **Native mobile apps:** out. The web app is the target and still needs a real-device check first.
 
 ---
 
