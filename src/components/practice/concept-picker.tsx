@@ -1,3 +1,4 @@
+import { getPracticeExercises } from "@/data/exercises";
 import { CONCEPT_LIST, CONCEPTS, type Concept } from "@/lib/concepts";
 
 export function ConceptPicker({
@@ -38,17 +39,21 @@ export function ConceptPicker({
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         {CONCEPT_LIST.map((concept) => {
           const meta = CONCEPTS[concept];
+          // A concept can exist with nothing practice-ready yet (e.g. only
+          // real scenarios still awaiting review).
+          const ready = getPracticeExercises(concept).length > 0;
           return (
             <button
               key={concept}
               type="button"
               onClick={() => onPick(concept)}
-              className="rounded-lg border border-line bg-surface p-5 text-left transition-colors hover:bg-background"
+              disabled={!ready}
+              className="rounded-lg border border-line bg-surface p-5 text-left transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-surface"
             >
               <p className="text-base font-semibold text-foreground">
                 {meta.pickerLabel}
               </p>
-              <p className="mt-1 text-sm text-muted">{meta.pickerDescription}</p>
+              <p className="mt-1 text-sm text-muted">{ready ? meta.pickerDescription : "No exercises ready yet."}</p>
             </button>
           );
         })}

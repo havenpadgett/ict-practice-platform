@@ -34,11 +34,18 @@ function scenarioPath(id: string): string {
 
 /** Read from disk (not the bundled import) so the page reflects edits made
  * a moment ago. */
-export async function listScenarios(): Promise<RealScenario[]> {
+export async function listScenarios(): Promise<{ scenarios: RealScenario[]; broken: { file: string; error: string }[] }> {
   const files = (await fs.readdir(SCENARIO_DIR)).filter((f) => f.endsWith(".json")).sort();
-  return Promise.all(
-    files.map(async (f) => parseRealScenario(JSON.parse(await fs.readFile(path.join(SCENARIO_DIR, f), "utf8")))),
-  );
+  const scenarios: RealScenario[] = [];
+  const broken: { file: string; error: string }[] = [];
+  for (const f of files) {
+    try {
+      scenarios.push(parseRealScenario(JSON.parse(await fs.readFile(path.join(SCENARIO_DIR, f), "utf8"))));
+    } catch (err) {
+      broken.push({ file: f, error: err instanceof Error ? err.message : String(err) });
+    }
+  }
+  return { scenarios, broken };
 }
 
 async function readScenario(id: string): Promise<Record<string, unknown> & { provenance: Record<string, unknown> }> {

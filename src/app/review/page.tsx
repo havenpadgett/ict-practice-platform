@@ -7,7 +7,7 @@
 import { ReviewChart } from "@/app/review/review-chart";
 import { ReviewForms } from "@/app/review/review-forms";
 import { getReviewer } from "@/lib/review/access";
-import { reviewTexts } from "@/data/real-scenarios";
+import { invalidRealScenarios, reviewTexts } from "@/data/real-scenarios";
 import { canWrite, listScenarios } from "@/lib/review/store";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +25,7 @@ export default async function ReviewPage() {
     );
   }
 
-  const scenarios = await listScenarios();
+  const { scenarios, broken } = await listScenarios();
   const pending = scenarios.filter((s) => !s.provenance.human_reviewed);
   const writable = canWrite();
 
@@ -43,6 +43,32 @@ export default async function ReviewPage() {
         <p className="mt-2 text-sm" style={{ color: "#e2685f" }}>
           Read-only: reviews edit repo files, so they can only be saved from the local dev server.
         </p>
+      )}
+
+      {broken.length > 0 && (
+        <div className="mt-6 rounded border border-line p-3 text-sm" role="alert">
+          <p style={{ color: "#e2685f" }}>{broken.length} scenario file(s) on disk can&apos;t be read:</p>
+          <ul className="mt-2 list-disc pl-5 text-muted">
+            {broken.map((b) => (
+              <li key={b.file}>
+                {b.file}: {b.error}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {invalidRealScenarios.length > 0 && (
+        <div className="mt-6 rounded border border-line p-3 text-sm" role="alert">
+          <p style={{ color: "#e2685f" }}>
+            {invalidRealScenarios.length} registered scenario file(s) failed validation and are hidden everywhere:
+          </p>
+          <ul className="mt-2 list-disc pl-5 text-muted">
+            {invalidRealScenarios.map((s) => (
+              <li key={s.id}>{s.error}</li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {pending.length === 0 && <p className="mt-8 text-sm text-muted">Nothing to review.</p>}

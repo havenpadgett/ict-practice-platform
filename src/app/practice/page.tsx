@@ -12,6 +12,7 @@ import { FreeTradeExercise, type FreeTradeAttempt } from "@/components/practice/
 import { GuidedExercise } from "@/components/practice/guided-exercise";
 import { SessionLengthPicker } from "@/components/practice/session-length-picker";
 import { SessionSummary } from "@/components/practice/session-summary";
+import { SaveStatus } from "@/components/save-status";
 import {
   buildSessionExerciseIds,
   getExercise,
@@ -21,7 +22,8 @@ import {
 } from "@/data/exercises";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { buildAnswerAttempt, buildFreeTradeAttempt, buildGuidedAttempt } from "@/lib/attempt-rows";
-import { fetchAttempts, insertAttempt, nextAttemptNumber } from "@/lib/attempts";
+import { fetchAttempts, insertAttempt, nextAttemptNumber, type NewAttempt } from "@/lib/attempts";
+import { describeError, type FriendlyError } from "@/lib/errors";
 import { CONCEPT_LIST, getConceptMeta, type Concept } from "@/lib/concepts";
 import { gradeAttempt, type GradeResult, type UserAnswer, type UserRegion } from "@/lib/grading";
 import type { FreeTradeGradeResult } from "@/lib/free-trade-grading";
@@ -54,7 +56,11 @@ export default function PracticePage() {
   const [userChoice, setUserChoice] = useState<string | null>(null);
   const [result, setResult] = useState<GradeResult | null>(null);
   const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<FriendlyError | null>(null);
+  /** The last attempt row that failed to save, so it can be retried. */
+  const pendingRowRef = useRef<NewAttempt | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [gradeError, setGradeError] = useState<string | null>(null);
   const [adaptiveError, setAdaptiveError] = useState<string | null>(null);
   const exerciseStartRef = useRef<number>(0);
 
@@ -79,11 +85,20 @@ export default function PracticePage() {
     try {
       beginSession(ADAPTIVE_SESSION, buildAdaptiveSession(await fetchAttempts(user.id)));
     } catch (err) {
-      setAdaptiveError(err instanceof Error ? err.message : "Couldn't load your history to build the session.");
+      setAdaptiveError(describeError(err, "load your practice history to build the session").message);
     }
   }
 
   function beginSession(kind: string, exerciseIds: string[]) {
+    if (exerciseIds.length === 0) {
+      // e.g. a concept whose only exercises are real scenarios still awaiting review.
+      setNotice(`There are no exercises ready for ${kind === ADAPTIVE_SESSION ? "an adaptive session" : getConceptMeta(kind).pickerLabel} yet. Pick another concept.`);
+      setSession(null);
+      setLengthPickerConcept(null);
+      setShowPicker(true);
+      return;
+    }
+    setNotice(null);
     const fresh = createSession(kind, exerciseIds);
     saveSession(fresh);
     setSession(fresh);
@@ -145,6 +160,11 @@ export default function PracticePage() {
     return (
       <div className="flex flex-1 flex-col">
         <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-14">
+          {notice && (
+            <p className="mb-6 rounded-md border border-line bg-surface p-3 text-sm text-foreground" role="status">
+              {notice}
+            </p>
+          )}
           <ConceptPicker onPick={handlePickConcept} onPickAdaptive={handleStartAdaptive} adaptiveError={adaptiveError} />
         </div>
         <DisclaimerFooter />
@@ -203,7 +223,41 @@ export default function PracticePage() {
   const exerciseId = session.exercise_order[session.current_index];
   const exercise = getExercise(exerciseId);
   if (!exercise) {
-    throw new Error(`Missing exercise ${exerciseId}`);
+    // A saved session can outlive its exercises (e.g. a real scenario
+    // rejected at review after the session started). Offer a way on
+    // instead of crashing.
+    return (
+      <div className="flex flex-1 flex-col">
+        <div className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-14">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{conceptMeta.title}</h1>
+          <p className="mt-4 text-sm text-foreground">
+            The next exercise in this session is no longer available. It may have been withdrawn after review.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                const next = { ...session, current_index: session.current_index + 1 };
+                next.completed = next.current_index >= next.exercise_order.length;
+                saveSession(next);
+                setSession(next);
+              }}
+              className="inline-flex min-h-11 items-center rounded-md bg-accent px-5 text-sm font-medium text-accent-foreground"
+            >
+              Skip it
+            </button>
+            <button
+              type="button"
+              onClick={handleBackToPicker}
+              className="inline-flex min-h-11 items-center rounded-md border border-line px-5 text-sm font-medium text-foreground"
+            >
+              Start a new session
+            </button>
+          </div>
+        </div>
+        <DisclaimerFooter />
+      </div>
+    );
   }
 
   const attemptedCount = session.correct_count + session.missed_exercise_ids.length;
@@ -214,6 +268,30 @@ export default function PracticePage() {
       : exercise.answer_type === "level"
         ? userLevel !== null
         : userChoice !== null;
+
+  // Saving is the only async step. A failure keeps the built row so "Retry
+  // save" can resend it; session progress never depends on it.
+  async function saveAttempt(userId: string, exerciseId: string, build: (attemptNumber: number) => NewAttempt) {
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const row = build(await nextAttemptNumber(userId, exerciseId));
+      pendingRowRef.current = row;
+      await insertAttempt(userId, row);
+      pendingRowRef.current = null;
+    } catch (err) {
+      setSaveError(describeError(err, "save this attempt"));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function retrySave() {
+    if (!user) return;
+    const row = pendingRowRef.current;
+    if (!row) return;
+    await saveAttempt(user.id, row.exercise_id, (n) => ({ ...row, attempt_number: n }));
+  }
 
   // Grading happens synchronously and the verdict shows immediately — only
   // *saving* the attempt is async, so a slow or failed network write never
@@ -238,20 +316,11 @@ export default function PracticePage() {
     saveSession(updatedSession);
     setSession(updatedSession);
 
-    setSaving(true);
-    setSaveError(null);
     const responseTimeMs = msSince(exerciseStartRef.current);
 
-    try {
-      const attemptNumber = await nextAttemptNumber(user.id, exercise!.exercise_id);
-      await insertAttempt(user.id, buildAnswerAttempt(exercise!, answer, grade, { responseTimeMs, attemptNumber }));
-    } catch (err) {
-      setSaveError(
-        err instanceof Error ? err.message : "Couldn't save this attempt — your progress in this session is unaffected.",
-      );
-    } finally {
-      setSaving(false);
-    }
+    await saveAttempt(user.id, exercise!.exercise_id, (attemptNumber) =>
+      buildAnswerAttempt(exercise!, answer, grade, { responseTimeMs, attemptNumber }),
+    );
   }
 
   // Guided Entry's multi-step flow finalizes itself (Submit Setup or No
@@ -271,21 +340,12 @@ export default function PracticePage() {
     saveSession(updatedSession);
     setSession(updatedSession);
 
-    setSaving(true);
-    setSaveError(null);
     const responseTimeMs = msSince(exerciseStartRef.current);
 
 
-    try {
-      const attemptNumber = await nextAttemptNumber(user.id, exercise!.exercise_id);
-      await insertAttempt(user.id, buildGuidedAttempt(exercise! as GuidedExerciseData, answer, grade, { responseTimeMs, attemptNumber }));
-    } catch (err) {
-      setSaveError(
-        err instanceof Error ? err.message : "Couldn't save this attempt — your progress in this session is unaffected.",
-      );
-    } finally {
-      setSaving(false);
-    }
+    await saveAttempt(user.id, exercise!.exercise_id, (attemptNumber) =>
+      buildGuidedAttempt(exercise! as GuidedExerciseData, answer, grade, { responseTimeMs, attemptNumber }),
+    );
   }
 
   // Free Trade's playback runner grades itself when the scenario ends
@@ -305,21 +365,12 @@ export default function PracticePage() {
     saveSession(updatedSession);
     setSession(updatedSession);
 
-    setSaving(true);
-    setSaveError(null);
     const responseTimeMs = msSince(exerciseStartRef.current);
     const { position, exit } = attempt;
 
-    try {
-      const attemptNumber = await nextAttemptNumber(user.id, exercise!.exercise_id);
-      await insertAttempt(user.id, buildFreeTradeAttempt(exercise! as FreeTradeExerciseData, position, exit, grade, { responseTimeMs, attemptNumber }));
-    } catch (err) {
-      setSaveError(
-        err instanceof Error ? err.message : "Couldn't save this attempt — your progress in this session is unaffected.",
-      );
-    } finally {
-      setSaving(false);
-    }
+    await saveAttempt(user.id, exercise!.exercise_id, (attemptNumber) =>
+      buildFreeTradeAttempt(exercise! as FreeTradeExerciseData, position, exit, grade, { responseTimeMs, attemptNumber }),
+    );
   }
 
   async function handleSubmit() {
@@ -332,16 +383,29 @@ export default function PracticePage() {
         : exercise!.answer_type === "level"
           ? { type: "level", price: userLevel! }
           : { type: "choice", choice: userChoice! };
-    const grade = gradeAttempt(exercise!, answer);
+    const grade = safeGrade(answer);
+    if (!grade) return;
     setResult(grade);
     await recordAttempt(answer, grade);
+  }
+
+  /** Grading throws on malformed exercise data; show that instead of
+   * silently doing nothing. */
+  function safeGrade(answer: UserAnswer): GradeResult | null {
+    try {
+      return gradeAttempt(exercise!, answer);
+    } catch (err) {
+      setGradeError(`This exercise couldn't be graded (${err instanceof Error ? err.message : "bad data"}).`);
+      return null;
+    }
   }
 
   async function handleNoAnswer() {
     setUserRegion(null);
     setUserLevel(null);
     const answer: UserAnswer = { type: "none" };
-    const grade = gradeAttempt(exercise!, answer);
+    const grade = safeGrade(answer);
+    if (!grade) return;
     setResult(grade);
     await recordAttempt(answer, grade);
   }
@@ -358,6 +422,7 @@ export default function PracticePage() {
     setUserChoice(null);
     setResult(null);
     setSaveError(null);
+    setGradeError(null);
     // Best-effort, off the critical path — a failure here shouldn't block
     // showing the session summary (matching how ensureProfile is called).
     if (completed && user) {
@@ -389,12 +454,7 @@ export default function PracticePage() {
               onNext={handleNext}
               nextLabel={isLastExercise ? "See Results" : "Next Scenario"}
             />
-            {saving && <p className="mt-3 text-xs text-muted">Saving…</p>}
-            {saveError && (
-              <p className="mt-3 text-xs" style={{ color: "#e2685f" }}>
-                {saveError}
-              </p>
-            )}
+            <SaveStatus saving={saving} error={saveError} onRetry={retrySave} />
           </div>
         ) : exercise.answer_type === "guided" ? (
           <div className="mt-6">
@@ -405,12 +465,7 @@ export default function PracticePage() {
               onNext={handleNext}
               nextLabel={isLastExercise ? "See Results" : "Next Exercise"}
             />
-            {saving && <p className="mt-3 text-xs text-muted">Saving…</p>}
-            {saveError && (
-              <p className="mt-3 text-xs" style={{ color: "#e2685f" }}>
-                {saveError}
-              </p>
-            )}
+            <SaveStatus saving={saving} error={saveError} onRetry={retrySave} />
           </div>
         ) : (
           <>
@@ -445,15 +500,21 @@ export default function PracticePage() {
               )}
             </div>
 
-            {saving && <p className="mt-3 text-xs text-muted">Saving…</p>}
-            {saveError && (
-              <p className="mt-3 text-xs" style={{ color: "#e2685f" }}>
-                {saveError}
-              </p>
-            )}
+            <SaveStatus saving={saving} error={saveError} onRetry={retrySave} />
 
             <div className="mt-5">
-              {result ? (
+              {gradeError ? (
+                <div role="alert">
+                  <p className="text-sm" style={{ color: "#e2685f" }}>{gradeError}</p>
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="mt-3 inline-flex min-h-11 items-center rounded-md bg-accent px-5 text-sm font-medium text-accent-foreground"
+                  >
+                    Skip this exercise
+                  </button>
+                </div>
+              ) : result ? (
                 <FeedbackPanel
                   result={result}
                   onNext={handleNext}

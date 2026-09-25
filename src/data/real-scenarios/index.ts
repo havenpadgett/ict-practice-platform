@@ -192,4 +192,19 @@ export function parseRealScenario(raw: unknown): RealScenario {
   return raw as RealScenario;
 }
 
-export const realScenarios: RealScenario[] = registered.map(parseRealScenario);
+/** Registered files that failed validation. They're left out rather than
+ * crashing every page that imports exercises, and listed on /review so a
+ * broken file can't go unnoticed. */
+export const invalidRealScenarios: { id: string; error: string }[] = [];
+
+export const realScenarios: RealScenario[] = registered.flatMap((raw) => {
+  try {
+    return [parseRealScenario(raw)];
+  } catch (err) {
+    const id = (raw as { exercise_id?: unknown })?.exercise_id;
+    const error = err instanceof Error ? err.message : String(err);
+    invalidRealScenarios.push({ id: typeof id === "string" ? id : "(unknown)", error });
+    console.error(error);
+    return [];
+  }
+});

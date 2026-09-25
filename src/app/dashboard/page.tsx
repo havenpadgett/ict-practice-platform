@@ -18,6 +18,7 @@ import {
 } from "@/lib/attempts";
 import { CONCEPTS, type Concept } from "@/lib/concepts";
 import { fetchProfile } from "@/lib/profiles";
+import { describeError } from "@/lib/errors";
 import { recommendSession } from "@/lib/recommendations";
 import { clearLocalAttempts, getSessionScoreLabel, loadAttempts, loadSession } from "@/lib/storage";
 
@@ -50,7 +51,7 @@ export default function DashboardPage() {
       const rows = await fetchAttempts(userId);
       setAttempts(rows);
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : "Couldn't load your stats.");
+      setLoadError(describeError(err, "load your stats").message);
     } finally {
       setDataLoading(false);
     }

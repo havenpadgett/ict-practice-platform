@@ -15,6 +15,7 @@ import { ConceptDifficultyView, ProcessVsOutcomeView, RealVsConstructedView } fr
 import { ResponseTimeStatsView } from "@/components/analytics/response-time-stats";
 import { ErrorBanner } from "@/components/error-banner";
 import { LoadingState } from "@/components/loading-state";
+import { describeError } from "@/lib/errors";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import {
   getAccuracyByConceptAndDifficulty,
@@ -45,7 +46,7 @@ export default function AnalyticsPage() {
       const rows = await fetchAttempts(userId);
       setAttempts(rows);
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : "Couldn't load your analytics.");
+      setLoadError(describeError(err, "load your analytics").message);
     } finally {
       setDataLoading(false);
     }
