@@ -91,6 +91,20 @@ h4 {
   border-radius: 6px;
 }
 
+/* Loading placeholders appear only if loading takes a moment, so a fast
+ * load never flashes them. */
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.appear-late {
+  animation: appear 200ms ease-out 250ms both;
+}
+
 /* Micro-label: small uppercase monospace, muted — used as a section
  * eyebrow above a heading or a stat. */
 .eyebrow {

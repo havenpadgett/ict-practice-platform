@@ -1,10 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MigrationPrompt } from "@/components/auth/migration-prompt";
 import { ErrorBanner } from "@/components/error-banner";
 import { LoadingState } from "@/components/loading-state";
-import { PrimaryButton } from "@/components/primary-button";
 import { RecommendedSession } from "@/components/recommended-session";
 import { StatCard } from "@/components/stat-card";
 import { useRequireAuth } from "@/hooks/use-require-auth";
@@ -98,7 +98,16 @@ export default function DashboardPage() {
   }
 
   if (authLoading || !user) {
-    return <LoadingState />;
+    // Same shell as the loaded page, so nothing moves when data arrives.
+    return (
+      <div className="page">
+        <h1 className="page-title">Dashboard</h1>
+        <p className="page-lede">Your practice progress at a glance.</p>
+        <div className="mt-8">
+          <LoadingState label="Loading your stats…" variant="stats" />
+        </div>
+      </div>
+    );
   }
 
   const showMigrationPrompt = localCount > 0 && !migrationDismissed;
@@ -124,9 +133,7 @@ export default function DashboardPage() {
       <h1 className="page-title">
         Dashboard
       </h1>
-      <p className="mt-1 text-sm text-muted">
-        Your practice progress at a glance.
-      </p>
+      <p className="page-lede">Your practice progress at a glance.</p>
 
       {showMigrationPrompt && (
         <div className="mt-6">
@@ -142,11 +149,24 @@ export default function DashboardPage() {
 
       {dataLoading ? (
         <div className="mt-8">
-          <LoadingState label="Loading your stats…" />
+          <LoadingState label="Loading your stats…" variant="stats" />
         </div>
       ) : loadError ? (
         <div className="mt-8">
           <ErrorBanner message={loadError} onRetry={() => loadStats(user.id)} />
+        </div>
+      ) : attempts && attempts.length === 0 ? (
+        // A brand-new account: no empty stat tiles, just where to begin.
+        <div className="mt-8 space-y-6">
+          <div className="card">
+            <p className="eyebrow">Getting started</p>
+            <h2 className="mt-2 text-xl">Your stats start with your first session</h2>
+            <p className="mt-2 text-sm text-muted">
+              Accuracy, streaks and per-concept breakdowns appear here once you&apos;ve answered a few exercises. Each
+              one takes under a minute, and every answer comes with an explanation.
+            </p>
+          </div>
+          <RecommendedSession recommendation={recommendSession(attempts)} />
         </div>
       ) : (
         <>
@@ -180,7 +200,9 @@ export default function DashboardPage() {
       )}
 
       <div className="mt-10">
-        <PrimaryButton href="/practice">Start Practicing</PrimaryButton>
+        <Link href="/practice" className="btn-secondary">
+          Browse all concepts
+        </Link>
       </div>
     </div>
   );

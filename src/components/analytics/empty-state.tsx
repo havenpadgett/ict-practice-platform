@@ -2,13 +2,15 @@ import { PrimaryButton } from "@/components/primary-button";
 
 export function AnalyticsEmptyState() {
   return (
-    <div className="mt-8 rounded-lg border border-line bg-surface p-6 text-center sm:p-8">
-      <p className="text-base font-semibold text-foreground">No practice data yet</p>
+    <div className="card mt-8">
+      <p className="eyebrow">No data yet</p>
+      <h2 className="mt-2 text-xl">Analytics fill in as you practice</h2>
       <p className="mt-2 text-sm text-muted">
-        Complete a few exercises and your accuracy, trends, and recommendations will show up here.
+        After your first exercises you&apos;ll see accuracy over time, by concept and difficulty, how real market data
+        compares with constructed exercises, and what to practice next.
       </p>
-      <div className="mt-5 flex justify-center">
-        <PrimaryButton href="/practice">Start Practicing</PrimaryButton>
+      <div className="mt-6">
+        <PrimaryButton href="/practice">Start practicing</PrimaryButton>
       </div>
     </div>
   );

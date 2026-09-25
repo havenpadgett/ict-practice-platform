@@ -62,27 +62,24 @@ export default function AnalyticsPage() {
   }, [user]);
 
   if (authLoading || !user) {
-    return <LoadingState />;
+    // Same shell as the loaded page, so nothing moves when data arrives.
+    return (
+      <div className="page">
+        <AnalyticsHeader />
+        <div className="mt-8">
+          <LoadingState label="Loading your analytics…" variant="stats" />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="page">
-      <h1 className="page-title">
-        Analytics
-      </h1>
-      <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted">How your practice is trending.</p>
-        <a
-          href="/api/export/attempts"
-          className="inline-flex min-h-11 items-center text-sm text-muted underline underline-offset-2 hover:text-foreground"
-        >
-          Export CSV
-        </a>
-      </div>
+      <AnalyticsHeader />
 
       {dataLoading ? (
         <div className="mt-8">
-          <LoadingState label="Loading your analytics…" />
+          <LoadingState label="Loading your analytics…" variant="stats" />
         </div>
       ) : loadError ? (
         <div className="mt-8">
@@ -98,6 +95,21 @@ export default function AnalyticsPage() {
 }
 
 const TREND_WINDOW = 10;
+
+/** Shared by the loading shell and the loaded page so nothing shifts. */
+function AnalyticsHeader() {
+  return (
+    <>
+      <h1 className="page-title">Analytics</h1>
+      <div className="mt-1 flex flex-wrap items-center justify-between gap-x-4">
+        <p className="text-sm text-muted sm:text-base">How your practice is trending.</p>
+        <a href="/api/export/attempts" className="btn-link">
+          Export CSV
+        </a>
+      </div>
+    </>
+  );
+}
 
 function AnalyticsContent({ attempts }: { attempts: DbAttempt[] }) {
   const overall = getOverallStats(attempts);
