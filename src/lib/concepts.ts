@@ -11,13 +11,15 @@ export type Concept =
   | "GuidedEntry"
   | "FreeTrade"
   | "TimeLiquidity"
-  | "PremiumDiscount";
+  | "PremiumDiscount"
+  | "OrderBlock";
 
 export const CONCEPT_LIST: Concept[] = [
   "FVG",
   "Liquidity",
   "MSS",
   "IFVG",
+  "OrderBlock",
   "TimeLiquidity",
   "PremiumDiscount",
   "GuidedEntry",
@@ -53,6 +55,11 @@ export const CONCEPTS: Record<Concept, ConceptMeta> = {
     title: "IFVG Practice",
     pickerLabel: "Inverse Fair Value Gap",
     pickerDescription: "Spot a Fair Value Gap that failed and now acts as the opposite level.",
+  },
+  OrderBlock: {
+    title: "Order Block Practice",
+    pickerLabel: "Order Block",
+    pickerDescription: "Mark the last opposing candle before a displacement that broke structure.",
   },
   TimeLiquidity: {
     title: "Time-Based Liquidity Practice",

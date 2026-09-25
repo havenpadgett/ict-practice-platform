@@ -9,6 +9,7 @@ docs/SCENARIO-VALIDATION.md.
 
 Rule -> exercise mapping:
   fvg                             FVG, zone answer
+  order_block                     OrderBlock, zone answer
   equal_highs / equal_lows        Liquidity, level answer (buy/sell side)
   mss                             MSS, level answer (the broken swing)
   previous_day_*, ny_am_*, weekly_*   TimeLiquidity, level answer
@@ -40,6 +41,10 @@ TIME_RULES = {
     "weekly_high": ("Previous Week High", "Mark the previous trading week's high.", "No previous week high visible"),
     "weekly_low": ("Previous Week Low", "Mark the previous trading week's low.", "No previous week low visible"),
 }
+
+# Rules that read structure from context bars (docs/CURRICULUM.md, MSS and
+# Order Blocks), so their windows include them.
+STRUCTURE_RULES = ("mss", "order_block")
 
 DRAFT_NOTE = "[DRAFT - generated from the detection rule; rewrite in plain language during review.]"
 
@@ -84,6 +89,24 @@ def map_exercise(cand: Dict[str, Any], start: int) -> Dict[str, Any]:
                 f"{'low' if cand['direction'] == 'bullish' else 'high'} leave the range "
                 f"{levels['price_low']:g}-{levels['price_high']:g} untraded."
             ),
+        }
+    if rule == "order_block":
+        k = cand["ob_index"] - start
+        return {
+            "concept": "OrderBlock",
+            "answer_type": "zone",
+            "answerLabel": "Order Block",
+            "prompt": "Identify the Order Block, if there is one.",
+            "noAnswerLabel": "No Order Block present",
+            "answer": {
+                "type": cand["direction"],
+                "price_low": levels["price_low"],
+                "price_high": levels["price_high"],
+                "candle_start": k,
+                "candle_end": k,
+                "key_candle_index": k,
+            },
+            "explanation": f"{DRAFT_NOTE} {cand['notes']}.",
         }
     if rule in ("equal_highs", "equal_lows"):
         buy = rule == "equal_highs"
@@ -171,7 +194,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     if window_mode == "session":
         day = trading_date(candles[cand["anchor_index"]]["_dt"])
         idxs = [i for i, c in enumerate(candles) if trading_date(c["_dt"]) == day
-                and (cand["rule"] == "mss" or not c.get("context"))]
+                and (cand["rule"] in STRUCTURE_RULES or not c.get("context"))]
         start, end = idxs[0], idxs[-1]
     else:
         start, end = default_window(cand, args.before, args.after)
@@ -253,7 +276,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             "date_range": {"start": window[0]["timestamp"], "end": window[-1]["timestamp"]},
             "trading_date": trading_date(candles[cand["anchor_index"]]["_dt"]).isoformat(),
             "session": selection.get("session", "all"),
-            "context_start": selection.get("context_start") if cand["rule"] == "mss" else None,
+            "context_start": selection.get("context_start") if cand["rule"] in STRUCTURE_RULES else None,
             "timeframe": timeframe_label(meta["timeframe_minutes"]),
             "detection_rule": cand["rule"],
             "candidate_id": cand["id"],

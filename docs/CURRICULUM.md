@@ -111,6 +111,42 @@ Swing highs (lows) count as equal when they are within **0.05% of the first touc
 
 **Confirmation:** the flip is confirmed the same way as [respected/disrespected](#fair-value-gap--respected-vs-disrespected) above — by a candle body close, not a wick.
 
+## Order Blocks
+
+**Provenance:** AI-DRAFTED (2026-09-24). The core definition was given by Haven; the operational details were chosen by Claude. Pending Haven's review.
+
+**What it is:** the **last opposing candle before a displacement move that breaks structure**. For a bullish block, that is the last down-close candle before a strong move up; for a bearish block, the last up-close candle before a strong move down. It marks where institutional orders were placed. The zone is that candle's range.
+
+- **Confirmation:** the move away must be a genuine **displacement**, not ordinary movement, and it must **break a structural level**. A fast move that stalls below the last swing high is just a bounce, so there's no order block.
+- **Mitigated:** price later returns into the block and reacts. It trades into the zone and a candle then closes back out on the favourable side (above the block for bullish, below for bearish).
+- **Invalidated:** a candle **body closes through** the block (below its low for bullish, above its high for bearish). Wicks through it don't count. This is the same body-close principle used for FVG respect and MSS.
+
+**Operational details (AI-DRAFTED):**
+- **Zone = the candle's full high–low range**, not just its body. The wicks are part of where the orders filled, and a range is easier for a beginner to see and draw than a body.
+- **Structure break** = the first body close beyond the most recent confirmed swing (the same lookback-2 fractal swings as MSS). A break in the trend's own direction counts too, so an order block can form on a continuation as well as on a shift. On NY AM charts the swings are read from 07:00 ET, the same structure context as MSS. The block itself and the break must be inside the session.
+- **Displacement** = **1 to 3 consecutive candles closing in the move's direction**, ending with the break candle, that cover at least **2× the trailing median bar range** from the first candle's open to the break candle's close. That is the same median-range measure as the FVG floor. Twice a typical bar's range within at most three candles is clearly faster than normal movement. A slow grind that eventually breaks a swing doesn't qualify, however far it goes. The candle right before the leg must actually close the opposite way; a doji is not an order block.
+
+**How often it appears** (Dec 2022–Dec 2025, the same data as the other rules): 207 order blocks on 5m NY AM (79 bullish, 128 bearish), in 188 of 736 sessions (26%). There are 209 on 15m RTH (75 bullish, 134 bearish), in 177 of 736 sessions (24%). Within the session they formed in:
+
+| | Mitigated | Invalidated | Neither |
+|---|---|---|---|
+| 5m NY AM | 60 | 15 | 132 |
+| 15m RTH | 67 | 17 | 125 |
+
+The displacement threshold decides most of the count:
+
+| Displacement threshold | 1.5× | 2× | 2.5× |
+|---|---|---|---|
+| 5m NY AM | 398 | 207 | 101 |
+| 15m RTH | 383 | 209 | 123 |
+
+**Exercises** (`src/data/order-block-exercises.ts`, zone answer type, constructed and verified with the same detection rule):
+- a clean bullish block;
+- a clean bearish block;
+- a bullish block that price later mitigates;
+- a bearish block preceded by several up-close candles, where only the last counts;
+- a no-answer chart where a sharp bounce off a low stalls below the lower high without breaking structure.
+
 ## Premium and Discount
 
 **Provenance:** AI-DRAFTED (2026-09-24) — the core definition was given by Haven; the operational details (which swings, how current price is read, the equilibrium band) were chosen by Claude. Pending Haven's review.

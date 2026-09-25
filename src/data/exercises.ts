@@ -4,6 +4,7 @@
 // cross-reference with the doc.
 
 import { freeTradeScenarios } from "@/data/free-trade-scenarios";
+import { orderBlockExercises } from "@/data/order-block-exercises";
 import { premiumDiscountExercises } from "@/data/premium-discount-exercises";
 import { realScenarios } from "@/data/real-scenarios";
 import { timeLiquidityExercises } from "@/data/time-liquidity-exercises";
@@ -2901,6 +2902,7 @@ const conceptExercises: Exercise[] = [
 // ones are ever offered in practice (see isPracticeReady below).
 export const exercises: Exercise[] = [
   ...conceptExercises,
+  ...orderBlockExercises,
   ...timeLiquidityExercises,
   ...premiumDiscountExercises,
   ...freeTradeScenarios,

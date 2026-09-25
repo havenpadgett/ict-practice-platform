@@ -19,6 +19,17 @@ disagree, the curriculum is right and this is a bug:
                       highs and last two swing lows both rising), the first
                       close below the most recent higher low (bearish);
                       mirrored for a downtrend (bullish). Level = the swing.
+  order_block         Last opposing candle before a displacement that breaks
+                      structure: the leg is 1-3 consecutive candles closing
+                      in the move's direction, ending with the first body
+                      close beyond the most recent confirmed swing, and
+                      covering at least --ob-displacement-mult x the
+                      trailing median bar range (open of the leg to close of
+                      the break). The candle just before the leg must close
+                      the opposite way (down-close for bullish). Zone = that
+                      candle's high-low. Reports when it was mitigated
+                      (price returned and closed back out on the favourable
+                      side) or invalidated (a body closed through it).
   dealing_range       Premium/discount at the end of each session: the most
                       recent confirmed swing high and swing low that price
                       has not traded beyond since. Equilibrium = midpoint;
@@ -65,8 +76,10 @@ from common import Candle, in_ny_am, load_clean, round_price, trading_date, trad
 FVG_MIN_RANGE_MULT = 0.25
 RANGE_WINDOW = 100
 EQUAL_TOLERANCE_PCT = 0.05
+OB_DISPLACEMENT_MULT = 2.0
+OB_MAX_LEG = 3
 
-ALL_RULES = ["fvg", "equal_highs", "equal_lows", "mss", "dealing_range", "previous_day", "ny_am", "weekly"]
+ALL_RULES = ["fvg", "equal_highs", "equal_lows", "mss", "order_block", "dealing_range", "previous_day", "ny_am", "weekly"]
 
 
 def ts(candles: List[Candle], i: int) -> str:
@@ -237,10 +250,74 @@ def to_global(c: Dict[str, Any], offset: int) -> Dict[str, Any]:
     """Shift a candidate's session-relative indices to indices in the full series."""
     c["involved_indices"] = [i + offset for i in c["involved_indices"]]
     c["anchor_index"] += offset
-    for key in ("swing_index", "break_index", "high_index", "low_index"):
-        if key in c:
+    for key in ("swing_index", "break_index", "high_index", "low_index", "ob_index", "mitigated_index", "invalidated_index"):
+        if c.get(key) is not None:
             c[key] += offset
     return c
+
+
+# ---- Order blocks ------------------------------------------------------------
+
+def detect_order_blocks(candles: List[Candle], highs: List[int], lows: List[int], n: int, med: List[float],
+                        first: int, disp_mult: float, max_leg: int = OB_MAX_LEG) -> List[Dict[str, Any]]:
+    """`med` is the trailing median bar range per bar; `first` is the first
+    session bar (earlier bars are structure context only)."""
+    out = []
+    used = set()
+    for i in range(max(first, 1), len(candles)):
+        c, prev = candles[i], candles[i - 1]
+        for bull in (True, False):
+            swings = [s for s in (highs if bull else lows) if s + n < i]
+            if not swings or (bull, swings[-1]) in used:
+                continue
+            level = candles[swings[-1]]["high" if bull else "low"]
+            if not (c["close"] > level >= prev["close"] if bull else c["close"] < level <= prev["close"]):
+                continue
+            used.add((bull, swings[-1]))  # only the first close beyond a swing is its break
+
+            def with_move(k: int) -> bool:
+                return candles[k]["close"] > candles[k]["open"] if bull else candles[k]["close"] < candles[k]["open"]
+
+            if not with_move(i):
+                continue
+            j = i
+            while j - 1 >= 0 and with_move(j - 1):
+                j -= 1
+            ob = j - 1
+            if ob < first or i - j + 1 > max_leg:
+                continue
+            o = candles[ob]
+            if not (o["close"] < o["open"] if bull else o["close"] > o["open"]):
+                continue
+            move = abs(c["close"] - candles[j]["open"])
+            if med[i] <= 0 or move < disp_mult * med[i]:
+                continue
+            # What happened next, within the session.
+            mitigated = invalidated = None
+            touched = False
+            for k in range(i + 1, len(candles)):
+                b = candles[k]
+                if (b["close"] < o["low"]) if bull else (b["close"] > o["high"]):
+                    invalidated = k
+                    break
+                if (b["low"] <= o["high"]) if bull else (b["high"] >= o["low"]):
+                    touched = True
+                if touched and ((b["close"] > o["high"]) if bull else (b["close"] < o["low"])):
+                    mitigated = k
+                    break
+            direction = "bullish" if bull else "bearish"
+            status = (f"mitigated at {ts(candles, mitigated)}" if mitigated is not None
+                      else f"invalidated at {ts(candles, invalidated)}" if invalidated is not None
+                      else "untouched" if not touched else "revisited, unresolved")
+            out.append(candidate("order_block", direction, cid("order_block", candles, ob, direction), candles,
+                                 [ob] + list(range(j, i + 1)), i,
+                                 {"price_low": o["low"], "price_high": o["high"], "broken_swing": level},
+                                 f"last {'down' if bull else 'up'}-close candle before a {i - j + 1}-candle displacement of "
+                                 f"{move:g} points ({move / med[i]:.1f}x median range) closing beyond the swing at {level:g}; {status}",
+                                 {"ob_index": ob, "break_index": i, "swing_index": swings[-1],
+                                  "displacement_ratio": round(move / med[i], 2),
+                                  "mitigated_index": mitigated, "invalidated_index": invalidated}))
+    return out
 
 
 # ---- Dealing range (premium / discount) --------------------------------------
@@ -334,6 +411,8 @@ def main(argv: Optional[List[str]] = None) -> int:
                     help=f"max spread for equal highs/lows, as %% of the first touch's price (default {EQUAL_TOLERANCE_PCT:g})")
     ap.add_argument("--fvg-min-range-mult", type=float, default=FVG_MIN_RANGE_MULT,
                     help=f"ignore gaps smaller than this multiple of the trailing median bar range (default {FVG_MIN_RANGE_MULT:g})")
+    ap.add_argument("--ob-displacement-mult", type=float, default=OB_DISPLACEMENT_MULT,
+                    help=f"order blocks: minimum displacement as a multiple of the trailing median bar range (default {OB_DISPLACEMENT_MULT:g})")
     ap.add_argument("--range-window", type=int, default=RANGE_WINDOW,
                     help=f"bars in the trailing median bar range window (default {RANGE_WINDOW})")
     args = ap.parse_args(argv)
@@ -354,7 +433,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         # A day's or week's high/low needs every bar of it, overnight included.
         rules = [r for r in rules if r not in partial_rules]
         print(f"NOTE: skipped {', '.join(partial_rules)} - the data holds only the {session} session, not full days.")
-    fvg_min_sizes = [m * args.fvg_min_range_mult for m in session_median_range(candles, args.range_window)]
+    median_ranges = session_median_range(candles, args.range_window)
+    fvg_min_sizes = [m * args.fvg_min_range_mult for m in median_ranges]
 
     found: List[Dict[str, Any]] = []
     swing_high_count = swing_low_count = 0
@@ -377,6 +457,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         if "dealing_range" in rules and core:
             in_core += detect_dealing_range(core, highs, lows, n)
         found += [to_global(c, core_offset) for c in in_core]
+        if "order_block" in rules:
+            day_highs, day_lows = swing_highs(day, n), swing_lows(day, n)
+            found += [to_global(c, offset) for c in detect_order_blocks(
+                day, day_highs, day_lows, n, median_ranges[offset:offset + len(day)], n_ctx, args.ob_displacement_mult)]
         if "mss" in rules:
             for c in detect_mss(day, swing_highs(day, n), swing_lows(day, n), n):
                 if n_ctx:
@@ -393,7 +477,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     found.sort(key=lambda c: (c["anchor_index"], c["rule"]))
 
     params = {"rules": rules, "swing_lookback": n, "equal_tolerance_pct": args.equal_tolerance_pct,
-              "fvg_min_range_mult": args.fvg_min_range_mult, "range_window": args.range_window}
+              "fvg_min_range_mult": args.fvg_min_range_mult, "range_window": args.range_window,
+              "ob_displacement_mult": args.ob_displacement_mult, "ob_max_leg": OB_MAX_LEG}
     out_path = Path(args.output) if args.output else Path(args.clean).with_name(Path(args.clean).name.replace(".clean.json", "") + ".candidates.json")
     write_json(out_path, {
         "meta": {**data["meta"], "detection_params": params, "clean_file": Path(args.clean).name,
