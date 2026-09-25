@@ -19,6 +19,7 @@ const ROOT = process.cwd();
 const SCENARIO_DIR = path.join(ROOT, "src", "data", "real-scenarios");
 const REGISTRY = path.join(SCENARIO_DIR, "index.ts");
 const VALIDATION_DOC = path.join(ROOT, "docs", "SCENARIO-VALIDATION.md");
+const CATALOG = path.join(ROOT, "src", "data", "exercise-catalog.json");
 const ID_PATTERN = /^real-[a-z]+-\d{3}$/;
 const DRAFT_MARKER = "[DRAFT";
 const LOG_PLACEHOLDER = "| — | — | — | — | — | — | No real scenarios reviewed yet |";
@@ -76,6 +77,17 @@ async function appendReviewLog(row: string[]): Promise<void> {
 }
 
 /** The reviewer's local calendar date (the dev server runs on their machine). */
+/** Keep the generated catalog (src/data/catalog.ts) in step with a review
+ * decision: approved -> practice_ready, rejected -> gone. */
+async function updateCatalog(id: string, change: "approve" | "reject"): Promise<void> {
+  const entries = JSON.parse(await fs.readFile(CATALOG, "utf8")) as { exercise_id: string; practice_ready: boolean }[];
+  const next =
+    change === "reject"
+      ? entries.filter((e) => e.exercise_id !== id)
+      : entries.map((e) => (e.exercise_id === id ? { ...e, practice_ready: true } : e));
+  await fs.writeFile(CATALOG, JSON.stringify(next, null, 1) + "\n");
+}
+
 function today(): string {
   return new Date().toLocaleDateString("en-CA");
 }
@@ -115,6 +127,7 @@ export async function approveScenario(
   };
   parseRealScenario(s); // same contract the app enforces at load
   await fs.writeFile(scenarioPath(id), JSON.stringify(s, null, 2) + "\n");
+  await updateCatalog(id, "approve");
   await appendReviewLog([
     today(), id, String(s.provenance.candidate_id), String(s.provenance.detection_rule), "Approved", reviewer, notes.trim() || "—",
   ]);
@@ -133,6 +146,7 @@ export async function rejectScenario(id: string, reviewer: string, reason: strin
   const updated = registry.replace(importLine, "").replace(new RegExp(`^  ${match[1]},\\n`, "m"), "");
   await fs.writeFile(REGISTRY, updated);
   await fs.unlink(scenarioPath(id));
+  await updateCatalog(id, "reject");
   await appendReviewLog([
     today(), id, String(s.provenance.candidate_id), String(s.provenance.detection_rule), "Rejected", reviewer, reason,
   ]);

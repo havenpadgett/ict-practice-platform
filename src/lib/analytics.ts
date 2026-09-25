@@ -2,7 +2,7 @@
 // calls here (src/lib/attempts.ts owns fetching) — this only derives
 // numbers, kept separate so the page/components stay display-only.
 
-import { getExercise } from "@/data/exercises";
+import { getExerciseMeta } from "@/data/catalog";
 import type { DbAttempt } from "@/lib/attempts";
 
 export type OverallStats = {
@@ -103,7 +103,7 @@ export function getAccuracyByExercise(attempts: DbAttempt[]): ExerciseAccuracy[]
   return Array.from(byExercise.entries())
     .map(([exerciseId, { concept, correct, total }]) => ({
       exerciseId,
-      label: getExercise(exerciseId)?.answerLabel ?? exerciseId,
+      label: getExerciseMeta(exerciseId)?.answerLabel ?? exerciseId,
       concept,
       total,
       correct,
@@ -282,7 +282,7 @@ export type RealVsConstructed = {
 
 /** Real-data scenarios (those with provenance) vs hand-built exercises. */
 export function getRealVsConstructed(attempts: DbAttempt[]): RealVsConstructed {
-  const isReal = (a: DbAttempt) => getExercise(a.exercise_id)?.provenance !== undefined;
+  const isReal = (a: DbAttempt) => getExerciseMeta(a.exercise_id)?.real === true;
   const real = attempts.filter(isReal);
   const constructed = attempts.filter((a) => !isReal(a));
   const byConcept: RealVsConstructed["byConcept"] = [];

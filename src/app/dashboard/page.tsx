@@ -9,6 +9,7 @@ import { RecommendedSession } from "@/components/recommended-session";
 import { StatCard } from "@/components/stat-card";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import {
+  DASHBOARD_COLUMNS,
   fetchAttempts,
   getAccuracyByConcept,
   getExercisesCompletedCount,
@@ -48,7 +49,7 @@ export default function DashboardPage() {
     setDataLoading(true);
     setLoadError(null);
     try {
-      const rows = await fetchAttempts(userId);
+      const rows = await fetchAttempts(userId, DASHBOARD_COLUMNS);
       setAttempts(rows);
     } catch (err) {
       setLoadError(describeError(err, "load your stats").message);

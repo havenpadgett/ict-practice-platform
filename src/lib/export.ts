@@ -2,7 +2,7 @@
 // attempt, every column self-contained — no joins back to exercise content
 // needed. Column meanings: docs/ANALYTICS.md.
 
-import { getExercise } from "@/data/exercises";
+import { getExerciseMeta } from "@/data/catalog";
 import type { DbAttempt } from "@/lib/attempts";
 import { getConceptMeta } from "@/lib/concepts";
 
@@ -30,7 +30,7 @@ export const EXPORT_COLUMNS: { name: string; value: (a: DbAttempt, u: ExportUser
   { name: "attempted_at_utc", value: (a) => new Date(a.created_at).toISOString() },
   { name: "attempted_date_utc", value: (a) => new Date(a.created_at).toISOString().slice(0, 10) },
   { name: "exercise_id", value: (a) => a.exercise_id },
-  { name: "exercise_label", value: (a) => getExercise(a.exercise_id)?.answerLabel ?? null },
+  { name: "exercise_label", value: (a) => getExerciseMeta(a.exercise_id)?.answerLabel ?? null },
   { name: "concept", value: (a) => a.concept },
   { name: "concept_label", value: (a) => getConceptMeta(a.concept).pickerLabel },
   { name: "mode", value: (a) => MODES[a.answer_type] ?? a.answer_type },
@@ -40,12 +40,12 @@ export const EXPORT_COLUMNS: { name: string; value: (a: DbAttempt, u: ExportUser
   {
     name: "data_source",
     value: (a) => {
-      const e = getExercise(a.exercise_id);
-      return e === undefined ? "unknown" : e.provenance ? "real" : "constructed";
+      const e = getExerciseMeta(a.exercise_id);
+      return e === undefined ? "unknown" : e.real ? "real" : "constructed";
     },
   },
-  { name: "real_trading_date", value: (a) => getExercise(a.exercise_id)?.provenance?.trading_date ?? null },
-  { name: "timeframe", value: (a) => getExercise(a.exercise_id)?.timeframe ?? null },
+  { name: "real_trading_date", value: (a) => getExerciseMeta(a.exercise_id)?.trading_date ?? null },
+  { name: "timeframe", value: (a) => getExerciseMeta(a.exercise_id)?.timeframe ?? null },
   { name: "is_correct", value: (a) => flag(a.is_correct) },
   { name: "failure_reason", value: (a) => a.failure_reason },
   { name: "response_time_ms", value: (a) => a.response_time_ms },

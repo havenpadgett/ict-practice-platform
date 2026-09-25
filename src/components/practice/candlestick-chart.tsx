@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { Candle, DealingRange } from "@/data/exercises";
 import { ChartTimeBackground, ChartTimeLabels } from "@/components/practice/chart-time-layer";
 import { useRenderedWidth } from "@/hooks/use-rendered-width";
@@ -160,18 +160,49 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
           ...(props.idealTarget !== null && props.idealTarget !== undefined ? [props.idealTarget] : []),
         ]
       : [];
-  const layout = buildChartLayout(
-    candles,
-    viewBox.width,
-    viewBox.height,
-    props.answerType === "free"
-      ? { extraSlots: props.extraSlots, extraPrices: freeOverlayPrices, marginRatio: FREE_PRICE_MARGIN_RATIO }
-      : {},
+  const extraSlots = props.answerType === "free" ? props.extraSlots : null;
+  const overlayKey = freeOverlayPrices.join(",");
+  // Layout, time context and the candle marks only change with the data or
+  // the chart size — not on every pointer move while the user drags a box
+  // or line, which re-renders this component many times a second.
+  const layout = useMemo(
+    () =>
+      buildChartLayout(
+        candles,
+        viewBox.width,
+        viewBox.height,
+        extraSlots !== null
+          ? {
+              extraSlots,
+              extraPrices: overlayKey ? overlayKey.split(",").map(Number) : [],
+              marginRatio: FREE_PRICE_MARGIN_RATIO,
+            }
+          : {},
+      ),
+    [candles, viewBox.width, viewBox.height, extraSlots, overlayKey],
   );
   const bounds = plotBounds(layout);
   const slotW = slotWidth(layout);
   // Null for constructed exercises without timestamps — no time layer.
-  const timeContext = buildTimeContext(candles);
+  const timeContext = useMemo(() => buildTimeContext(candles), [candles]);
+  const candleMarks = useMemo(() => {
+    const b = plotBounds(layout);
+    const w = slotWidth(layout);
+    return candles.map((candle, index) => {
+      const x = b.left + w * index + w / 2;
+      const bodyTop = priceToY(layout, Math.max(candle.open, candle.close));
+      const bodyBottom = priceToY(layout, Math.min(candle.open, candle.close));
+      const color = candle.close >= candle.open ? UP_COLOR : DOWN_COLOR;
+      const bodyWidth = w * 0.6;
+      return (
+        // Index, not time: multi-day real data repeats "HH:MM" labels.
+        <g key={index}>
+          <line x1={x} x2={x} y1={priceToY(layout, candle.high)} y2={priceToY(layout, candle.low)} stroke={color} strokeWidth={1} />
+          <rect x={x - bodyWidth / 2} y={bodyTop} width={bodyWidth} height={Math.max(1, bodyBottom - bodyTop)} fill={color} />
+        </g>
+      );
+    });
+  }, [candles, layout]);
 
   // Browser pointer events report coordinates in real screen pixels, but our
   // layout math lives in the SVG's viewBox units. This converts one to the
@@ -363,36 +394,7 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
       {timeContext && <ChartTimeBackground ctx={timeContext} bounds={bounds} slotW={slotW} />}
 
       {/* Candles */}
-      {candles.map((candle, index) => {
-        const x = bounds.left + slotW * index + slotW / 2;
-        const bodyTop = priceToY(layout, Math.max(candle.open, candle.close));
-        const bodyBottom = priceToY(layout, Math.min(candle.open, candle.close));
-        const wickTop = priceToY(layout, candle.high);
-        const wickBottom = priceToY(layout, candle.low);
-        const color = candle.close >= candle.open ? UP_COLOR : DOWN_COLOR;
-        const bodyWidth = slotW * 0.6;
-
-        return (
-          // Index, not time: multi-day real data repeats "HH:MM" labels.
-          <g key={index}>
-            <line
-              x1={x}
-              x2={x}
-              y1={wickTop}
-              y2={wickBottom}
-              stroke={color}
-              strokeWidth={1}
-            />
-            <rect
-              x={x - bodyWidth / 2}
-              y={bodyTop}
-              width={bodyWidth}
-              height={Math.max(1, bodyBottom - bodyTop)}
-              fill={color}
-            />
-          </g>
-        );
-      })}
+      {candleMarks}
 
       {timeContext && <ChartTimeLabels ctx={timeContext} bounds={bounds} slotW={slotW} hideDates={props.hideDates} />}
 

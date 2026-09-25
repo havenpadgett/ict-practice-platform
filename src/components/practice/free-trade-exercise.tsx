@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useReducer, useRef } from "react";
+import { useEffect, useMemo, useReducer, useRef } from "react";
 import { CandlestickChart } from "@/components/practice/candlestick-chart";
 import { FreeTradeFeedback } from "@/components/practice/free-trade-feedback";
 import type { FreeTradeDirection, FreeTradeExercise as FreeTradeExerciseData } from "@/data/exercises";
@@ -218,9 +218,15 @@ export function FreeTradeExercise({
   const hiddenCount = exercise.hidden_candles.length;
   // Only revealed candles are ever passed to the chart — until the scenario
   // ends, when the whole thing is shown with the ideal levels overlaid.
-  const candles = done
-    ? [...exercise.candles, ...exercise.hidden_candles]
-    : [...exercise.candles, ...exercise.hidden_candles.slice(0, state.revealed)];
+  // Memoized so the chart's layout and candle marks aren't rebuilt on
+  // renders that don't reveal anything (placing a stop, playback speed…).
+  const candles = useMemo(
+    () =>
+      done
+        ? [...exercise.candles, ...exercise.hidden_candles]
+        : [...exercise.candles, ...exercise.hidden_candles.slice(0, state.revealed)],
+    [exercise, done, state.revealed],
+  );
 
   const trade = state.trade;
   const placing = state.phase === "placing";

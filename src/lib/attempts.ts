@@ -2,7 +2,7 @@
 // content stays in code (src/data/exercises.ts) — this only ever touches
 // the `attempts` table, which holds nothing but what a specific user did.
 
-import { getExercise } from "@/data/exercises";
+import { getExerciseMeta } from "@/data/catalog";
 import { createClient } from "@/lib/supabase/client";
 import type { StoredAttempt } from "@/lib/storage";
 
@@ -97,15 +97,39 @@ export const NULL_FREE_TRADE_FIELDS = {
   free_decision_correct: null,
 } satisfies Partial<NewAttempt>;
 
-export async function fetchAttempts(userId: string): Promise<DbAttempt[]> {
+/** Just what the dashboard reads (overall/concept accuracy and the
+ * recommendation engine, including its sub-skill step/check flags) — about
+ * a third of a full row. The other columns come back undefined. */
+export const DASHBOARD_COLUMNS = [
+  "id",
+  "exercise_id",
+  "concept",
+  "difficulty",
+  "answer_type",
+  "is_correct",
+  "created_at",
+  "guided_bias_correct",
+  "guided_entry_correct",
+  "guided_stop_correct",
+  "guided_target_correct",
+  "free_decision_correct",
+  "free_direction_correct",
+  "free_entry_correct",
+  "free_stop_correct",
+  "free_rr_correct",
+].join(",");
+
+/** Ascending by created_at. `columns` narrows the select for pages that
+ * don't need every field; the default is the full row. */
+export async function fetchAttempts(userId: string, columns = "*"): Promise<DbAttempt[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("attempts")
-    .select("*")
+    .select(columns)
     .eq("user_id", userId)
     .order("created_at", { ascending: true });
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as unknown as DbAttempt[];
 }
 
 /** "Repeat exposure to the same exercise" (PRD Section 9) — how many times
@@ -146,7 +170,7 @@ export async function migrateLocalAttempts(
   if (localAttempts.length === 0) return 0;
 
   const rows = localAttempts.map((a) => {
-    const exercise = getExercise(a.exercise_id);
+    const exercise = getExerciseMeta(a.exercise_id);
     return {
       user_id: userId,
       exercise_id: a.exercise_id,

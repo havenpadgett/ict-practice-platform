@@ -16,13 +16,14 @@ import { SaveStatus } from "@/components/save-status";
 import {
   buildSessionExerciseIds,
   getExercise,
+  isPracticeReady,
   type FreeTradeExercise as FreeTradeExerciseData,
   type GuidedExercise as GuidedExerciseData,
   type SessionLength,
 } from "@/data/exercises";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { buildAnswerAttempt, buildFreeTradeAttempt, buildGuidedAttempt } from "@/lib/attempt-rows";
-import { fetchAttempts, insertAttempt, nextAttemptNumber, type NewAttempt } from "@/lib/attempts";
+import { DASHBOARD_COLUMNS, fetchAttempts, insertAttempt, nextAttemptNumber, type NewAttempt } from "@/lib/attempts";
 import { describeError, type FriendlyError } from "@/lib/errors";
 import { CONCEPT_LIST, getConceptMeta, type Concept } from "@/lib/concepts";
 import { gradeAttempt, type GradeResult, type UserAnswer, type UserRegion } from "@/lib/grading";
@@ -83,7 +84,13 @@ export default function PracticePage() {
     if (!user) return;
     setAdaptiveError(null);
     try {
-      beginSession(ADAPTIVE_SESSION, buildAdaptiveSession(await fetchAttempts(user.id)));
+      // The engine works from the lightweight catalog; confirm each pick
+      // against the full data in case the catalog is stale.
+      const ids = buildAdaptiveSession(await fetchAttempts(user.id, DASHBOARD_COLUMNS)).filter((id) => {
+        const e = getExercise(id);
+        return e !== undefined && isPracticeReady(e);
+      });
+      beginSession(ADAPTIVE_SESSION, ids);
     } catch (err) {
       setAdaptiveError(describeError(err, "load your practice history to build the session").message);
     }

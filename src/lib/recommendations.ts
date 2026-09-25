@@ -10,7 +10,8 @@
 //   buildAdaptiveSession an exercise list that leans toward weak concepts
 //                        without dropping the strong ones
 
-import { getExercise, getPracticeExercises, type Exercise, type SessionLength } from "@/data/exercises";
+import { getExerciseMeta, getPracticeCatalog, type ExerciseMeta } from "@/data/catalog";
+import type { SessionLength } from "@/data/exercises";
 import type { DbAttempt } from "@/lib/attempts";
 import { CONCEPT_LIST, CONCEPTS, type Concept } from "@/lib/concepts";
 
@@ -171,7 +172,7 @@ function difficultyFor(score: number): 1 | 2 | 3 {
 }
 
 function lengthFor(concept: Concept, score: number): SessionLength {
-  const available = getPracticeExercises(concept).length;
+  const available = getPracticeCatalog(concept).length;
   const wanted = score < 0.6 ? 5 : 10;
   return available <= wanted ? "all" : wanted;
 }
@@ -198,7 +199,7 @@ export function recommendSession(attempts: DbAttempt[]): Recommendation {
   }
   const weakest = concepts.find(isWeak) ?? concepts[0];
   const practiced = new Set(concepts.map((c) => c.concept));
-  const unpracticed = CONCEPT_LIST.filter((c) => !practiced.has(c) && getPracticeExercises(c).length > 0);
+  const unpracticed = CONCEPT_LIST.filter((c) => !practiced.has(c) && getPracticeCatalog(c).length > 0);
 
   let concept: Concept;
   let difficulty: 1 | 2 | 3;
@@ -234,7 +235,7 @@ export function adaptiveWeights(attempts: DbAttempt[]): Record<Concept, number> 
   const base = overall ?? 0.5;
   const out = {} as Record<Concept, number>;
   for (const concept of CONCEPT_LIST) {
-    if (ADAPTIVE_EXCLUDED.includes(concept) || getPracticeExercises(concept).length === 0) continue;
+    if (ADAPTIVE_EXCLUDED.includes(concept) || getPracticeCatalog(concept).length === 0) continue;
     const score = concepts.find((c) => c.concept === concept)?.score ?? base;
     out[concept] = 1 - score + ADAPTIVE_FLOOR;
   }
@@ -253,8 +254,8 @@ export function buildAdaptiveSession(attempts: DbAttempt[], length = 10, random:
   const { concepts } = scoreConcepts(attempts);
   const weak = new Set(concepts.filter((c) => isWeak(c) && c.concept in weights).map((c) => c.concept));
   const weakSlots = weak.size > 0 ? Math.round(length * ADAPTIVE_WEAK_SHARE) : 0;
-  const pools = new Map<Concept, Exercise[]>(
-    (Object.keys(weights) as Concept[]).map((c) => [c, getPracticeExercises(c)]),
+  const pools = new Map<Concept, ExerciseMeta[]>(
+    (Object.keys(weights) as Concept[]).map((c) => [c, getPracticeCatalog(c)]),
   );
   const picked: string[] = [];
   while (picked.length < length) {
@@ -291,5 +292,5 @@ export function buildAdaptiveSession(attempts: DbAttempt[], length = 10, random:
 
 /** For display: which concept each id in an adaptive session belongs to. */
 export function conceptOf(exerciseId: string): Concept | undefined {
-  return getExercise(exerciseId)?.concept;
+  return getExerciseMeta(exerciseId)?.concept;
 }
