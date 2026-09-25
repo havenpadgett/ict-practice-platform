@@ -178,6 +178,7 @@ Same idea as [Liquidity](#liquidity): resting stops sit above highs and below lo
 **Definitions (AI-DRAFTED):**
 - **Trading day:** a CME futures trading day runs **18:00 ET to 17:00 ET** the next calendar day. A candle opening at or after 18:00 ET belongs to the *next* trading date — so Thursday's trading day begins Wednesday evening, and a low printed at 20:00 ET Wednesday is part of Thursday. The market is closed 17:00–18:00 ET each weekday.
 - **Previous day high/low:** the highest high / lowest low of the trading day before the current one.
+- **Regular trading hours (RTH):** **9:30–16:00 ET**, the NYSE cash session — **HAVEN-VALIDATED (2026-09-24)**. The levels traders watch are cash-session levels, so CME's 16:15 ET equity-futures close is deliberately not used.
 - **NY AM session high/low:** the highest high / lowest low among candles inside 9:30–11:00 ET. Only candles within that window count — a lower pre-market spike or a later afternoon move is a different level. On charts with bars of an hour or less, the session is shaded.
 - **Trading week:** Sunday 18:00 ET to Friday 17:00 ET. The **weekly high/low** is the highest high / lowest low of that span; on the chart a heavier separator marks the weekend.
 
