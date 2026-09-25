@@ -8,20 +8,24 @@ import { AnalyticsEmptyState } from "@/components/analytics/empty-state";
 import { ExerciseAccuracyList } from "@/components/analytics/exercise-accuracy-list";
 import { FreeTradeStatsView } from "@/components/analytics/free-trade-stats";
 import { GuidedStepAccuracyBars } from "@/components/analytics/guided-step-accuracy-bars";
-import { ImprovementChart } from "@/components/analytics/improvement-chart";
 import { OverviewStats } from "@/components/analytics/overview-stats";
+import { AccuracyTrend } from "@/components/analytics/accuracy-trend";
 import { AdaptiveBreakdown } from "@/components/analytics/adaptive-breakdown";
+import { ConceptDifficultyView, ProcessVsOutcomeView, RealVsConstructedView } from "@/components/analytics/depth-views";
 import { ResponseTimeStatsView } from "@/components/analytics/response-time-stats";
 import { ErrorBanner } from "@/components/error-banner";
 import { LoadingState } from "@/components/loading-state";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import {
+  getAccuracyByConceptAndDifficulty,
   getAccuracyByDifficulty,
   getAccuracyByExercise,
-  getAccuracyOverTime,
+  getAccuracyTrend,
+  getFreeTradeProcessVsOutcome,
   getFreeTradeStats,
   getGuidedStepAccuracy,
   getOverallStats,
+  getRealVsConstructed,
   getResponseTimeStats,
   getStrongestAndWeakestConcept,
 } from "@/lib/analytics";
@@ -84,20 +88,33 @@ export default function AnalyticsPage() {
   );
 }
 
+const TREND_WINDOW = 10;
+
 function AnalyticsContent({ attempts }: { attempts: DbAttempt[] }) {
   const overall = getOverallStats(attempts);
   const byConcept = getAccuracyByConcept(attempts);
   const highlights = getStrongestAndWeakestConcept(byConcept);
   const byExercise = getAccuracyByExercise(attempts);
   const byDifficulty = getAccuracyByDifficulty(attempts);
-  const blocks = getAccuracyOverTime(attempts);
   const responseTime = getResponseTimeStats(attempts);
   const guidedSteps = getGuidedStepAccuracy(attempts);
   const freeTrade = getFreeTradeStats(attempts);
+  const trend = getAccuracyTrend(attempts, TREND_WINDOW);
+  const conceptDifficulty = getAccuracyByConceptAndDifficulty(attempts);
+  const realVsConstructed = getRealVsConstructed(attempts);
+  const processVsOutcome = getFreeTradeProcessVsOutcome(attempts);
 
   return (
     <div className="mt-8 space-y-10">
       <OverviewStats stats={overall} />
+
+      <section>
+        <p className="eyebrow">Accuracy Over Time</p>
+        <p className="mt-1 text-xs text-muted">Rolling accuracy over your last {TREND_WINDOW} attempts at each point.</p>
+        <div className="mt-3">
+          <AccuracyTrend points={trend} window={TREND_WINDOW} />
+        </div>
+      </section>
 
       <section>
         <p className="text-xs font-medium uppercase tracking-wide text-muted">
@@ -118,6 +135,23 @@ function AnalyticsContent({ attempts }: { attempts: DbAttempt[] }) {
           </div>
         </section>
       )}
+
+      {Object.keys(conceptDifficulty).length > 0 && (
+        <section>
+          <p className="eyebrow">Difficulty Within Each Concept</p>
+          <div className="mt-3">
+            <ConceptDifficultyView data={conceptDifficulty} />
+          </div>
+        </section>
+      )}
+
+      <section>
+        <p className="eyebrow">Real Market Data vs Constructed</p>
+        <p className="mt-1 text-xs text-muted">Is real data measurably harder than the hand-built exercises?</p>
+        <div className="mt-3">
+          <RealVsConstructedView data={realVsConstructed} />
+        </div>
+      </section>
 
       {guidedSteps.length > 0 && (
         <section>
@@ -146,15 +180,15 @@ function AnalyticsContent({ attempts }: { attempts: DbAttempt[] }) {
         </section>
       )}
 
-      <section>
-        <p className="text-xs font-medium uppercase tracking-wide text-muted">
-          Improvement Over Time
-        </p>
-        <p className="mt-1 text-xs text-muted">Accuracy across successive blocks of 5 attempts.</p>
-        <div className="mt-4">
-          <ImprovementChart blocks={blocks} />
-        </div>
-      </section>
+      {processVsOutcome && (
+        <section>
+          <p className="eyebrow">Free Trade — Process vs Outcome</p>
+          <div className="mt-3">
+            <ProcessVsOutcomeView data={processVsOutcome} />
+          </div>
+        </section>
+      )}
+
 
       {highlights && (
         <section>

@@ -135,32 +135,6 @@ export function getAccuracyByDifficulty(
   return result;
 }
 
-export type AccuracyBlock = { label: string; accuracy: number; count: number };
-
-/** Blocks of 5 attempts, in the order they were recorded — 5 matches the
- * size of a practice session (every concept has exactly 5 exercises), so
- * each block reads roughly as "one session's worth" of accuracy even
- * though blocks are drawn from the raw attempt stream, not session
- * boundaries. Assumes `attempts` is sorted ascending by created_at. */
-const IMPROVEMENT_BLOCK_SIZE = 5;
-
-export function getAccuracyOverTime(
-  attempts: DbAttempt[],
-  blockSize: number = IMPROVEMENT_BLOCK_SIZE,
-): AccuracyBlock[] {
-  const blocks: AccuracyBlock[] = [];
-  for (let i = 0; i < attempts.length; i += blockSize) {
-    const block = attempts.slice(i, i + blockSize);
-    const correct = block.filter((a) => a.is_correct).length;
-    blocks.push({
-      label: `${i + 1}–${i + block.length}`,
-      accuracy: Math.round((correct / block.length) * 100),
-      count: block.length,
-    });
-  }
-  return blocks;
-}
-
 export type ResponseTimeStats = {
   avgCorrectMs: number | null;
   avgIncorrectMs: number | null;
@@ -258,5 +232,88 @@ export function getFreeTradeStats(attempts: DbAttempt[]): FreeTradeStats | null 
     wins: trades.filter((a) => a.free_outcome === "win").length,
     losses: trades.filter((a) => a.free_outcome === "loss").length,
     totalR: trades.reduce((sum, a) => sum + (a.free_result_r ?? 0), 0),
+  };
+}
+
+export type TrendPoint = { attempt: number; accuracy: number; date: string };
+
+/** Rolling accuracy over the last `window` attempts, one point per attempt
+ * from the window-th onward (or a single point over everything when there
+ * are fewer). Assumes ascending created_at. */
+export function getAccuracyTrend(attempts: DbAttempt[], window = 10): TrendPoint[] {
+  if (attempts.length === 0) return [];
+  const w = Math.min(window, attempts.length);
+  const points: TrendPoint[] = [];
+  let correct = attempts.slice(0, w).filter((a) => a.is_correct).length;
+  for (let i = w - 1; i < attempts.length; i++) {
+    if (i >= w) correct += (attempts[i].is_correct ? 1 : 0) - (attempts[i - w].is_correct ? 1 : 0);
+    points.push({ attempt: i + 1, accuracy: Math.round((correct / w) * 100), date: attempts[i].created_at.slice(0, 10) });
+  }
+  return points;
+}
+
+export type RateCount = { accuracy: number; count: number };
+
+function rate(list: { is_correct: boolean }[]): RateCount | null {
+  if (list.length === 0) return null;
+  return { accuracy: Math.round((list.filter((a) => a.is_correct).length / list.length) * 100), count: list.length };
+}
+
+/** concept -> difficulty (1-3) -> accuracy and count. Attempts without a
+ * recorded difficulty are left out. */
+export function getAccuracyByConceptAndDifficulty(attempts: DbAttempt[]): Record<string, Partial<Record<1 | 2 | 3, RateCount>>> {
+  const out: Record<string, Partial<Record<1 | 2 | 3, RateCount>>> = {};
+  const concepts = Array.from(new Set(attempts.map((a) => a.concept)));
+  for (const concept of concepts) {
+    for (const d of [1, 2, 3] as const) {
+      const r = rate(attempts.filter((a) => a.concept === concept && a.difficulty === d));
+      if (r) (out[concept] ??= {})[d] = r;
+    }
+  }
+  return out;
+}
+
+export type RealVsConstructed = {
+  real: RateCount | null;
+  constructed: RateCount | null;
+  /** Per concept, only where both kinds have attempts — the fair comparison. */
+  byConcept: { concept: string; real: RateCount; constructed: RateCount }[];
+};
+
+/** Real-data scenarios (those with provenance) vs hand-built exercises. */
+export function getRealVsConstructed(attempts: DbAttempt[]): RealVsConstructed {
+  const isReal = (a: DbAttempt) => getExercise(a.exercise_id)?.provenance !== undefined;
+  const real = attempts.filter(isReal);
+  const constructed = attempts.filter((a) => !isReal(a));
+  const byConcept: RealVsConstructed["byConcept"] = [];
+  for (const concept of Array.from(new Set(real.map((a) => a.concept)))) {
+    const r = rate(real.filter((a) => a.concept === concept));
+    const c = rate(constructed.filter((a) => a.concept === concept));
+    if (r && c) byConcept.push({ concept, real: r, constructed: c });
+  }
+  return { real: rate(real), constructed: rate(constructed), byConcept };
+}
+
+export type ProcessVsOutcome = {
+  /** Scenarios where every applicable process check passed. */
+  processPassRate: RateCount;
+  /** Trades that hit their target, out of trades that closed as a win or a loss. */
+  winRate: RateCount | null;
+  /** Counts in each process x outcome cell, over closed trades. */
+  cells: { goodWin: number; goodLoss: number; badWin: number; badLoss: number };
+};
+
+export function getFreeTradeProcessVsOutcome(attempts: DbAttempt[]): ProcessVsOutcome | null {
+  const free = attempts.filter((a) => a.answer_type === "free");
+  if (free.length === 0) return null;
+  const closed = free.filter((a) => a.free_outcome === "win" || a.free_outcome === "loss");
+  const count = (good: boolean, win: boolean) =>
+    closed.filter((a) => a.is_correct === good && (a.free_outcome === "win") === win).length;
+  return {
+    processPassRate: rate(free)!,
+    winRate: closed.length
+      ? { accuracy: Math.round((closed.filter((a) => a.free_outcome === "win").length / closed.length) * 100), count: closed.length }
+      : null,
+    cells: { goodWin: count(true, true), goodLoss: count(true, false), badWin: count(false, true), badLoss: count(false, false) },
   };
 }
