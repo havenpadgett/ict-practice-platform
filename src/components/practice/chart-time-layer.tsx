@@ -49,14 +49,10 @@ export function ChartTimeBackground({
   ctx,
   bounds,
   slotW,
-  hideDates = false,
 }: {
   ctx: TimeContext;
   bounds: Bounds;
   slotW: number;
-  /** Label day starts with the time instead of the date — Free Trade on real
-   * data, where a date would let the user look up what happened next. */
-  hideDates?: boolean;
 }) {
   const xAt = (index: number) => bounds.left + slotW * index;
   return (
