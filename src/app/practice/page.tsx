@@ -12,9 +12,16 @@ import { FreeTradeExercise, type FreeTradeAttempt } from "@/components/practice/
 import { GuidedExercise } from "@/components/practice/guided-exercise";
 import { SessionLengthPicker } from "@/components/practice/session-length-picker";
 import { SessionSummary } from "@/components/practice/session-summary";
-import { buildSessionExerciseIds, getExercise, type SessionLength } from "@/data/exercises";
+import {
+  buildSessionExerciseIds,
+  getExercise,
+  type FreeTradeExercise as FreeTradeExerciseData,
+  type GuidedExercise as GuidedExerciseData,
+  type SessionLength,
+} from "@/data/exercises";
 import { useRequireAuth } from "@/hooks/use-require-auth";
-import { fetchAttempts, insertAttempt, nextAttemptNumber, NULL_FREE_TRADE_FIELDS } from "@/lib/attempts";
+import { buildAnswerAttempt, buildFreeTradeAttempt, buildGuidedAttempt } from "@/lib/attempt-rows";
+import { fetchAttempts, insertAttempt, nextAttemptNumber } from "@/lib/attempts";
 import { CONCEPT_LIST, getConceptMeta, type Concept } from "@/lib/concepts";
 import { gradeAttempt, type GradeResult, type UserAnswer, type UserRegion } from "@/lib/grading";
 import type { FreeTradeGradeResult } from "@/lib/free-trade-grading";
@@ -234,44 +241,10 @@ export default function PracticePage() {
     setSaving(true);
     setSaveError(null);
     const responseTimeMs = msSince(exerciseStartRef.current);
-    const isRegion = answer.type === "region";
-    const isLevel = answer.type === "level";
-    const isChoice = answer.type === "choice";
 
     try {
       const attemptNumber = await nextAttemptNumber(user.id, exercise!.exercise_id);
-      await insertAttempt(user.id, {
-        exercise_id: exercise!.exercise_id,
-        concept: exercise!.concept,
-        difficulty: exercise!.difficulty,
-        answer_type: exercise!.answer_type,
-        user_answer_type: answer.type,
-        user_price_low: isRegion ? answer.region.priceLow : null,
-        user_price_high: isRegion ? answer.region.priceHigh : null,
-        user_candle_start: isRegion ? answer.region.candleIndexLow : null,
-        user_candle_end: isRegion ? answer.region.candleIndexHigh : null,
-        user_price: isLevel ? answer.price : null,
-        distance_from_level: grade.distanceFromLevel,
-        user_choice: isChoice ? answer.choice : null,
-        correct_choice: exercise!.answer_type === "choice" ? exercise!.answer.correct_choice : null,
-        guided_bias_choice: null,
-        guided_entry_price: null,
-        guided_stop_price: null,
-        guided_target_price: null,
-        guided_bias_correct: null,
-        guided_entry_correct: null,
-        guided_stop_correct: null,
-        guided_target_correct: null,
-        guided_achieved_rr: null,
-        guided_declared_trade: null,
-        ...NULL_FREE_TRADE_FIELDS,
-        is_correct: grade.isCorrect,
-        coverage: grade.coverage,
-        precision_ratio: grade.precisionRatio,
-        failure_reason: grade.failureReason,
-        response_time_ms: responseTimeMs,
-        attempt_number: attemptNumber,
-      });
+      await insertAttempt(user.id, buildAnswerAttempt(exercise!, answer, grade, { responseTimeMs, attemptNumber }));
     } catch (err) {
       setSaveError(
         err instanceof Error ? err.message : "Couldn't save this attempt — your progress in this session is unaffected.",
@@ -302,43 +275,10 @@ export default function PracticePage() {
     setSaveError(null);
     const responseTimeMs = msSince(exerciseStartRef.current);
 
-    const stepResult = (step: "bias" | "entry" | "stop" | "target") =>
-      grade.steps.find((s) => s.step === step)?.isCorrect ?? null;
 
     try {
       const attemptNumber = await nextAttemptNumber(user.id, exercise!.exercise_id);
-      await insertAttempt(user.id, {
-        exercise_id: exercise!.exercise_id,
-        concept: exercise!.concept,
-        difficulty: exercise!.difficulty,
-        answer_type: "guided",
-        user_answer_type: "guided",
-        user_price_low: null,
-        user_price_high: null,
-        user_candle_start: null,
-        user_candle_end: null,
-        coverage: null,
-        precision_ratio: null,
-        user_price: null,
-        distance_from_level: null,
-        user_choice: null,
-        correct_choice: null,
-        guided_bias_choice: answer.bias,
-        guided_entry_price: answer.entry,
-        guided_stop_price: answer.stop,
-        guided_target_price: answer.target,
-        guided_bias_correct: stepResult("bias"),
-        guided_entry_correct: stepResult("entry"),
-        guided_stop_correct: stepResult("stop"),
-        guided_target_correct: stepResult("target"),
-        guided_achieved_rr: grade.achievedRR,
-        guided_declared_trade: answer.declaredTrade,
-        ...NULL_FREE_TRADE_FIELDS,
-        is_correct: grade.isCorrect,
-        failure_reason: null,
-        response_time_ms: responseTimeMs,
-        attempt_number: attemptNumber,
-      });
+      await insertAttempt(user.id, buildGuidedAttempt(exercise! as GuidedExerciseData, answer, grade, { responseTimeMs, attemptNumber }));
     } catch (err) {
       setSaveError(
         err instanceof Error ? err.message : "Couldn't save this attempt — your progress in this session is unaffected.",
@@ -369,60 +309,10 @@ export default function PracticePage() {
     setSaveError(null);
     const responseTimeMs = msSince(exerciseStartRef.current);
     const { position, exit } = attempt;
-    const checkResult = (id: FreeTradeGradeResult["checks"][number]["id"]) => {
-      const status = grade.checks.find((c) => c.id === id)?.status;
-      return status === "pass" ? true : status === "fail" ? false : null;
-    };
 
     try {
       const attemptNumber = await nextAttemptNumber(user.id, exercise!.exercise_id);
-      await insertAttempt(user.id, {
-        exercise_id: exercise!.exercise_id,
-        concept: exercise!.concept,
-        difficulty: exercise!.difficulty,
-        answer_type: "free",
-        user_answer_type: "free",
-        user_price_low: null,
-        user_price_high: null,
-        user_candle_start: null,
-        user_candle_end: null,
-        coverage: null,
-        precision_ratio: null,
-        user_price: null,
-        distance_from_level: null,
-        user_choice: null,
-        correct_choice: null,
-        guided_bias_choice: null,
-        guided_entry_price: null,
-        guided_stop_price: null,
-        guided_target_price: null,
-        guided_bias_correct: null,
-        guided_entry_correct: null,
-        guided_stop_correct: null,
-        guided_target_correct: null,
-        guided_achieved_rr: null,
-        guided_declared_trade: null,
-        free_direction: position?.direction ?? "none",
-        free_entry_price: position?.entry ?? null,
-        free_stop_price: position?.stop ?? null,
-        free_target_price: position?.target ?? null,
-        free_entry_candle_index: position?.entryIndex ?? null,
-        free_exit_candle_index: exit?.index ?? null,
-        free_exit_price: exit?.price ?? null,
-        free_exit_reason: exit?.reason ?? null,
-        free_rr: grade.rr,
-        free_result_r: grade.resultR,
-        free_outcome: grade.outcome,
-        free_direction_correct: checkResult("direction"),
-        free_entry_correct: checkResult("entry"),
-        free_stop_correct: checkResult("stop"),
-        free_rr_correct: checkResult("rr"),
-        free_decision_correct: checkResult("decision"),
-        is_correct: grade.passed,
-        failure_reason: null,
-        response_time_ms: responseTimeMs,
-        attempt_number: attemptNumber,
-      });
+      await insertAttempt(user.id, buildFreeTradeAttempt(exercise! as FreeTradeExerciseData, position, exit, grade, { responseTimeMs, attemptNumber }));
     } catch (err) {
       setSaveError(
         err instanceof Error ? err.message : "Couldn't save this attempt — your progress in this session is unaffected.",
