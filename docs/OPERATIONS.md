@@ -131,9 +131,47 @@ To bring it back:
 - **Regular real use:** a few requests a day keeps it active.
 - **A scheduled ping** that queries the database, for example a daily cron job. This works, but it's a workaround for the free plan's rules, not a backup. **None is set up.**
 
-## Checklist
+## Backup routine
 
-- [ ] Back up (`npm run backup`) before applying the pending migrations `20260926120000` → `20260927130000`.
+The free plan keeps no backups, and the project pauses after about a week without use. A backup has to be a habit:
+
+- **Every week while there are real users**, and **before** every migration, plan change or restore rehearsal, run:
+  ```bash
+  DATABASE_URL='<session pooler connection string>' npm run backup
+  ```
+  Then copy the new file in `backups/` off this machine, encrypted.
+- **The reminder is built in.** `npm run dev` prints the age of the newest backup first, with a warning once it's over 7 days old or if there's none. You can also check any time:
+  ```bash
+  npm run backup:status
+  ```
+  It only looks at `backups/` on this machine. A copy stored elsewhere doesn't reset it.
+- **Once a quarter**, rehearse a restore into a scratch project ([Restoring](#restoring)). A backup that has never been restored is a hope, not a backup.
+- **While you're doing the weekly backup**, also check the Supabase dashboard for a "paused" banner, and resume the project if it's there ([below](#when-the-free-plan-pauses-the-project)).
+
+## Pre-deploy checklist
+
+Run through this before pushing to `main`, since Vercel deploys every push to production. Walk [MANUAL-TEST-PLAN.md](MANUAL-TEST-PLAN.md) afterwards.
+
+1. **Back up the database:** `npm run backup` (above).
+2. **Apply pending migrations** in filename order in the Supabase SQL editor, or with `supabase db push`, **before** the code that needs them goes live.
+   - Pending as of 2026-09-26:
+     1. `20260926120000_analytics_views.sql`
+     2. `20260926130000_practice_events.sql`
+     3. `20260926140000_admin_functions.sql`
+     4. `20260927120000_roles.sql`
+     5. `20260927130000_attempt_integrity.sql`
+   - Afterwards, run `supabase/audit/attempt_integrity_audit.sql` and deal with anything it lists ([DATA-INTEGRITY.md](DATA-INTEGRITY.md)).
+   - To see what's applied, check the Supabase dashboard → Database → Migrations, or `select version from supabase_migrations.schema_migrations`. Migrations pasted into the SQL editor by hand aren't recorded there, so keep a note of which ones you ran.
+3. **Check the Vercel environment variables:** `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are set for Production and Preview ([DEPLOYMENT.md](DEPLOYMENT.md)). After changing one, redeploy.
+4. **Check the catalog is current:** run `npm run catalog`, then `git status`. If `src/data/exercise-catalog.json` changed, commit it. Sessions are built from this file, so a stale one serves the wrong exercises. `npm test` also fails if it's stale.
+5. **Check the curriculum versions:** `npm run curriculum -- check` passes. A changed definition needs a version bump.
+6. **Get the test suite green:** `npm test`, `npm run test:py` and `npm run lint` all pass.
+7. **Confirm the build works:** `npm run build` succeeds locally.
+8. **Push**, then wait for Vercel's check on the commit to show "Deployment has completed".
+9. **Smoke test:** open `/login`. If it says "Can't connect right now", the env vars are missing (step 3). Then run the manual test plan.
+
+## Checklist (one-time)
+
 - [ ] Rehearse a restore once, into a scratch project.
 - [ ] Record the Auth settings somewhere outside Supabase.
 - [ ] Decide between Pro and accepting pause/backup risk before inviting real users.

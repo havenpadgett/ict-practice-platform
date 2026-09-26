@@ -42,7 +42,9 @@ describe("backup and restore", () => {
     expect(await restoreAll(query(target), fromFile, { replica: true })).toEqual({
       "auth.users": 0, "public.profiles": 0, "public.attempts": 0, "public.practice_events": 0,
     });
-  });
+  // Two full migrations plus a load: well over the 5s default when the whole
+  // suite runs in parallel. The assertions are unchanged.
+  }, 30_000);
 
   it("refuses a file that isn't a backup, and a target without the schema", async () => {
     const target = await migratedDb();
@@ -51,5 +53,5 @@ describe("backup and restore", () => {
     const backup = await exportAll(query(source));
     await target.exec(`drop table practice_events cascade`);
     await expect(restoreAll(query(target), backup, { replica: false })).rejects.toThrow(/Apply the migrations first/);
-  });
+  }, 30_000);
 });

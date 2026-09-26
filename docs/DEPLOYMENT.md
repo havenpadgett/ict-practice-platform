@@ -14,6 +14,16 @@
 
 ## Set these in Vercel → Project → Settings → Environment Variables
 
+Names to paste, exactly (values come from Supabase → Project Settings → API):
+
+```
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+```
+
+Tick **Production** and **Preview** for both, save, then **redeploy**.
+
+
 | Name | Value | Environments |
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://<project-ref>.supabase.co` (Supabase → Project Settings → API) | Production, Preview |
