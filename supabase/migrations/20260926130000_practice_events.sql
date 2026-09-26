@@ -74,13 +74,13 @@ select
 from public.practice_events s
 left join lateral (
   select position, created_at from public.practice_events
-  where session_id = s.session_id and event_type = 'session_completed' order by created_at limit 1
+  where user_id = s.user_id and session_id = s.session_id and event_type = 'session_completed' order by created_at limit 1
 ) c on true
 left join lateral (
   select position, created_at from public.practice_events
-  where session_id = s.session_id and event_type = 'session_abandoned' order by created_at limit 1
+  where user_id = s.user_id and session_id = s.session_id and event_type = 'session_abandoned' order by created_at limit 1
 ) a on true
-left join public.v_session_progress p on p.session_id = s.session_id
+left join public.v_session_progress p on p.user_id = s.user_id and p.session_id = s.session_id
 where s.event_type = 'session_started';
 
 -- Sessions started vs completed, per user.

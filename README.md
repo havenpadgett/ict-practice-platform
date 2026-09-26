@@ -76,12 +76,22 @@ The data's license is unverified (personal use only; see [docs/SCENARIO-VALIDATI
   - Free Trade process pass rate beside win rate;
   - most-missed exercises and response times;
   - the recommendation engine's full breakdown.
-- **CSV export** (`/api/export/attempts`, login required): one flat row per attempt for Power BI or Excel. Columns are documented in [docs/ANALYTICS.md](docs/ANALYTICS.md).
+- **CSV export** (`/api/export/attempts` and `/api/export/sessions`, login required): one flat row per attempt, or per session, for Power BI or Excel. Columns are documented in [docs/ANALYTICS.md](docs/ANALYTICS.md).
+
+### Analytics layer
+
+- **SQL views** (`supabase/migrations/20260926120000_analytics_views.sql`): accuracy by concept and difficulty, improvement per 20 attempts, per-exercise success, real vs constructed, Guided Entry steps, Free Trade process vs outcome, response time, and session drop-off. `/analytics` reads them when they're applied. Each is explained in [docs/SQL-QUERIES.md](docs/SQL-QUERIES.md).
+- **Event tracking** (`practice_events`): sessions started, completed and abandoned, the mode used, whether the session came from the recommendation, and time between sessions.
+- **`/admin`:** product health across all users, including users, sessions, completion rate, most-failed exercises, concept difficulty and scenario review progress.
+- **Python analysis** ([`analysis/`](analysis/)): statistical checks on the CSV export with minimum-sample rules. It has only been run on synthetic data so far.
+
+The three migrations above are written and tested but **not yet applied** to the hosted database.
 
 ### Tests
 
 - **`npm test`:** Vitest suite for grading (every answer type and the no-answer matrix), attempt records against PRD Section 9, session-data validation, RLS policies, the recommendation engine, error handling and the CSV export.
 - **`npm run test:py`:** detection-rule fixtures.
+- **SQL:** `tests/sql/` (part of `npm test`) applies every migration to an in-process Postgres (PGlite) and checks the views, RLS and admin functions.
 
 All tests pass except one live Row Level Security check, which is skipped unless two test accounts' credentials are set.
 
