@@ -13,6 +13,7 @@ import {
 import { Markdown } from "@/app/review/markdown";
 import { ReviewChart } from "@/app/review/review-chart";
 import type { RealScenario } from "@/data/real-scenarios";
+import { REJECTION_REASONS } from "@/lib/review/reasons";
 
 export type QueueItem = {
   scenario: RealScenario;
@@ -53,7 +54,7 @@ export function ReviewQueue({ groups, disabled }: { groups: QueueGroup[]; disabl
   const item = group?.items[Math.min(i, Math.max(0, group.items.length - 1))];
 
   const approveRef = useRef<HTMLFormElement>(null);
-  const rejectNoteRef = useRef<HTMLTextAreaElement>(null);
+  const rejectFormRef = useRef<HTMLFormElement>(null);
   const ambiguousRef = useRef<HTMLTextAreaElement>(null);
   const [approveState, approve, approving] = useActionState(approveAction, initial);
   const [rejectState, reject, rejecting] = useActionState(rejectAction, initial);
@@ -84,7 +85,14 @@ export function ReviewQueue({ groups, disabled }: { groups: QueueGroup[]; disabl
         setG((x) => Math.max(0, x - 1));
         setI(0);
       } else if (e.key === "a") approveRef.current?.requestSubmit();
-      else if (e.key === "r") rejectNoteRef.current?.focus();
+      else if (e.key === "r") rejectFormRef.current?.querySelector<HTMLInputElement>("input[type=radio]")?.focus();
+      else if (/^[1-5]$/.test(e.key)) {
+        const radio = rejectFormRef.current?.querySelectorAll<HTMLInputElement>("input[type=radio]")[Number(e.key) - 1];
+        if (radio) {
+          radio.checked = true;
+          radio.focus();
+        }
+      }
       else if (e.key === "f") ambiguousRef.current?.focus();
       else return;
       e.preventDefault();
@@ -125,7 +133,7 @@ export function ReviewQueue({ groups, disabled }: { groups: QueueGroup[]; disabl
 
       <p className="mt-3 text-xs">
         <Kbd>j</Kbd>/<Kbd>k</Kbd> next/previous · <Kbd>[</Kbd>/<Kbd>]</Kbd> rule · <Kbd>a</Kbd> approve · <Kbd>r</Kbd>{" "}
-        reject · <Kbd>f</Kbd> flag ambiguous · <Kbd>⌘/Ctrl</Kbd>+<Kbd>Enter</Kbd> submit the field you&apos;re in ·{" "}
+        reject (<Kbd>1</Kbd>–<Kbd>5</Kbd> pick the reason) · <Kbd>f</Kbd> flag ambiguous · <Kbd>⌘/Ctrl</Kbd>+<Kbd>Enter</Kbd> submit the field you&apos;re in ·{" "}
         <Kbd>Esc</Kbd> leave a field
       </p>
 
@@ -216,12 +224,22 @@ export function ReviewQueue({ groups, disabled }: { groups: QueueGroup[]; disabl
                 </form>
 
                 <div className="grid gap-6 sm:grid-cols-2">
-                  <form action={reject} key={`r-${s.exercise_id}`}>
+                  <form ref={rejectFormRef} action={reject} key={`r-${s.exercise_id}`}>
                     <input type="hidden" name="id" value={s.exercise_id} />
-                    <input type="hidden" name="reason" value="other" />
-                    <label className="block text-xs">
-                      <span className="eyebrow">Reject</span> — why
-                      <textarea ref={rejectNoteRef} name="note" rows={2} className="field" required />
+                    <fieldset>
+                      <legend className="eyebrow">Reject — reason</legend>
+                      <div className="mt-2 space-y-1">
+                        {Object.entries(REJECTION_REASONS).map(([key, label], idx) => (
+                          <label key={key} className="flex min-h-9 items-center gap-2 text-sm text-foreground">
+                            <input type="radio" name="reason" value={key} required className="accent-[var(--accent)]" />
+                            {label} <Kbd>{String(idx + 1)}</Kbd>
+                          </label>
+                        ))}
+                      </div>
+                    </fieldset>
+                    <label className="mt-2 block text-xs">
+                      Note (required for Other)
+                      <textarea name="note" rows={2} className="field" />
                     </label>
                     <button type="submit" className="btn-secondary mt-2" disabled={disabled || rejecting}>
                       {rejecting ? "Rejecting…" : "Reject"}

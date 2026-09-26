@@ -17,6 +17,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { parseRealScenario, reviewTexts, type RealScenario } from "@/data/real-scenarios";
+import { isRejectionReason, REJECTION_REASONS, type RejectionReason } from "@/lib/review/reasons";
 
 const ROOT = process.cwd();
 const SCENARIO_DIR = path.join(ROOT, "src", "data", "real-scenarios");
@@ -106,12 +107,75 @@ function renderLogTable(entries: ReviewLogEntry[], empty: string): string {
   );
 }
 
-/** Regenerate the logs in docs/SCENARIO-VALIDATION.md from review-log.json. */
+function pct(n: number, d: number): string {
+  return d === 0 ? "—" : `${Math.round((n / d) * 100)}%`;
+}
+
+/** Rejection rates by rule and by reason. A rule that keeps getting
+ * rejected for the same reason is a rule to fix in detect.py or the
+ * curriculum, not a scenario to keep rejecting. */
+export function renderSummary(entries: ReviewLogEntry[], awaiting: Record<string, number>): string {
+  const rules = Array.from(new Set([...entries.map((e) => e.rule), ...Object.keys(awaiting)])).sort();
+  const lines = [
+    "| Rule | Awaiting | Reviewed | Approved | Rejected | Ambiguous | Rejection rate | Most common reason |",
+    "|---|---|---|---|---|---|---|---|",
+  ];
+  const flags: string[] = [];
+  for (const rule of rules) {
+    const es = entries.filter((e) => e.rule === rule);
+    const rej = es.filter((e) => e.decision === "rejected");
+    const amb = es.filter((e) => e.decision === "ambiguous").length;
+    const counts = new Map<string, number>();
+    for (const e of rej) counts.set(e.reason ?? "other", (counts.get(e.reason ?? "other") ?? 0) + 1);
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+    const topLabel = top ? `${REJECTION_REASONS[top[0] as RejectionReason] ?? top[0]} (${top[1]})` : "—";
+    lines.push(
+      `| ${rule} | ${awaiting[rule] ?? 0} | ${es.length} | ${es.filter((e) => e.decision === "approved").length} | ${rej.length} | ${amb} | ${pct(rej.length + amb, es.length)} | ${topLabel} |`,
+    );
+    if (es.length >= 5 && (rej.length + amb) / es.length >= 0.3) {
+      flags.push(`**${rule}**: ${pct(rej.length + amb, es.length)} of ${es.length} reviewed were rejected or ambiguous — fix the rule before building more.`);
+    }
+  }
+  const reasonLines = ["| Reason | Rejections | Share | Rules |", "|---|---|---|---|"];
+  const rejected = entries.filter((e) => e.decision === "rejected");
+  for (const [key, label] of Object.entries(REJECTION_REASONS)) {
+    const es = rejected.filter((e) => (e.reason ?? "other") === key);
+    const byRule = Array.from(new Set(es.map((e) => e.rule)))
+      .map((r) => `${r} (${es.filter((e) => e.rule === r).length})`)
+      .join(", ");
+    reasonLines.push(`| ${label} | ${es.length} | ${pct(es.length, rejected.length)} | ${byRule || "—"} |`);
+  }
+  return [
+    "*Rejection rate counts rejected and ambiguous together: both mean the rule produced something that can't be an exercise.*",
+    "",
+    lines.join("\n"),
+    "",
+    reasonLines.join("\n"),
+    "",
+    flags.length ? flags.map((f) => `- ${f}`).join("\n") : "No rule is above the 30% line yet (needs at least 5 reviews to count).",
+  ].join("\n");
+}
+
+/** Regenerate the logs and summary in docs/SCENARIO-VALIDATION.md from
+ * review-log.json. */
 async function renderDocs(entries: ReviewLogEntry[]): Promise<void> {
   let doc = await fs.readFile(VALIDATION_DOC, "utf8");
+  const { scenarios } = await listScenarios();
+  const awaiting: Record<string, number> = {};
+  for (const s of scenarios) {
+    if (!s.provenance.human_reviewed && s.provenance.review_status !== "ambiguous") {
+      awaiting[s.provenance.detection_rule] = (awaiting[s.provenance.detection_rule] ?? 0) + 1;
+    }
+  }
+  doc = replaceBlock(doc, "rejection-summary", renderSummary(entries, awaiting));
   doc = replaceBlock(doc, "review-log", renderLogTable(entries.filter((e) => e.decision !== "ambiguous"), "No real scenarios reviewed yet"));
   doc = replaceBlock(doc, "ambiguous-log", renderLogTable(entries.filter((e) => e.decision === "ambiguous"), "None flagged yet"));
   await fs.writeFile(VALIDATION_DOC, doc);
+}
+
+/** Re-render the generated sections of docs/SCENARIO-VALIDATION.md. */
+export async function regenerateReviewDocs(): Promise<void> {
+  await renderDocs(await readReviewLog());
 }
 
 async function appendReviewLog(entry: ReviewLogEntry): Promise<void> {
@@ -186,7 +250,8 @@ export async function approveScenario(
 
 export async function rejectScenario(id: string, reviewer: string, reason: string, note: string): Promise<void> {
   if (!canWrite()) throw new Error("Reviews can only be saved from the local dev server (they edit repo files).");
-  if (!reason.trim()) throw new Error("A rejection needs a reason — it goes in the Review Log.");
+  if (!isRejectionReason(reason)) throw new Error("Pick a rejection reason.");
+  if (reason === "other" && !note.trim()) throw new Error('"Other" needs a note saying what was wrong.');
   const s = await readScenario(id);
   if (s.provenance.human_reviewed) throw new Error(`${id} is already approved — un-approve it by hand if needed.`);
 

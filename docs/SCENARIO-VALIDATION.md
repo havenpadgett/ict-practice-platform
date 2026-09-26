@@ -160,11 +160,67 @@ Work through every item for each candidate. One "no" means reject (or fix and re
 
 ### The /review page
 
-`/review` is internal tooling. It needs a login (`src/proxy.ts`), and the signed-in email must be listed in `REVIEWER_EMAILS` in `.env.local` (comma-separated; unset means nobody). For each unreviewed scenario it shows the chart with the detected answer key drawn on it, the provenance, and two forms:
-- **Approve:** requires the rewritten explanation (it refuses anything still containing `[DRAFT`). It updates the JSON file and appends an "Approved" row below.
-- **Reject:** requires a reason. It deletes the JSON file, removes it from `index.ts`, and appends a "Rejected" row with the reason.
+`/review` is internal tooling. It needs a login (`src/proxy.ts`), and the signed-in email must be listed in `REVIEWER_EMAILS` in `.env.local` (comma-separated; unset means nobody).
 
-Scenarios stay in the repo, not the database, so saving only works on the local dev server. A deployed build shows the page read-only. Changes go live once committed and deployed.
+**Layout:**
+- Candidates are grouped **by detection rule**, so you review one concept at a time. Counts show reviewed vs. remaining overall and per rule.
+- Each candidate shows the chart with the detected answer key drawn on it, the rule that fired with its values and parameters, and the provenance.
+- The **curriculum definition** the rule implements sits beside the chart, with its version. Definitions it also depends on are collapsed underneath.
+
+**Three decisions:**
+- **Approve:** requires the rewritten text users will see (anything still containing `[DRAFT` is refused). It updates the JSON file.
+- **Reject:** pick a structured reason (wrong answer key, ambiguous, poor quality chart, doesn't match the definition, other + note). It deletes the JSON file and removes it from `index.ts`.
+- **Flag ambiguous:** needs a note on what could be read two ways. It keeps the file, marked `review_status: "ambiguous"`, which is never practice-ready.
+
+Every decision is appended to `docs/review-log.json`. The Rejection Summary, Review Log and Ambiguous Log below are regenerated from it.
+
+**Keyboard:**
+
+| Key | Action |
+|---|---|
+| `j` / `k` | Next / previous candidate |
+| `[` / `]` | Previous / next rule |
+| `a` | Approve |
+| `r`, then `1`–`5` | Reject, choosing the reason |
+| `f` | Flag ambiguous |
+| Cmd/Ctrl+Enter | Submit the field you're in |
+| Esc | Leave a field |
+
+**Where it works:** scenarios stay in the repo, not the database, so saving only works on the local dev server. A deployed build shows the page read-only. Changes go live once committed and deployed.
+
+## Rejection Summary
+
+Generated from `docs/review-log.json` on every review decision. A rule with a high rejection rate is a rule to fix in `scripts/detect.py` or in [CURRICULUM.md](CURRICULUM.md); keep rejecting its output and the same mistake just gets rejected fifty times. A rule is called out below once 30% or more of at least 5 reviews end in rejection or an ambiguous flag.
+
+Rejection reasons (picked on `/review`, keys 1–5):
+- **Wrong answer key:** the detected zone or level isn't the right one.
+- **Ambiguous:** reasonable traders would disagree. Prefer "Flag ambiguous", which keeps the file for later; this reason deletes it.
+- **Poor quality chart:** a data gap, an unreadable window, or too few candles.
+- **Doesn't match the definition:** the rule fired, but the chart doesn't satisfy the curriculum (see docs/DETECTION-AUDIT.md for known gaps).
+- **Other:** a note is required.
+
+<!-- rejection-summary:start -->
+*Rejection rate counts rejected and ambiguous together: both mean the rule produced something that can't be an exercise.*
+
+| Rule | Awaiting | Reviewed | Approved | Rejected | Ambiguous | Rejection rate | Most common reason |
+|---|---|---|---|---|---|---|---|
+| equal_highs | 5 | 0 | 0 | 0 | 0 | — | — |
+| equal_lows | 5 | 0 | 0 | 0 | 0 | — | — |
+| free_trade_setup | 10 | 0 | 0 | 0 | 0 | — | — |
+| fvg | 10 | 0 | 0 | 0 | 0 | — | — |
+| guided_setup | 10 | 0 | 0 | 0 | 0 | — | — |
+| mss | 10 | 0 | 0 | 0 | 0 | — | — |
+
+| Reason | Rejections | Share | Rules |
+|---|---|---|---|
+| Wrong answer key | 0 | — | — |
+| Ambiguous | 0 | — | — |
+| Poor quality chart | 0 | — | — |
+| Doesn't match the definition | 0 | — | — |
+| Other | 0 | — | — |
+
+No rule is above the 30% line yet (needs at least 5 reviews to count).
+<!-- rejection-summary:end -->
 
 ## Review Log
 
