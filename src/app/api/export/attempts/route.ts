@@ -2,10 +2,11 @@
 // for Power BI / Excel (column reference: docs/ANALYTICS.md). Login is
 // required (src/proxy.ts redirects browsers; this also answers 401), and
 // Row Level Security means the query can only ever return the caller's own
-// rows.
+// rows. Session columns come from the v_sessions view; if the
+// practice_events migration isn't applied yet they're left blank.
 
 import { NextResponse } from "next/server";
-import { attemptsToCsv } from "@/lib/export";
+import { attemptsToCsv, type ExportSession } from "@/lib/export";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
@@ -24,8 +25,10 @@ export async function GET() {
   if (error) {
     return NextResponse.json({ error: `Couldn't load attempts: ${error.message}` }, { status: 500 });
   }
+  const sessions = await supabase.from("v_sessions").select("*").eq("user_id", user.id);
   const date = new Date().toISOString().slice(0, 10);
-  return new NextResponse(attemptsToCsv(data ?? [], { id: user.id, email: user.email ?? null }), {
+  const csv = attemptsToCsv(data ?? [], { id: user.id, email: user.email ?? null }, (sessions.data ?? []) as ExportSession[]);
+  return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
       "Content-Disposition": `attachment; filename="ict-practice-attempts-${date}.csv"`,

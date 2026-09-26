@@ -16,7 +16,9 @@ export function RecommendedSession({ recommendation }: { recommendation: Recomme
       </p>
       <p className="mt-1 text-sm text-muted">{reason}</p>
       <Link
-        href={href}
+        // src=rec marks the session as started from the recommendation
+        // (practice_events.source), so follow-through can be measured.
+        href={`${href}&src=rec`}
         className="mt-4 btn-primary"
       >
         Start this session

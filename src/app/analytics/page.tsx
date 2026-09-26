@@ -97,9 +97,14 @@ function AnalyticsHeader() {
       <h1 className="page-title">Analytics</h1>
       <div className="mt-1 flex flex-wrap items-center justify-between gap-x-4">
         <p className="text-sm text-muted sm:text-base">How your practice is trending.</p>
-        <a href="/api/export/attempts" className="btn-link">
-          Export CSV
-        </a>
+        <span className="flex gap-4">
+          <a href="/api/export/attempts" className="btn-link">
+            Export CSV
+          </a>
+          <a href="/api/export/sessions" className="btn-link">
+            Sessions CSV
+          </a>
+        </span>
       </div>
     </>
   );

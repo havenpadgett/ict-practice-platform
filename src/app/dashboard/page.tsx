@@ -20,6 +20,7 @@ import {
 import { CONCEPTS, type Concept } from "@/lib/concepts";
 import { fetchProfile } from "@/lib/profiles";
 import { describeError } from "@/lib/errors";
+import { trackRecommendationShown } from "@/lib/events";
 import { recommendSession } from "@/lib/recommendations";
 import { clearLocalAttempts, getSessionScoreLabel, loadAttempts, loadSession } from "@/lib/storage";
 
@@ -75,6 +76,14 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadStats(user.id);
   }, [user]);
+
+  // Once the recommendation is on screen, record that it was shown (at
+  // most once a day) so follow-through can be measured.
+  useEffect(() => {
+    if (!attempts) return;
+    const r = recommendSession(attempts);
+    trackRecommendationShown(r.concept, r.difficulty);
+  }, [attempts]);
 
   async function handleMigrate() {
     if (!user) return;

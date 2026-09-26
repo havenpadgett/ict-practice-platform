@@ -25,6 +25,7 @@ import { useRequireAuth } from "@/hooks/use-require-auth";
 import { buildAnswerAttempt, buildFreeTradeAttempt, buildGuidedAttempt } from "@/lib/attempt-rows";
 import { DASHBOARD_COLUMNS, fetchAttempts, insertAttempt, nextAttemptNumber, type NewAttempt } from "@/lib/attempts";
 import { describeError, type FriendlyError } from "@/lib/errors";
+import { modeFor, track, type SessionSource } from "@/lib/events";
 import { CONCEPT_LIST, getConceptMeta, type Concept } from "@/lib/concepts";
 import { gradeAttempt, type GradeResult, type UserAnswer, type UserRegion } from "@/lib/grading";
 import type { FreeTradeGradeResult } from "@/lib/free-trade-grading";
@@ -76,8 +77,13 @@ export default function PracticePage() {
     setLengthPickerConcept(concept);
   }
 
-  function handleStartSession(concept: Concept, length: SessionLength, difficulty?: 1 | 2 | 3) {
-    beginSession(concept, buildSessionExerciseIds(concept, length, difficulty));
+  function handleStartSession(
+    concept: Concept,
+    length: SessionLength,
+    difficulty?: 1 | 2 | 3,
+    source: SessionSource = "picker",
+  ) {
+    beginSession(concept, buildSessionExerciseIds(concept, length, difficulty), source);
   }
 
   async function handleStartAdaptive() {
@@ -90,13 +96,25 @@ export default function PracticePage() {
         const e = getExercise(id);
         return e !== undefined && isPracticeReady(e);
       });
-      beginSession(ADAPTIVE_SESSION, ids);
+      beginSession(ADAPTIVE_SESSION, ids, "adaptive_mix");
     } catch (err) {
       setAdaptiveError(describeError(err, "load your practice history to build the session").message);
     }
   }
 
-  function beginSession(kind: string, exerciseIds: string[]) {
+  /** A session still in progress is recorded as abandoned at the point the
+   * user left it (product analytics, src/lib/events.ts). */
+  function trackAbandoned(s: SessionState | null) {
+    if (s && !s.completed) {
+      track({
+        event_type: "session_abandoned",
+        session_id: s.session_id,
+        position: s.correct_count + s.missed_exercise_ids.length,
+      });
+    }
+  }
+
+  function beginSession(kind: string, exerciseIds: string[], source: SessionSource) {
     if (exerciseIds.length === 0) {
       // e.g. a concept whose only exercises are real scenarios still awaiting review.
       setNotice(`There are no exercises ready for ${kind === ADAPTIVE_SESSION ? "an adaptive session" : getConceptMeta(kind).pickerLabel} yet. Pick another concept.`);
@@ -106,7 +124,16 @@ export default function PracticePage() {
       return;
     }
     setNotice(null);
+    trackAbandoned(session ?? loadSession());
     const fresh = createSession(kind, exerciseIds);
+    track({
+      event_type: "session_started",
+      session_id: fresh.session_id,
+      mode: modeFor(kind),
+      concept: kind,
+      source,
+      planned_length: exerciseIds.length,
+    });
     saveSession(fresh);
     setSession(fresh);
     setShowPicker(false);
@@ -133,7 +160,12 @@ export default function PracticePage() {
       const lengthParam = params.get("length");
       const length: SessionLength = lengthParam && /^\d+$/.test(lengthParam) ? Number(lengthParam) : "all";
       window.history.replaceState(null, "", "/practice");
-      handleStartSession(requestedConcept as Concept, length, d === 1 || d === 2 || d === 3 ? d : undefined);
+      handleStartSession(
+        requestedConcept as Concept,
+        length,
+        d === 1 || d === 2 || d === 3 ? d : undefined,
+        params.get("src") === "rec" ? "recommendation" : "deep_link",
+      );
       return;
     }
     const existing = loadSession();
@@ -148,6 +180,7 @@ export default function PracticePage() {
   }, []);
 
   function handleBackToPicker() {
+    trackAbandoned(session);
     clearSession();
     setSession(null);
     setLengthPickerConcept(null);
@@ -422,6 +455,13 @@ export default function PracticePage() {
     const nextIndex = session.current_index + 1;
     const completed = nextIndex >= session.exercise_order.length;
     const updatedSession: SessionState = { ...session, current_index: nextIndex, completed };
+    if (completed) {
+      track({
+        event_type: "session_completed",
+        session_id: session.session_id,
+        position: session.correct_count + session.missed_exercise_ids.length,
+      });
+    }
     saveSession(updatedSession);
     setSession(updatedSession);
     setUserRegion(null);

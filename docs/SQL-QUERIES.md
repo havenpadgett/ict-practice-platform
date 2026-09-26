@@ -232,13 +232,15 @@ left join practice_events c on c.session_id = s.session_id and c.event_type = 's
 where s.event_type = 'session_started' group by s.user_id;
 ```
 
+The real view reads from `v_sessions` (one row per started session, also exported as CSV by `/api/export/sessions`), which is the query above plus fallbacks for sessions with no end event.
+
 **Reading it:** a low `completion_rate` with high attempt counts means users practice but don't finish sessions. That usually means sessions are too long.
 
 ### `v_session_abandonment`
 
 **Question:** At which exercise do unfinished sessions stop?
 
-**Reading it:** one row per (planned length, answered before stopping). For example, `planned_length = 10, answered = 3, sessions = 12` means 12 ten-exercise sessions were left after 3 answers. Sessions never marked completed count as abandoned, whether the user explicitly moved on or simply closed the tab.
+**Reading it:** one row per (`planned_length`, `exercises_answered` before stopping). For example, `planned_length = 10, exercises_answered = 3, sessions = 12` means 12 ten-exercise sessions were left after 3 answers. Sessions never marked completed count as abandoned, whether the user explicitly moved on or simply closed the tab.
 
 ### `v_mode_usage`
 

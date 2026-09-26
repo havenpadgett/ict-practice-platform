@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { attemptsToCsv, EXPORT_COLUMNS } from "@/lib/export";
+import { attemptsToCsv, EXPORT_COLUMNS, SESSION_EXPORT_COLUMNS, sessionsToCsv, type ExportSession } from "@/lib/export";
 import { attempt } from "./fixtures";
 
 function parse(csv: string): string[][] {
@@ -64,5 +64,37 @@ describe("attempts CSV export", () => {
 
   it("escapes commas and quotes", () => {
     expect(col(1, "user_email")).toBe('trader,"x"@example.com');
+  });
+});
+
+describe("session columns and sessions CSV", () => {
+  const user = { id: "u", email: "t@example.com" };
+  const session: ExportSession = {
+    session_id: "s1",
+    started_at: "2026-09-26T10:00:00Z",
+    mode: "recognition",
+    concept: "FVG",
+    source: "recommendation",
+    planned_length: 10,
+    completed: false,
+    exercises_answered: 3,
+    ended_at: "2026-09-26T10:05:00Z",
+    hours_since_previous: 26.456,
+  };
+
+  it("joins each attempt to its session, blank when there's no session row", () => {
+    const rows = [attempt("FVG", true, { session_id: "s1" }), attempt("FVG", true, { session_id: "other" })];
+    const table = parse(attemptsToCsv(rows, user, [session]));
+    const h = table[0];
+    const col = (r: number, name: string) => table[r][h.indexOf(name)];
+    expect([col(1, "session_source"), col(1, "session_planned_length"), col(1, "session_completed")]).toEqual(["recommendation", "10", "0"]);
+    expect([col(2, "session_source"), col(2, "session_completed")]).toEqual(["", ""]);
+  });
+
+  it("writes one row per session", () => {
+    const table = parse(sessionsToCsv([session], user));
+    expect(table[0]).toEqual(SESSION_EXPORT_COLUMNS.map((c) => c.name));
+    const col = (name: string) => table[1][table[0].indexOf(name)];
+    expect([col("source"), col("completed"), col("exercises_answered"), col("hours_since_previous")]).toEqual(["recommendation", "0", "3", "26.46"]);
   });
 });

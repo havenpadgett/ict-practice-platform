@@ -8,6 +8,20 @@ import { getConceptMeta } from "@/lib/concepts";
 
 export type ExportUser = { id: string; email: string | null };
 
+/** A row of the v_sessions view (supabase/migrations/20260926130000_practice_events.sql). */
+export type ExportSession = {
+  session_id: string;
+  started_at: string;
+  mode: string | null;
+  concept: string | null;
+  source: string | null;
+  planned_length: number | null;
+  completed: boolean;
+  exercises_answered: number;
+  ended_at: string | null;
+  hours_since_previous: number | null;
+};
+
 type Cell = string | number | boolean | null | undefined;
 
 const MODES: Record<DbAttempt["answer_type"], string> = {
@@ -23,11 +37,20 @@ function flag(value: boolean | null | undefined): Cell {
   return value === null || value === undefined ? null : value ? 1 : 0;
 }
 
-export const EXPORT_COLUMNS: { name: string; value: (a: DbAttempt, u: ExportUser) => Cell }[] = [
+export const EXPORT_COLUMNS: {
+  name: string;
+  value: (a: DbAttempt, u: ExportUser, s: ExportSession | undefined) => Cell;
+}[] = [
   { name: "attempt_id", value: (a) => a.id },
   { name: "user_id", value: (a) => a.user_id },
   { name: "user_email", value: (_a, u) => u.email },
   { name: "session_id", value: (a) => a.session_id },
+  // From practice_events via v_sessions. Blank when the session has no
+  // session_started event (before tracking existed, or the migration isn't
+  // applied yet).
+  { name: "session_source", value: (_a, _u, s) => s?.source },
+  { name: "session_planned_length", value: (_a, _u, s) => s?.planned_length },
+  { name: "session_completed", value: (_a, _u, s) => (s ? flag(s.completed) : null) },
   { name: "attempted_at_utc", value: (a) => new Date(a.created_at).toISOString() },
   { name: "attempted_date_utc", value: (a) => new Date(a.created_at).toISOString().slice(0, 10) },
   { name: "exercise_id", value: (a) => a.exercise_id },
@@ -78,9 +101,43 @@ function csvCell(value: Cell): string {
   return /[",\r\n]/.test(s) || /^[=+\-@\t]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-/** RFC 4180 CSV, CRLF line endings, UTF-8 BOM so Excel reads it as UTF-8. */
-export function attemptsToCsv(attempts: DbAttempt[], user: ExportUser): string {
-  const lines = [EXPORT_COLUMNS.map((c) => c.name).join(",")];
-  for (const a of attempts) lines.push(EXPORT_COLUMNS.map((c) => csvCell(c.value(a, user))).join(","));
+function toCsv(header: string[], rows: Cell[][]): string {
+  const lines = [header.join(","), ...rows.map((r) => r.map(csvCell).join(","))];
   return "﻿" + lines.join("\r\n") + "\r\n";
+}
+
+/** RFC 4180 CSV, CRLF line endings, UTF-8 BOM so Excel reads it as UTF-8. */
+export function attemptsToCsv(attempts: DbAttempt[], user: ExportUser, sessions: ExportSession[] = []): string {
+  const bySession = new Map(sessions.map((s) => [s.session_id, s]));
+  return toCsv(
+    EXPORT_COLUMNS.map((c) => c.name),
+    attempts.map((a) => {
+      const s = a.session_id ? bySession.get(a.session_id) : undefined;
+      return EXPORT_COLUMNS.map((c) => c.value(a, user, s));
+    }),
+  );
+}
+
+export const SESSION_EXPORT_COLUMNS: { name: string; value: (s: ExportSession, u: ExportUser) => Cell }[] = [
+  { name: "session_id", value: (s) => s.session_id },
+  { name: "user_id", value: (_s, u) => u.id },
+  { name: "user_email", value: (_s, u) => u.email },
+  { name: "started_at_utc", value: (s) => new Date(s.started_at).toISOString() },
+  { name: "started_date_utc", value: (s) => new Date(s.started_at).toISOString().slice(0, 10) },
+  { name: "ended_at_utc", value: (s) => (s.ended_at ? new Date(s.ended_at).toISOString() : null) },
+  { name: "mode", value: (s) => s.mode },
+  { name: "concept", value: (s) => s.concept },
+  { name: "source", value: (s) => s.source },
+  { name: "planned_length", value: (s) => s.planned_length },
+  { name: "exercises_answered", value: (s) => s.exercises_answered },
+  { name: "completed", value: (s) => flag(s.completed) },
+  { name: "hours_since_previous", value: (s) => (s.hours_since_previous === null ? null : Math.round(s.hours_since_previous * 100) / 100) },
+];
+
+/** One row per started session (v_sessions), same format as the attempts CSV. */
+export function sessionsToCsv(sessions: ExportSession[], user: ExportUser): string {
+  return toCsv(
+    SESSION_EXPORT_COLUMNS.map((c) => c.name),
+    sessions.map((s) => SESSION_EXPORT_COLUMNS.map((c) => c.value(s, user))),
+  );
 }
