@@ -17,25 +17,15 @@ import { ErrorBanner } from "@/components/error-banner";
 import { LoadingState } from "@/components/loading-state";
 import { describeError } from "@/lib/errors";
 import { useRequireAuth } from "@/hooks/use-require-auth";
-import {
-  getAccuracyByConceptAndDifficulty,
-  getAccuracyByDifficulty,
-  getAccuracyByExercise,
-  getAccuracyTrend,
-  getFreeTradeProcessVsOutcome,
-  getFreeTradeStats,
-  getGuidedStepAccuracy,
-  getOverallStats,
-  getRealVsConstructed,
-  getResponseTimeStats,
-  getStrongestAndWeakestConcept,
-} from "@/lib/analytics";
-import { fetchAttempts, getAccuracyByConcept, type DbAttempt } from "@/lib/attempts";
+import { getAccuracyTrend, getFreeTradeStats, getOverallStats, getStrongestAndWeakestConcept } from "@/lib/analytics";
+import { aggregatesFromAttempts, aggregatesFromViews, fetchViewRows, type Aggregates, type ViewRows } from "@/lib/analytics-views";
+import { fetchAttempts, type DbAttempt } from "@/lib/attempts";
 
 export default function AnalyticsPage() {
   const { user, loading: authLoading } = useRequireAuth();
 
   const [attempts, setAttempts] = useState<DbAttempt[] | null>(null);
+  const [viewRows, setViewRows] = useState<ViewRows | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -43,8 +33,12 @@ export default function AnalyticsPage() {
     setDataLoading(true);
     setLoadError(null);
     try {
-      const rows = await fetchAttempts(userId);
+      // Aggregates come from the SQL views when they exist (null otherwise);
+      // raw attempts are still needed for the trend line, Free Trade check
+      // breakdown and the recommendation engine.
+      const [rows, views] = await Promise.all([fetchAttempts(userId), fetchViewRows(userId)]);
       setAttempts(rows);
+      setViewRows(views);
     } catch (err) {
       setLoadError(describeError(err, "load your analytics").message);
     } finally {
@@ -88,7 +82,7 @@ export default function AnalyticsPage() {
       ) : !attempts || attempts.length === 0 ? (
         <AnalyticsEmptyState />
       ) : (
-        <AnalyticsContent attempts={attempts} />
+        <AnalyticsContent attempts={attempts} aggregates={viewRows ? aggregatesFromViews(viewRows) : aggregatesFromAttempts(attempts)} />
       )}
     </div>
   );
@@ -111,19 +105,21 @@ function AnalyticsHeader() {
   );
 }
 
-function AnalyticsContent({ attempts }: { attempts: DbAttempt[] }) {
+function AnalyticsContent({ attempts, aggregates }: { attempts: DbAttempt[]; aggregates: Aggregates }) {
   const overall = getOverallStats(attempts);
-  const byConcept = getAccuracyByConcept(attempts);
+  const {
+    byConcept,
+    byExercise,
+    byDifficulty,
+    responseTime,
+    guidedSteps,
+    conceptDifficulty,
+    realVsConstructed,
+    processVsOutcome,
+  } = aggregates;
   const highlights = getStrongestAndWeakestConcept(byConcept);
-  const byExercise = getAccuracyByExercise(attempts);
-  const byDifficulty = getAccuracyByDifficulty(attempts);
-  const responseTime = getResponseTimeStats(attempts);
-  const guidedSteps = getGuidedStepAccuracy(attempts);
   const freeTrade = getFreeTradeStats(attempts);
   const trend = getAccuracyTrend(attempts, TREND_WINDOW);
-  const conceptDifficulty = getAccuracyByConceptAndDifficulty(attempts);
-  const realVsConstructed = getRealVsConstructed(attempts);
-  const processVsOutcome = getFreeTradeProcessVsOutcome(attempts);
 
   return (
     <div className="mt-8 space-y-10">
