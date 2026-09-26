@@ -13,10 +13,11 @@ export async function proxy(request: NextRequest) {
     supabaseUrl = getSupabaseUrl();
     supabaseAnonKey = getSupabaseKey();
   } catch {
-    // Missing env vars — let the request through unprotected rather than
-    // breaking every route; AuthProvider surfaces the same misconfiguration
-    // as an in-app message instead of a crash.
-    return response;
+    // Missing env vars (e.g. not set in Vercel). Public pages still load and
+    // AuthProvider shows the misconfiguration; protected paths fail closed
+    // to /login rather than rendering unprotected (security audit S13).
+    const isProtectedPath = PROTECTED_PATHS.some((path) => request.nextUrl.pathname.startsWith(path));
+    return isProtectedPath ? NextResponse.redirect(new URL("/login", request.url)) : response;
   }
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {

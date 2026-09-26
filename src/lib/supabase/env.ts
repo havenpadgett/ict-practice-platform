@@ -4,7 +4,7 @@
 
 function requireEnv(name: string, value: string | undefined): string {
   if (!value) {
-    throw new Error(`Missing ${name}. Set it in .env.local.`);
+    throw new Error(`Missing ${name}. Set it in .env.local, or in Vercel → Settings → Environment Variables and redeploy (docs/DEPLOYMENT.md).`);
   }
   return value;
 }
