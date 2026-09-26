@@ -49,3 +49,6 @@ next-env.d.ts
 # analysis (user data and local env)
 analysis/.venv/
 analysis/output/
+
+# database backups (every user's data, password hashes included)
+/backups/
