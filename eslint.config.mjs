@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Git-ignored local environments and outputs (vendored JS in the venv).
+    "analysis/.venv/**",
+    "analysis/output/**",
+    "coverage/**",
   ]),
 ]);
 
