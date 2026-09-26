@@ -1,5 +1,5 @@
 // Internal scenario review (docs/SCENARIO-VALIDATION.md, steps 5-6). Not
-// user-facing: signed-in users whose email is in REVIEWER_EMAILS work
+// user-facing: signed-in users with the reviewer or admin role work
 // through unreviewed real scenarios one rule at a time, with the curriculum
 // definition beside each chart. src/proxy.ts requires a login; the reviewer
 // check happens here and again inside each Server Action.
@@ -8,7 +8,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { ReviewQueue, type QueueGroup } from "@/app/review/review-queue";
 import { invalidRealScenarios, reviewTexts, type RealScenario } from "@/data/real-scenarios";
-import { getReviewer } from "@/lib/review/access";
+import { getReviewer, ROLE_SETUP_HINT } from "@/lib/review/access";
 import { canWrite, listScenarios, readReviewLog, staleFor } from "@/lib/review/store";
 import { DEFINITIONS, definitionsForRule, splitSections } from "@/lib/curriculum";
 
@@ -41,7 +41,7 @@ export default async function ReviewPage() {
     return (
       <div className="page">
         <h1 className="page-title">Scenario review</h1>
-        <p className="page-lede">Not authorized. Add your account email to REVIEWER_EMAILS in .env.local and restart the dev server.</p>
+        <p className="page-lede">Not authorized. {ROLE_SETUP_HINT}</p>
       </div>
     );
   }

@@ -21,10 +21,8 @@ export async function GET() {
     .eq("user_id", user.id)
     .order("started_at", { ascending: true });
   if (error) {
-    return NextResponse.json(
-      { error: `Session tracking isn't available yet: ${error.message}` },
-      { status: 503 },
-    );
+    console.error("export/sessions:", error.code);
+    return NextResponse.json({ error: "Session data isn't available yet." }, { status: 503 });
   }
   const date = new Date().toISOString().slice(0, 10);
   return new NextResponse(sessionsToCsv((data ?? []) as ExportSession[], { id: user.id, email: user.email ?? null }), {

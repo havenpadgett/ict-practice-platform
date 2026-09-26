@@ -1,16 +1,15 @@
 // Product health for whoever runs the app — every user's numbers, unlike
 // /analytics which shows the signed-in user their own. src/proxy.ts requires
-// a login. Access: REVIEWER_EMAILS (the existing internal-tools allowlist)
-// or a row in public.app_admins. The database numbers come from the
+// a login; this page requires the admin role (profiles.role, checked on the
+// server, src/lib/review/access.ts). The database numbers come from the
 // SECURITY DEFINER functions in
-// supabase/migrations/20260926140000_admin_functions.sql, which check
-// app_admins themselves, so the email allowlist alone never exposes other
-// users' data.
+// supabase/migrations/20260926140000_admin_functions.sql, which check the
+// role again themselves (is_admin(), redefined in 20260927120000_roles.sql).
 
 import { StatCard } from "@/components/stat-card";
 import { CONCEPTS, type Concept } from "@/lib/concepts";
 import { reviewProgress, type RuleProgress } from "@/lib/admin/review-progress";
-import { getReviewer } from "@/lib/review/access";
+import { getAccess, ROLE_SETUP_HINT } from "@/lib/review/access";
 import { listScenarios, readReviewLog, staleFor } from "@/lib/review/store";
 import { createClient } from "@/lib/supabase/server";
 
@@ -92,16 +91,16 @@ async function loadReview(): Promise<{ rows: RuleProgress[]; error: string | nul
 }
 
 export default async function AdminPage() {
-  const [reviewer, db] = await Promise.all([getReviewer(), loadDb()]);
-  if (!reviewer && !db.isAdmin) {
+  const access = await getAccess();
+  if (access.kind !== "ok" || access.role !== "admin") {
     return (
       <div className="page">
         <h1 className="page-title">Admin</h1>
-        <p className="page-lede">Not authorized.</p>
+        <p className="page-lede">Not authorized. {ROLE_SETUP_HINT}</p>
       </div>
     );
   }
-  const review = await loadReview();
+  const [db, review] = await Promise.all([loadDb(), loadReview()]);
 
   return (
     <div className="page max-w-5xl">
@@ -131,8 +130,7 @@ function DbSections({ state }: { state: DbState }) {
     const message = {
       not_applied:
         "Database numbers need supabase/migrations/20260926140000_admin_functions.sql (and the two migrations before it) applied.",
-      not_admin:
-        "Database numbers are limited to accounts in public.app_admins. Add yours in the Supabase SQL editor (see docs/SQL-QUERIES.md → Admin functions).",
+      not_admin: "The database didn't confirm the admin role for this account.",
       error: `Couldn't load database numbers: ${state.kind === "error" ? state.message : ""}`,
     }[state.kind];
     return (

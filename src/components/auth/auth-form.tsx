@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { safeNextPath } from "@/lib/safe-redirect";
 import { useState, type FormEvent } from "react";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { GOOGLE_AUTH_ENABLED } from "@/lib/auth-flags";
@@ -17,7 +18,7 @@ export function AuthForm() {
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/dashboard";
+  const next = safeNextPath(searchParams.get("next"));
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();

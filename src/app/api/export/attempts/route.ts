@@ -23,7 +23,9 @@ export async function GET() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: true });
   if (error) {
-    return NextResponse.json({ error: `Couldn't load attempts: ${error.message}` }, { status: 500 });
+    // Generic message: the database error names tables and columns (S6).
+    console.error("export/attempts:", error.code);
+    return NextResponse.json({ error: "Couldn't load attempts. Try again." }, { status: 500 });
   }
   const sessions = await supabase.from("v_sessions").select("*").eq("user_id", user.id);
   const date = new Date().toISOString().slice(0, 10);

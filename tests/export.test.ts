@@ -98,3 +98,14 @@ describe("session columns and sessions CSV", () => {
     expect([col("source"), col("completed"), col("exercises_answered"), col("hours_since_previous")]).toEqual(["recommendation", "0", "3", "26.46"]);
   });
 });
+
+describe("CSV formula injection (security audit S5)", () => {
+  it("prefixes formula-like text with ' but leaves negative numbers alone", () => {
+    const rows = [attempt("FreeTrade", true, { answer_type: "free", free_result_r: -1, failure_reason: "=HYPERLINK(\"x\")" })];
+    const table = parse(attemptsToCsv(rows, { id: "u", email: "@evil" }));
+    const col = (name: string) => table[1][table[0].indexOf(name)];
+    expect(col("user_email")).toBe("'@evil");
+    expect(col("failure_reason")).toBe("'=HYPERLINK(\"x\")");
+    expect(col("free_result_r")).toBe("-1");
+  });
+});

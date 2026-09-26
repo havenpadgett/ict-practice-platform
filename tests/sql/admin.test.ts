@@ -20,14 +20,14 @@ beforeAll(async () => {
       ('${B}', 's2', 'session_started', 'recognition', 'MSS', 'picker', 5, '${at(10)}');
     insert into practice_events (user_id, session_id, event_type, position, created_at) values
       ('${B}', 's2', 'session_completed', 5, '${at(15)}');
-    insert into app_admins (user_id) values ('${A}');
+    update profiles set role = 'admin' where id = '${A}';
   `);
 });
 
 const q = async (sql: string) => (await db.query(sql)).rows as Record<string, unknown>[];
 
 describe("admin functions", () => {
-  it("refuse anyone not in app_admins", async () => {
+  it("refuse anyone without the admin role", async () => {
     await asUser(db, B, async () => {
       expect((await q(`select public.is_admin() as ok`))[0].ok).toBe(false);
       await expect(q(`select * from admin_overview()`)).rejects.toThrow(/admin only/);
@@ -36,10 +36,8 @@ describe("admin functions", () => {
     });
   });
 
-  it("app_admins isn't readable through the API", async () => {
-    await asUser(db, A, async () => {
-      expect(await q(`select * from app_admins`)).toEqual([]);
-    });
+  it("app_admins is retired in favour of profiles.role", async () => {
+    expect(await q(`select to_regclass('public.app_admins') as t`)).toEqual([{ t: null }]);
   });
 
   it("overview counts every user's rows, despite RLS", async () => {

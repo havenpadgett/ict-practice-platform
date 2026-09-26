@@ -97,8 +97,12 @@ export const EXPORT_COLUMNS: {
 
 function csvCell(value: Cell): string {
   if (value === null || value === undefined) return "";
-  const s = String(value);
-  return /[",\r\n]/.test(s) || /^[=+\-@\t]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  let s = String(value);
+  // Formula injection (security audit S5): quoting alone doesn't stop Excel
+  // evaluating "=…". Text that starts like a formula gets a leading ' so
+  // it's read as text. Numbers are left alone so -1 stays a number.
+  if (typeof value === "string" && /^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
 function toCsv(header: string[], rows: Cell[][]): string {

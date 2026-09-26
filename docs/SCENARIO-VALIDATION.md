@@ -169,7 +169,7 @@ Work through every item for each candidate. One "no" means reject (or fix and re
 
 ### The /review page
 
-`/review` is internal tooling. It needs a login (`src/proxy.ts`), and the signed-in email must be listed in `REVIEWER_EMAILS` in `.env.local` (comma-separated; unset means nobody).
+`/review` is internal tooling. It needs a login (`src/proxy.ts`) and the `reviewer` or `admin` role on the signed-in user's profile. Roles are granted in the Supabase SQL editor (docs/SECURITY-AUDIT.md → Roles). Before 2026-09-27 access came from a `REVIEWER_EMAILS` env allowlist, which is no longer read.
 
 **Layout:**
 - Candidates are grouped **by detection rule**, so you review one concept at a time. Counts show reviewed vs. remaining overall and per rule.

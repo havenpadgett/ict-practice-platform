@@ -114,7 +114,7 @@ npm install
 npm run dev
 ```
 
-Create `.env.local` with `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (or `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`). Add `REVIEWER_EMAILS` (a comma-separated list of emails) to use `/review`. Apply the SQL in `supabase/migrations/` to your Supabase project in order.
+Create `.env.local` with `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (or `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`). To use `/review` or `/admin`, grant your account the `reviewer` or `admin` role in the database (see [docs/SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md#roles)). Apply the SQL in `supabase/migrations/` to your Supabase project in order.
 
 Then open http://localhost:3000. Other commands:
 

@@ -268,20 +268,22 @@ The real view reads from `v_sessions` (one row per started session, also exporte
 
 ## Admin functions
 
-`/admin` needs numbers across **all** users. With the anon key, Row Level Security would limit every view to the signed-in admin's own rows. So `20260926140000_admin_functions.sql` adds `security definer` functions, which run with their owner's rights and so see every row. Each one first calls `require_admin()`, which raises `admin only` unless `public.is_admin()` is true, meaning the caller's user id is in `public.app_admins`. That table has RLS switched on and no policies, so it can't be read or changed through the API.
+`/admin` needs numbers across **all** users. With the anon key, Row Level Security would limit every view to the signed-in admin's own rows. So `20260926140000_admin_functions.sql` adds `security definer` functions, which run with their owner's rights and so see every row. Each one first calls `require_admin()`, which raises `admin only` unless `public.is_admin()` is true.
+
+`is_admin()` checks that the caller's `profiles.role` is `admin`. It was redefined in `20260927120000_roles.sql`, which replaced the short-lived `app_admins` table. Nobody can set their own role through the API: a trigger refuses it (docs/SECURITY-AUDIT.md → Roles).
 
 | Function | Returns |
 |---|---|
-| `is_admin()` | `true` if the caller is in `app_admins`. Safe for anyone to call. |
+| `is_admin()`, `is_reviewer()`, `current_role_name()` | The caller's role, as a boolean or as `user` / `reviewer` / `admin`. Safe for anyone signed in to call. |
 | `admin_overview()` | One row: `total_users`, `active_users_7d`, `total_attempts`, `attempts_7d`, `overall_accuracy`, `sessions_started`, `sessions_completed`, `completion_rate` (from `v_sessions`), and `sessions_with_attempts` (from `v_session_progress`, including sessions from before event tracking). |
 | `admin_exercise_failures(min_attempts default 5, max_rows default 15)` | The exercises with the lowest `success_rate` across all users, from `v_exercise_success`, leaving out any with fewer than `min_attempts` attempts. |
 | `admin_concept_ranking()` | Every concept's `attempts`, `users`, `accuracy` and `difficulty_rank` (1 = lowest accuracy). |
 
-**Access to `/admin`:** the page opens for anyone in `REVIEWER_EMAILS` (the allowlist `/review` already uses) or in `app_admins`. The database numbers only load for `app_admins`, because the functions check it themselves. An email in `.env.local` alone never exposes other users' data. Scenario review progress comes from the repo's files, not the database, so reviewers see it either way.
+**Access to `/admin`:** the admin role only. The page checks it on the server, and each function checks it again in the database.
 
-After applying the migration, add yourself in the SQL editor:
+After applying the migrations, make yourself an admin in the SQL editor:
 
 ```sql
-insert into public.app_admins (user_id)
-select id from auth.users where email = 'you@example.com';
+update public.profiles set role = 'admin'
+where id = (select id from auth.users where email = 'you@example.com');
 ```
