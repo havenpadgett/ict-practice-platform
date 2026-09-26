@@ -44,6 +44,15 @@
     "context_start": "07:00",
     "timeframe": "5m",
     "detection_rule": "guided_setup",
+    "curriculum_versions": {
+      "guided_entry": 1,
+      "mss": 1,
+      "fvg": 1,
+      "fvg_respect": 1,
+      "order_block": 1,
+      "liquidity": 1,
+      "detection_parameters": 1
+    },
     "candidate_id": "setup-valid-20240529",
     "detection_params": {
       "rules": [

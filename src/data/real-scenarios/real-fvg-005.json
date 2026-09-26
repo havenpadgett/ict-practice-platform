@@ -30,6 +30,10 @@
     "context_start": null,
     "timeframe": "5m",
     "detection_rule": "fvg",
+    "curriculum_versions": {
+      "fvg": 1,
+      "detection_parameters": 1
+    },
     "candidate_id": "fvg-bearish-20250414T0935",
     "detection_params": {
       "rules": [

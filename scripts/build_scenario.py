@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from common import load_clean, load_json, round_price, trading_date, write_json
+from common import curriculum_versions, load_clean, load_json, round_price, trading_date, write_json
 from detect import session_median_range
 
 DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parent.parent / "src" / "data" / "real-scenarios"
@@ -279,6 +279,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             "context_start": selection.get("context_start") if cand["rule"] in STRUCTURE_RULES else None,
             "timeframe": timeframe_label(meta["timeframe_minutes"]),
             "detection_rule": cand["rule"],
+            "curriculum_versions": curriculum_versions(cand["rule"]),
             "candidate_id": cand["id"],
             "detection_params": cands["meta"].get("detection_params", {}),
             "detection_notes": cand["notes"],

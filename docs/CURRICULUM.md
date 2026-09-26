@@ -4,6 +4,15 @@ Source of truth for concept definitions. Every exercise's answer key is written 
 
 **Provenance:** every definition below is tagged **HAVEN-VALIDATED** (Haven checked it against source material independently) or **AI-DRAFTED** (written by AI and approved by Haven on a read-through, without independent verification against source material). Treat an AI-DRAFTED definition as needing review before anyone other than Haven uses the app — a quick approval is not the same guarantee as independent validation.
 
+**Versioning (2026-09-25):** every "## " section below is a versioned definition (`src/data/curriculum-versions.json`, managed by `npm run curriculum`). To change one:
+1. Edit the text.
+2. Run `npm run curriculum -- bump <id>`.
+3. Every exercise built on it is flagged for re-review:
+   - `npm test` fails and lists the constructed ones;
+   - `/review` requeues the real ones, and they leave practice until re-approved.
+
+The workflow is in [CURRICULUM-REVIEW.md](CURRICULUM-REVIEW.md).
+
 ## Fair Value Gap (FVG)
 
 **Provenance:** HAVEN-VALIDATED.

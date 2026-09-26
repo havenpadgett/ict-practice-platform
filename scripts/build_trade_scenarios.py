@@ -37,7 +37,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from build_scenario import DEFAULT_OUTPUT_DIR, DRAFT_NOTE
-from common import load_clean, load_json, round_price, trading_date, write_json
+from common import curriculum_versions, load_clean, load_json, round_price, trading_date, write_json
 from detect import group_indices, session_median_range
 from setups import MIN_RR, TICK, find_setup, tick
 
@@ -132,6 +132,7 @@ def build(mode: str, exercise_id: str, day: List[Dict[str, Any]], n_ctx: int, s:
         "context_start": (meta.get("selection") or {}).get("context_start"),
         "timeframe": f"{meta['timeframe_minutes']}m",
         "detection_rule": "guided_setup" if mode == "guided" else "free_trade_setup",
+        "curriculum_versions": curriculum_versions("guided_setup" if mode == "guided" else "free_trade_setup"),
         "candidate_id": f"setup-{kind}-{trading_date(day[n_ctx]['_dt']).strftime('%Y%m%d')}",
         "detection_params": params,
         "detection_notes": s["notes"],

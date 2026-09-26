@@ -9,6 +9,7 @@ import { premiumDiscountExercises } from "@/data/premium-discount-exercises";
 import { realScenarios } from "@/data/real-scenarios";
 import { timeLiquidityExercises } from "@/data/time-liquidity-exercises";
 import type { Concept } from "@/lib/concepts";
+import { definitionsForRule, staleDefinitions } from "@/lib/curriculum";
 
 export type Candle = {
   /** Display label, "HH:MM". Constructed exercises use only this. */
@@ -105,6 +106,10 @@ export type ScenarioProvenance = {
    * (docs/CURRICULUM.md, MSS); null otherwise. */
   context_start: string | null;
   timeframe: string;
+  /** Version of each curriculum definition the answer key was derived
+   * under (src/lib/curriculum.ts). An older version than current means it
+   * needs re-review, and it isn't practice-ready until it gets one. */
+  curriculum_versions?: Record<string, number>;
   /** The scripts/detect.py rule that flagged this scenario. */
   detection_rule: string;
   candidate_id: string;
@@ -2911,12 +2916,17 @@ export const exercises: Exercise[] = [
   ...realScenarios,
 ];
 
-/** Constructed exercises are always practice-ready; a real-data scenario
- * only once a human has reviewed it (docs/SCENARIO-VALIDATION.md). */
+/** Constructed exercises are always practice-ready (tests/curriculum.test.ts
+ * fails if one is out of date with the curriculum); a real-data scenario
+ * only once a human has approved it under the current version of every
+ * definition it depends on (docs/SCENARIO-VALIDATION.md). */
 export function isPracticeReady(exercise: Exercise): boolean {
+  const p = exercise.provenance;
+  if (p === undefined) return true;
   return (
-    exercise.provenance === undefined ||
-    (exercise.provenance.human_reviewed === true && exercise.provenance.review_status !== "ambiguous")
+    p.human_reviewed === true &&
+    p.review_status !== "ambiguous" &&
+    staleDefinitions(p.curriculum_versions, definitionsForRule(p.detection_rule)).length === 0
   );
 }
 

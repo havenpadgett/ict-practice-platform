@@ -27,6 +27,10 @@
     "context_start": null,
     "timeframe": "15m",
     "detection_rule": "mss",
+    "curriculum_versions": {
+      "mss": 1,
+      "detection_parameters": 1
+    },
     "candidate_id": "mss-bullish-20240328T1445",
     "detection_params": {
       "rules": [

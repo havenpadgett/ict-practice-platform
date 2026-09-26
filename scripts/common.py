@@ -82,6 +82,23 @@ def format_et(dt: datetime) -> str:
     return dt.astimezone(ET).isoformat(timespec="seconds")
 
 
+CURRICULUM_VERSIONS = Path(__file__).resolve().parent.parent / "src" / "data" / "curriculum-versions.json"
+
+
+def curriculum_versions(rule: str) -> Dict[str, int]:
+    """Current version of every curriculum definition a rule's answer keys
+    depend on (src/data/curriculum-versions.json) — recorded in each
+    scenario's provenance so a later definition change flags it for
+    re-review."""
+    data = load_json(CURRICULUM_VERSIONS)
+    ids = data["rules"].get(rule)
+    if ids is None and rule.startswith(("previous_day_", "ny_am_", "weekly_")):
+        ids = data["rules"]["time_levels"]
+    if not ids:
+        raise SystemExit(f"No curriculum definitions mapped for rule '{rule}' in {CURRICULUM_VERSIONS}.")
+    return {i: data["definitions"][i]["version"] for i in ids}
+
+
 def load_json(path: str | Path) -> Any:
     with open(path, encoding="utf-8") as f:
         return json.load(f)

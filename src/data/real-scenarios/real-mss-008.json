@@ -27,6 +27,10 @@
     "context_start": null,
     "timeframe": "15m",
     "detection_rule": "mss",
+    "curriculum_versions": {
+      "mss": 1,
+      "detection_parameters": 1
+    },
     "candidate_id": "mss-bearish-20230613T1415",
     "detection_params": {
       "rules": [

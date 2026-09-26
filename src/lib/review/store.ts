@@ -17,7 +17,14 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { parseRealScenario, reviewTexts, type RealScenario } from "@/data/real-scenarios";
+import { currentVersions, definitionsForRule, staleDefinitions, type DefinitionId } from "@/lib/curriculum";
 import { isRejectionReason, REJECTION_REASONS, type RejectionReason } from "@/lib/review/reasons";
+
+/** Definitions a scenario's answer key was built under that have since
+ * changed; non-empty means it needs (re-)review. */
+export function staleFor(s: { provenance: { detection_rule: string; curriculum_versions?: Record<string, number> } }): DefinitionId[] {
+  return staleDefinitions(s.provenance.curriculum_versions, definitionsForRule(s.provenance.detection_rule));
+}
 
 const ROOT = process.cwd();
 const SCENARIO_DIR = path.join(ROOT, "src", "data", "real-scenarios");
@@ -216,7 +223,8 @@ export async function approveScenario(
 ): Promise<void> {
   if (!canWrite()) throw new Error("Reviews can only be saved from the local dev server (they edit repo files).");
   const s = await readScenario(id);
-  if (s.provenance.human_reviewed) throw new Error(`${id} is already approved.`);
+  const stale = staleFor(s as unknown as RealScenario);
+  if (s.provenance.human_reviewed && stale.length === 0) throw new Error(`${id} is already approved.`);
   for (const field of reviewTexts(s as unknown as RealScenario)) {
     const text = (texts[field.key] ?? "").trim();
     if (!text) throw new Error(`${field.label}: write the text users will see before approving.`);
@@ -229,6 +237,8 @@ export async function approveScenario(
   s.provenance = {
     ...s.provenance,
     human_reviewed: true,
+    // Approving confirms the answer key against today's definitions.
+    curriculum_versions: currentVersions(definitionsForRule(String(s.provenance.detection_rule))),
     reviewed_by: reviewer,
     reviewed_at: today(),
     review_notes: notes.trim() || null,

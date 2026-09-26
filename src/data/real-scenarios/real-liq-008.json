@@ -27,6 +27,10 @@
     "context_start": null,
     "timeframe": "15m",
     "detection_rule": "equal_highs",
+    "curriculum_versions": {
+      "liquidity": 1,
+      "detection_parameters": 1
+    },
     "candidate_id": "equal_highs-20231208T1445",
     "detection_params": {
       "rules": [

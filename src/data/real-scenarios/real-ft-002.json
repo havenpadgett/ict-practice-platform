@@ -29,6 +29,16 @@
     "context_start": "07:00",
     "timeframe": "5m",
     "detection_rule": "free_trade_setup",
+    "curriculum_versions": {
+      "free_trade": 1,
+      "guided_entry": 1,
+      "mss": 1,
+      "fvg": 1,
+      "fvg_respect": 1,
+      "order_block": 1,
+      "liquidity": 1,
+      "detection_parameters": 1
+    },
     "candidate_id": "setup-no_sweep-20230616",
     "detection_params": {
       "rules": [

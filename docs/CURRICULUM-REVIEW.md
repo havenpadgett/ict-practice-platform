@@ -16,7 +16,7 @@ Where I'm genuinely unsure, I say so.
 **Counting convention:**
 - **"constructed":** hand-built exercises in `src/data/*.ts`. They are live in practice.
 - **"real":** scenarios in `src/data/real-scenarios/`. All 50 are awaiting review, so none are live.
-- **Curriculum version:** each definition carries one in [curriculum-versions.json](curriculum-versions.json). Changing it flags every derived exercise for re-review (see the end of this doc).
+- **Curriculum version:** each definition carries one in `src/data/curriculum-versions.json`. Changing it flags every derived exercise for re-review (see the end of this doc).
 
 ## Summary
 
@@ -250,9 +250,19 @@ Where I'm genuinely unsure, I say so.
 
 ## How a definition change is handled now
 
-Every AI-DRAFTED definition has an id and a version in `docs/curriculum-versions.json`.
-- Each exercise records the definition versions its answer key was built under (`src/data/curriculum-deps.ts`).
-- If you change a definition, bump its version.
-- `npm test` then fails, listing every exercise built under the old version.
-- `/review` shows real scenarios built under an older version as needing re-review, and the practice app hides them until they're re-approved.
-- Constructed exercises must be re-checked by hand, and their recorded version updated.
+Every definition above is a "## " section of CURRICULUM.md with an id, a version and a hash of its text in `src/data/curriculum-versions.json`. The same file records:
+- which detection rules depend on which definitions (`rules`);
+- which constructed exercise groups depend on which definitions, and the version each group was last checked against (`constructed`, matched by id prefix: `mss-`, `guided-`, …).
+
+Real scenarios record the versions they were built and approved under in `provenance.curriculum_versions`.
+
+**When you change a definition:**
+1. **Edit its text.** `npm test` now fails: `<id> changed without a version bump`. A definition can't change silently.
+2. **Bump the version:** `npm run curriculum -- bump <id>`. `npm test` then fails again, listing every exercise built under the old version, constructed and real.
+3. **Constructed exercises:** re-check each listed exercise against the new wording, fix its answer key or explanation if needed, then run `npm run curriculum -- verify <prefix> <id>` (e.g. `verify mss- mss`).
+4. **Real scenarios:** they go back into the `/review` queue marked "Needs re-review: … changed", and **leave practice until re-approved** (`isPracticeReady` checks the versions). Approving records the current versions. Pending ones can also be rebuilt with the scripts, which read the current versions.
+
+Checked on 2026-09-25 by editing the MSS text:
+- The hash test failed.
+- After `bump mss`, the test listed `mss-001`…`005`, `guided-*`, `ft-*`, `ob-*`, `pd-*` and all 30 MSS-dependent real scenarios (MSS, Guided Entry and Free Trade).
+- Restoring the file cleared it.

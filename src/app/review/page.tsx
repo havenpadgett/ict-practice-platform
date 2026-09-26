@@ -9,7 +9,7 @@ import path from "path";
 import { ReviewQueue, type QueueGroup } from "@/app/review/review-queue";
 import { invalidRealScenarios, reviewTexts, type RealScenario } from "@/data/real-scenarios";
 import { getReviewer } from "@/lib/review/access";
-import { canWrite, listScenarios, readReviewLog } from "@/lib/review/store";
+import { canWrite, listScenarios, readReviewLog, staleFor } from "@/lib/review/store";
 import { DEFINITIONS, definitionsForRule, splitSections } from "@/lib/curriculum";
 
 export const dynamic = "force-dynamic";
@@ -48,7 +48,10 @@ export default async function ReviewPage() {
 
   const [{ scenarios, broken }, log, sections] = await Promise.all([listScenarios(), readReviewLog(), curriculumSections()]);
   const writable = canWrite();
-  const isPending = (s: RealScenario) => !s.provenance.human_reviewed && s.provenance.review_status !== "ambiguous";
+  // Awaiting a first review, or approved under a definition that has since
+  // changed (re-review).
+  const isPending = (s: RealScenario) =>
+    s.provenance.review_status !== "ambiguous" && (!s.provenance.human_reviewed || staleFor(s).length > 0);
   const ambiguous = scenarios.filter((s) => s.provenance.review_status === "ambiguous");
 
   const rules = Array.from(new Set([...scenarios.map((s) => s.provenance.detection_rule), ...log.map((e) => e.rule)]));
@@ -64,7 +67,11 @@ export default async function ReviewPage() {
       .map((s) => ({
         scenario: s,
         texts: reviewTexts(s).map((t) => ({ key: t.key, label: t.label, draft: t.value.replace(DRAFT_PREFIX, "") })),
-        stale: null,
+        stale: staleFor(s).length
+          ? staleFor(s)
+              .map((id) => `${DEFINITIONS[id].section} changed (built under v${s.provenance.curriculum_versions?.[id] ?? 0}, now v${DEFINITIONS[id].version})`)
+              .join("; ")
+          : null,
       })),
     definitions: definitionsForRule(rule).map((id) => ({
       id,

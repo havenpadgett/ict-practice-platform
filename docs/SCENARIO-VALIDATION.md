@@ -19,6 +19,15 @@ raw CSV ──ingest.py──▶ clean JSON ──detect.py──▶ candidates 
 | 5. Review | a human, this checklist | The candidate really is what the rule says, in curriculum terms; the chart is fair to a beginner; the explanation is rewritten in plain language. |
 | 6. Promote or reject | `/review` (or by hand) + the log below | Approved: explanation rewritten, review fields filled in. Rejected: file deleted and unregistered, reason logged. Commit to make it live. |
 
+### Curriculum versions
+
+Each scenario records, in `provenance.curriculum_versions`, the version of every curriculum definition its answer key depends on (`scripts/common.py → curriculum_versions()`, from `src/data/curriculum-versions.json`). When a definition is bumped:
+- scenarios built under the old version drop out of practice;
+- they come back to `/review` as "needs re-review";
+- `tests/curriculum.test.ts` fails until they're re-approved or rebuilt.
+
+See docs/CURRICULUM-REVIEW.md → How a definition change is handled now.
+
 ### Commands
 
 ```bash

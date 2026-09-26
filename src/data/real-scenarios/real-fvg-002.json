@@ -30,6 +30,10 @@
     "context_start": null,
     "timeframe": "5m",
     "detection_rule": "fvg",
+    "curriculum_versions": {
+      "fvg": 1,
+      "detection_parameters": 1
+    },
     "candidate_id": "fvg-bullish-20231211T1045",
     "detection_params": {
       "rules": [
