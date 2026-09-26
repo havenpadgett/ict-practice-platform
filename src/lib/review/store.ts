@@ -6,10 +6,13 @@
 // local dev server. The change goes live for everyone once it's committed
 // and deployed.
 //
-//   approve: rewrite the explanation (required — the draft can't ship), set
-//            human_reviewed, reviewed_by, reviewed_at, review_notes
-//   reject:  delete the JSON file and unregister it from index.ts
-//   both:    append a row to the Review Log in docs/SCENARIO-VALIDATION.md
+//   approve:   rewrite the explanation (required — the draft can't ship), set
+//              human_reviewed, reviewed_by, reviewed_at, review_notes
+//   reject:    delete the JSON file and unregister it from index.ts
+//   ambiguous: keep the file but mark review_status "ambiguous" — never
+//              practice-ready (PRD Section 5 ambiguity rule), listed apart
+//   all three: append an entry to docs/review-log.json, the source of the
+//              logs rendered into docs/SCENARIO-VALIDATION.md
 
 import { promises as fs } from "fs";
 import path from "path";
@@ -22,7 +25,29 @@ const VALIDATION_DOC = path.join(ROOT, "docs", "SCENARIO-VALIDATION.md");
 const CATALOG = path.join(ROOT, "src", "data", "exercise-catalog.json");
 const ID_PATTERN = /^real-[a-z]+-\d{3}$/;
 const DRAFT_MARKER = "[DRAFT";
-const LOG_PLACEHOLDER = "| — | — | — | — | — | — | No real scenarios reviewed yet |";
+const REVIEW_LOG = path.join(ROOT, "docs", "review-log.json");
+
+export type ReviewDecision = "approved" | "rejected" | "ambiguous";
+
+export type ReviewLogEntry = {
+  date: string;
+  exercise_id: string;
+  candidate_id: string;
+  rule: string;
+  decision: ReviewDecision;
+  /** Rejections only: a REJECTION_REASONS key. */
+  reason: string | null;
+  note: string | null;
+  reviewer: string;
+};
+
+export async function readReviewLog(): Promise<ReviewLogEntry[]> {
+  try {
+    return JSON.parse(await fs.readFile(REVIEW_LOG, "utf8")) as ReviewLogEntry[];
+  } catch {
+    return [];
+  }
+}
 
 export function canWrite(): boolean {
   return process.env.NODE_ENV === "development";
@@ -57,23 +82,42 @@ function cell(text: string): string {
   return text.replace(/\|/g, "\\|").replace(/\s*\n\s*/g, " ").trim();
 }
 
-async function appendReviewLog(row: string[]): Promise<void> {
-  const doc = await fs.readFile(VALIDATION_DOC, "utf8");
-  const line = `| ${row.map(cell).join(" | ")} |`;
-  let next: string;
-  if (doc.includes(LOG_PLACEHOLDER)) {
-    next = doc.replace(LOG_PLACEHOLDER, line);
-  } else {
-    const start = doc.indexOf("## Review Log");
-    if (start === -1) throw new Error("Review Log section not found in docs/SCENARIO-VALIDATION.md");
-    // Insert after the last table row of the Review Log section.
-    const lines = doc.slice(start).split("\n");
-    let last = lines.findIndex((l) => l.startsWith("|---"));
-    while (last + 1 < lines.length && lines[last + 1].startsWith("|")) last++;
-    lines.splice(last + 1, 0, line);
-    next = doc.slice(0, start) + lines.join("\n");
-  }
-  await fs.writeFile(VALIDATION_DOC, next);
+/** Replace the text between `<!-- name:start -->` and `<!-- name:end -->`. */
+function replaceBlock(doc: string, name: string, body: string): string {
+  const start = `<!-- ${name}:start -->`;
+  const end = `<!-- ${name}:end -->`;
+  const i = doc.indexOf(start);
+  const j = doc.indexOf(end);
+  if (i === -1 || j === -1) throw new Error(`Marker ${start} missing from docs/SCENARIO-VALIDATION.md`);
+  return doc.slice(0, i + start.length) + "\n" + body + "\n" + doc.slice(j);
+}
+
+function renderLogTable(entries: ReviewLogEntry[], empty: string): string {
+  const head = "| Date | Exercise ID | Candidate ID | Rule | Decision | Reason | Reviewer | Notes |\n|---|---|---|---|---|---|---|---|";
+  if (entries.length === 0) return `${head}\n| — | — | — | — | — | — | — | ${empty} |`;
+  return (
+    head +
+    "\n" +
+    entries
+      .map((e) =>
+        `| ${[e.date, e.exercise_id, e.candidate_id, e.rule, e.decision, e.reason ?? "—", e.reviewer, e.note || "—"].map(cell).join(" | ")} |`,
+      )
+      .join("\n")
+  );
+}
+
+/** Regenerate the logs in docs/SCENARIO-VALIDATION.md from review-log.json. */
+async function renderDocs(entries: ReviewLogEntry[]): Promise<void> {
+  let doc = await fs.readFile(VALIDATION_DOC, "utf8");
+  doc = replaceBlock(doc, "review-log", renderLogTable(entries.filter((e) => e.decision !== "ambiguous"), "No real scenarios reviewed yet"));
+  doc = replaceBlock(doc, "ambiguous-log", renderLogTable(entries.filter((e) => e.decision === "ambiguous"), "None flagged yet"));
+  await fs.writeFile(VALIDATION_DOC, doc);
+}
+
+async function appendReviewLog(entry: ReviewLogEntry): Promise<void> {
+  const entries = [...(await readReviewLog()), entry];
+  await fs.writeFile(REVIEW_LOG, JSON.stringify(entries, null, 2) + "\n");
+  await renderDocs(entries);
 }
 
 /** The reviewer's local calendar date (the dev server runs on their machine). */
@@ -128,12 +172,19 @@ export async function approveScenario(
   parseRealScenario(s); // same contract the app enforces at load
   await fs.writeFile(scenarioPath(id), JSON.stringify(s, null, 2) + "\n");
   await updateCatalog(id, "approve");
-  await appendReviewLog([
-    today(), id, String(s.provenance.candidate_id), String(s.provenance.detection_rule), "Approved", reviewer, notes.trim() || "—",
-  ]);
+  await appendReviewLog({
+    date: today(),
+    exercise_id: id,
+    candidate_id: String(s.provenance.candidate_id),
+    rule: String(s.provenance.detection_rule),
+    decision: "approved",
+    reason: null,
+    note: notes.trim() || null,
+    reviewer,
+  });
 }
 
-export async function rejectScenario(id: string, reviewer: string, reason: string): Promise<void> {
+export async function rejectScenario(id: string, reviewer: string, reason: string, note: string): Promise<void> {
   if (!canWrite()) throw new Error("Reviews can only be saved from the local dev server (they edit repo files).");
   if (!reason.trim()) throw new Error("A rejection needs a reason — it goes in the Review Log.");
   const s = await readScenario(id);
@@ -147,7 +198,36 @@ export async function rejectScenario(id: string, reviewer: string, reason: strin
   await fs.writeFile(REGISTRY, updated);
   await fs.unlink(scenarioPath(id));
   await updateCatalog(id, "reject");
-  await appendReviewLog([
-    today(), id, String(s.provenance.candidate_id), String(s.provenance.detection_rule), "Rejected", reviewer, reason,
-  ]);
+  await appendReviewLog({
+    date: today(),
+    exercise_id: id,
+    candidate_id: String(s.provenance.candidate_id),
+    rule: String(s.provenance.detection_rule),
+    decision: "rejected",
+    reason,
+    note: note.trim() || null,
+    reviewer,
+  });
+}
+
+/** Ambiguous: two reasonable traders could label this chart differently.
+ * Kept on disk (so it can be revisited once the definition is settled) but
+ * never practice-ready. */
+export async function flagAmbiguous(id: string, reviewer: string, note: string): Promise<void> {
+  if (!canWrite()) throw new Error("Reviews can only be saved from the local dev server (they edit repo files).");
+  if (!note.trim()) throw new Error("Say what makes it ambiguous — it goes in the Ambiguous Log.");
+  const s = await readScenario(id);
+  if (s.provenance.human_reviewed) throw new Error(`${id} is already approved.`);
+  s.provenance = { ...s.provenance, review_status: "ambiguous", review_notes: note.trim() };
+  await fs.writeFile(scenarioPath(id), JSON.stringify(s, null, 2) + "\n");
+  await appendReviewLog({
+    date: today(),
+    exercise_id: id,
+    candidate_id: String(s.provenance.candidate_id),
+    rule: String(s.provenance.detection_rule),
+    decision: "ambiguous",
+    reason: null,
+    note: note.trim(),
+    reviewer,
+  });
 }

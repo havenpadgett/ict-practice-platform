@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getReviewer } from "@/lib/review/access";
-import { approveScenario, rejectScenario } from "@/lib/review/store";
+import { approveScenario, flagAmbiguous, rejectScenario } from "@/lib/review/store";
 
 const TEXT_PREFIX = "text:";
 
@@ -36,7 +36,15 @@ export async function approveAction(_prev: ReviewActionState, formData: FormData
 export async function rejectAction(_prev: ReviewActionState, formData: FormData): Promise<ReviewActionState> {
   const id = String(formData.get("id") ?? "");
   return run(async (email) => {
-    await rejectScenario(id, email, String(formData.get("reason") ?? ""));
+    await rejectScenario(id, email, String(formData.get("reason") ?? ""), String(formData.get("note") ?? ""));
     return `${id} rejected and logged.`;
+  });
+}
+
+export async function ambiguousAction(_prev: ReviewActionState, formData: FormData): Promise<ReviewActionState> {
+  const id = String(formData.get("id") ?? "");
+  return run(async (email) => {
+    await flagAmbiguous(id, email, String(formData.get("note") ?? ""));
+    return `${id} flagged ambiguous.`;
   });
 }

@@ -1,0 +1,244 @@
+{
+  "_comment": "Managed by `npm run curriculum` (scripts/curriculum-version.ts). See src/lib/curriculum.ts.",
+  "definitions": {
+    "fvg": {
+      "section": "Fair Value Gap (FVG)",
+      "version": 1,
+      "sha256": "28eab63c4ce54a0bfa9b17c0857aa47d01c0fd02b9842da7a5417a4dc3033ccb"
+    },
+    "liquidity": {
+      "section": "Liquidity",
+      "version": 1,
+      "sha256": "0940918c4963ba9e5f73bcd0a5d9755c6c4693053c6382a9d6a65b0989e20668"
+    },
+    "mss": {
+      "section": "Market Structure Shift (MSS)",
+      "version": 1,
+      "sha256": "441c5b3db6950410168d1c0d4599ec7fcdb090618e300698c6484ebf9814e660"
+    },
+    "detection_parameters": {
+      "section": "Detection Parameters (real data)",
+      "version": 1,
+      "sha256": "c82ee909128b7487135dad07afa67280d6513d364c580300a67981750c77b527"
+    },
+    "fvg_respect": {
+      "section": "Fair Value Gap — Respected vs. Disrespected",
+      "version": 1,
+      "sha256": "e5eb256047a4e0f9c890f13f40fcd04c80884eee25338354651cea0d74da3fb5"
+    },
+    "ifvg": {
+      "section": "Inverse Fair Value Gap (IFVG)",
+      "version": 1,
+      "sha256": "92b27b3cb07188f8364777734c283e8fbf0edeb4e0ab00ec35931c69c5082359"
+    },
+    "order_block": {
+      "section": "Order Blocks",
+      "version": 1,
+      "sha256": "a35869f30f3218b84be7f18a1e536a4a831daaf867dae7fd65311d7b37259cbf"
+    },
+    "premium_discount": {
+      "section": "Premium and Discount",
+      "version": 1,
+      "sha256": "5c6cb35b41eaf5ecef816e6feacc10eef5889fbe90e9d4c4237bdbffc4f400a1"
+    },
+    "guided_entry": {
+      "section": "Guided Entry",
+      "version": 1,
+      "sha256": "28960b3c4953bd93e20338d19a23bb7ef3cdf9f9f5f03e5ed7d127af7fee479e"
+    },
+    "free_trade": {
+      "section": "Free Trade",
+      "version": 1,
+      "sha256": "8eba21277b7714c3866bc4ca3bc0239c2b8128816d2471b4ba49f8362f315d87"
+    },
+    "time_levels": {
+      "section": "Liquidity — Time-Based Levels",
+      "version": 1,
+      "sha256": "59ce50f973e557257be9d676801450d487cfb037f8d507884e1329b889a5ccc8"
+    }
+  },
+  "rules": {
+    "fvg": [
+      "fvg",
+      "detection_parameters"
+    ],
+    "equal_highs": [
+      "liquidity",
+      "detection_parameters"
+    ],
+    "equal_lows": [
+      "liquidity",
+      "detection_parameters"
+    ],
+    "mss": [
+      "mss",
+      "detection_parameters"
+    ],
+    "order_block": [
+      "order_block",
+      "mss",
+      "detection_parameters"
+    ],
+    "dealing_range": [
+      "premium_discount",
+      "mss"
+    ],
+    "time_levels": [
+      "time_levels"
+    ],
+    "guided_setup": [
+      "guided_entry",
+      "mss",
+      "fvg",
+      "fvg_respect",
+      "order_block",
+      "liquidity",
+      "detection_parameters"
+    ],
+    "free_trade_setup": [
+      "free_trade",
+      "guided_entry",
+      "mss",
+      "fvg",
+      "fvg_respect",
+      "order_block",
+      "liquidity",
+      "detection_parameters"
+    ]
+  },
+  "constructed": [
+    {
+      "prefix": "fvg-resp-",
+      "definitions": [
+        "fvg",
+        "fvg_respect"
+      ],
+      "verified_against": {
+        "fvg": 1,
+        "fvg_respect": 1
+      }
+    },
+    {
+      "prefix": "fvg-",
+      "definitions": [
+        "fvg"
+      ],
+      "verified_against": {
+        "fvg": 1
+      }
+    },
+    {
+      "prefix": "liq-",
+      "definitions": [
+        "liquidity"
+      ],
+      "verified_against": {
+        "liquidity": 1
+      }
+    },
+    {
+      "prefix": "mss-",
+      "definitions": [
+        "mss"
+      ],
+      "verified_against": {
+        "mss": 1
+      }
+    },
+    {
+      "prefix": "ifvg-resp-",
+      "definitions": [
+        "fvg",
+        "fvg_respect",
+        "ifvg"
+      ],
+      "verified_against": {
+        "fvg": 1,
+        "fvg_respect": 1,
+        "ifvg": 1
+      }
+    },
+    {
+      "prefix": "ifvg-",
+      "definitions": [
+        "fvg",
+        "fvg_respect",
+        "ifvg"
+      ],
+      "verified_against": {
+        "fvg": 1,
+        "fvg_respect": 1,
+        "ifvg": 1
+      }
+    },
+    {
+      "prefix": "ob-",
+      "definitions": [
+        "order_block",
+        "mss"
+      ],
+      "verified_against": {
+        "order_block": 1,
+        "mss": 1
+      }
+    },
+    {
+      "prefix": "pd-",
+      "definitions": [
+        "premium_discount",
+        "mss"
+      ],
+      "verified_against": {
+        "premium_discount": 1,
+        "mss": 1
+      }
+    },
+    {
+      "prefix": "tliq-",
+      "definitions": [
+        "time_levels",
+        "liquidity"
+      ],
+      "verified_against": {
+        "time_levels": 1,
+        "liquidity": 1
+      }
+    },
+    {
+      "prefix": "guided-",
+      "definitions": [
+        "guided_entry",
+        "mss",
+        "fvg",
+        "fvg_respect",
+        "ifvg",
+        "liquidity"
+      ],
+      "verified_against": {
+        "guided_entry": 1,
+        "mss": 1,
+        "fvg": 1,
+        "fvg_respect": 1,
+        "ifvg": 1,
+        "liquidity": 1
+      }
+    },
+    {
+      "prefix": "ft-",
+      "definitions": [
+        "free_trade",
+        "guided_entry",
+        "mss",
+        "fvg",
+        "liquidity"
+      ],
+      "verified_against": {
+        "free_trade": 1,
+        "guided_entry": 1,
+        "mss": 1,
+        "fvg": 1,
+        "liquidity": 1
+      }
+    }
+  ]
+}

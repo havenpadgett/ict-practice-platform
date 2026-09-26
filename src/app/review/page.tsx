@@ -1,18 +1,39 @@
 // Internal scenario review (docs/SCENARIO-VALIDATION.md, steps 5-6). Not
-// user-facing: signed-in users whose email is in REVIEWER_EMAILS see every
-// unreviewed real scenario with its chart, detected answer key and
-// provenance, and approve or reject it. src/proxy.ts requires a login; the
-// reviewer check happens here and again inside each Server Action.
+// user-facing: signed-in users whose email is in REVIEWER_EMAILS work
+// through unreviewed real scenarios one rule at a time, with the curriculum
+// definition beside each chart. src/proxy.ts requires a login; the reviewer
+// check happens here and again inside each Server Action.
 
-import { ReviewChart } from "@/app/review/review-chart";
-import { ReviewForms } from "@/app/review/review-forms";
+import { promises as fs } from "fs";
+import path from "path";
+import { ReviewQueue, type QueueGroup } from "@/app/review/review-queue";
+import { invalidRealScenarios, reviewTexts, type RealScenario } from "@/data/real-scenarios";
 import { getReviewer } from "@/lib/review/access";
-import { invalidRealScenarios, reviewTexts } from "@/data/real-scenarios";
-import { canWrite, listScenarios } from "@/lib/review/store";
+import { canWrite, listScenarios, readReviewLog } from "@/lib/review/store";
+import { DEFINITIONS, definitionsForRule, splitSections } from "@/lib/curriculum";
 
 export const dynamic = "force-dynamic";
 
 const DRAFT_PREFIX = /^\[DRAFT[^\]]*\]\s*/;
+
+const RULE_LABELS: Record<string, string> = {
+  fvg: "FVG",
+  equal_highs: "Equal highs",
+  equal_lows: "Equal lows",
+  mss: "MSS",
+  order_block: "Order blocks",
+  dealing_range: "Premium / discount",
+  guided_setup: "Guided Entry",
+  free_trade_setup: "Free Trade",
+};
+
+async function curriculumSections(): Promise<Record<string, string>> {
+  try {
+    return splitSections(await fs.readFile(path.join(process.cwd(), "docs", "CURRICULUM.md"), "utf8"));
+  } catch {
+    return {};
+  }
+}
 
 export default async function ReviewPage() {
   const reviewer = await getReviewer();
@@ -20,35 +41,53 @@ export default async function ReviewPage() {
     return (
       <div className="page">
         <h1 className="page-title">Scenario review</h1>
-        <p className="mt-2">Not authorized. Add your account email to REVIEWER_EMAILS in .env.local and restart the dev server.</p>
+        <p className="page-lede">Not authorized. Add your account email to REVIEWER_EMAILS in .env.local and restart the dev server.</p>
       </div>
     );
   }
 
-  const { scenarios, broken } = await listScenarios();
-  const pending = scenarios.filter((s) => !s.provenance.human_reviewed);
+  const [{ scenarios, broken }, log, sections] = await Promise.all([listScenarios(), readReviewLog(), curriculumSections()]);
   const writable = canWrite();
+  const isPending = (s: RealScenario) => !s.provenance.human_reviewed && s.provenance.review_status !== "ambiguous";
+  const ambiguous = scenarios.filter((s) => s.provenance.review_status === "ambiguous");
+
+  const rules = Array.from(new Set([...scenarios.map((s) => s.provenance.detection_rule), ...log.map((e) => e.rule)]));
+  const order = Object.keys(RULE_LABELS);
+  rules.sort((a, b) => (order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99));
+
+  const groups: QueueGroup[] = rules.map((rule) => ({
+    rule,
+    label: RULE_LABELS[rule] ?? rule,
+    reviewed: log.filter((e) => e.rule === rule).length,
+    items: scenarios
+      .filter((s) => s.provenance.detection_rule === rule && isPending(s))
+      .map((s) => ({
+        scenario: s,
+        texts: reviewTexts(s).map((t) => ({ key: t.key, label: t.label, draft: t.value.replace(DRAFT_PREFIX, "") })),
+        stale: null,
+      })),
+    definitions: definitionsForRule(rule).map((id) => ({
+      id,
+      title: DEFINITIONS[id].section,
+      version: DEFINITIONS[id].version,
+      markdown: sections[DEFINITIONS[id].section] ?? "(Definition text unavailable — docs/CURRICULUM.md isn't readable here.)",
+    })),
+  }));
 
   return (
-    <div className="page max-w-5xl">
+    <div className="page max-w-6xl">
       <h1 className="page-title">Scenario review</h1>
-      <p className="mt-1 text-sm text-muted">
-        {pending.length} awaiting review · {scenarios.length - pending.length} approved · signed in as {reviewer.email}
+      <p className="page-lede">
+        One rule at a time. Check each chart against the definition on the right and the checklist in
+        docs/SCENARIO-VALIDATION.md. Approving edits the scenario file, rejecting deletes it, flagging keeps it out of practice.
+        Every decision is logged. Commit the changes to make them live. Signed in as {reviewer.email}.
       </p>
-      <p className="mt-1 text-sm text-muted">
-        Check each against the checklist in docs/SCENARIO-VALIDATION.md. Approving edits the scenario file; rejecting deletes
-        it. Both add a Review Log row. Commit the changes to make them live.
-      </p>
-      {!writable && (
-        <p className="mt-2 text-sm text-danger">
-          Read-only: reviews edit repo files, so they can only be saved from the local dev server.
-        </p>
-      )}
+      {!writable && <p className="text-error mt-2">Read-only: reviews edit repo files, so they can only be saved from the local dev server.</p>}
 
       {broken.length > 0 && (
-        <div className="mt-6 rounded border border-line p-3 text-sm" role="alert">
+        <div className="card mt-6 text-sm" role="alert">
           <p className="text-danger">{broken.length} scenario file(s) on disk can&apos;t be read:</p>
-          <ul className="mt-2 list-disc pl-5 text-muted">
+          <ul className="mt-2 list-disc pl-5">
             {broken.map((b) => (
               <li key={b.file}>
                 {b.file}: {b.error}
@@ -57,13 +96,10 @@ export default async function ReviewPage() {
           </ul>
         </div>
       )}
-
       {invalidRealScenarios.length > 0 && (
-        <div className="mt-6 rounded border border-line p-3 text-sm" role="alert">
-          <p className="text-danger">
-            {invalidRealScenarios.length} registered scenario file(s) failed validation and are hidden everywhere:
-          </p>
-          <ul className="mt-2 list-disc pl-5 text-muted">
+        <div className="card mt-6 text-sm" role="alert">
+          <p className="text-danger">{invalidRealScenarios.length} registered scenario file(s) failed validation and are hidden everywhere:</p>
+          <ul className="mt-2 list-disc pl-5">
             {invalidRealScenarios.map((s) => (
               <li key={s.id}>{s.error}</li>
             ))}
@@ -71,56 +107,21 @@ export default async function ReviewPage() {
         </div>
       )}
 
-      {pending.length === 0 && <p className="mt-8 text-sm text-muted">Nothing to review.</p>}
+      <ReviewQueue groups={groups} disabled={!writable} />
 
-      {pending.map((s) => {
-        const p = s.provenance;
-        return (
-          <section key={s.exercise_id} className="mt-8 card">
-            <h2 className="text-base font-semibold text-foreground">
-              {s.exercise_id} · {s.concept} · {p.timeframe} · difficulty {s.difficulty}
-            </h2>
-            {s.answer_type === "free" && (
-              <p className="mt-1 text-xs text-muted">
-                Review view shows the whole session. In practice the user sees the first {s.candles.length} candles, and the
-                remaining {s.hidden_candles.length} are revealed one at a time.
-              </p>
-            )}
-            <p className="mt-1 text-sm text-foreground">{s.prompt}</p>
-            <div className="mt-3 overflow-hidden rounded border border-line p-2">
-              <ReviewChart exercise={s} />
-            </div>
-            <div className="mt-4 grid gap-4 text-xs sm:grid-cols-2">
-              <div>
-                <h3 className="font-semibold text-muted">Detected answer key</h3>
-                <pre className="mt-1 overflow-x-auto whitespace-pre-wrap text-foreground">
-                  {JSON.stringify(s.answer, null, 2)}
-                </pre>
-                <p className="mt-2 text-muted">Detector: {p.detection_notes}</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-muted">Provenance</h3>
-                <dl className="mt-1 grid grid-cols-[max-content_1fr] gap-x-3 gap-y-0.5 text-foreground">
-                  <dt className="text-muted">Source</dt><dd>{p.data_source}</dd>
-                  <dt className="text-muted">Trading date</dt><dd>{p.trading_date}</dd>
-                  <dt className="text-muted">Window</dt><dd>{p.date_range.start} → {p.date_range.end}</dd>
-                  <dt className="text-muted">Session</dt><dd>{p.session}{p.context_start ? ` (structure from ${p.context_start})` : ""}</dd>
-                  <dt className="text-muted">Timeframe</dt><dd>{p.timeframe}</dd>
-                  <dt className="text-muted">Rule</dt><dd>{p.detection_rule} · {p.candidate_id}</dd>
-                  <dt className="text-muted">Params</dt><dd>{JSON.stringify(p.detection_params)}</dd>
-                  <dt className="text-muted">Input sha256</dt><dd className="break-all">{p.input_sha256}</dd>
-                  <dt className="text-muted">Reviewed</dt><dd>{String(p.human_reviewed)}</dd>
-                </dl>
-              </div>
-            </div>
-            <ReviewForms
-              id={s.exercise_id}
-              texts={reviewTexts(s).map((t) => ({ key: t.key, label: t.label, draft: t.value.replace(DRAFT_PREFIX, "") }))}
-              disabled={!writable}
-            />
-          </section>
-        );
-      })}
+      {ambiguous.length > 0 && (
+        <section className="mt-section">
+          <p className="eyebrow">Flagged ambiguous · not exercises</p>
+          <ul className="mt-3 space-y-1 text-sm">
+            {ambiguous.map((s) => (
+              <li key={s.exercise_id}>
+                <span className="font-mono text-foreground">{s.exercise_id}</span> · {s.provenance.detection_rule} ·{" "}
+                {s.provenance.review_notes}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

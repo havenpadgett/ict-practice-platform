@@ -115,6 +115,8 @@ export type ScenarioProvenance = {
   input_sha256: string;
   built_at: string;
   human_reviewed: boolean;
+  /** Set when a reviewer flags the scenario ambiguous; never practice-ready. */
+  review_status?: "ambiguous";
   reviewed_by: string | null;
   reviewed_at: string | null;
   review_notes: string | null;
@@ -2912,7 +2914,10 @@ export const exercises: Exercise[] = [
 /** Constructed exercises are always practice-ready; a real-data scenario
  * only once a human has reviewed it (docs/SCENARIO-VALIDATION.md). */
 export function isPracticeReady(exercise: Exercise): boolean {
-  return exercise.provenance === undefined || exercise.provenance.human_reviewed === true;
+  return (
+    exercise.provenance === undefined ||
+    (exercise.provenance.human_reviewed === true && exercise.provenance.review_status !== "ambiguous")
+  );
 }
 
 export function getExercise(exerciseId: string): Exercise | undefined {

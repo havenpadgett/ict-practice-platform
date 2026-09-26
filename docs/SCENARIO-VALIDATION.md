@@ -168,8 +168,20 @@ Scenarios stay in the repo, not the database, so saving only works on the local 
 
 ## Review Log
 
-Every candidate that reaches review gets a row — approvals and rejections alike. Rejected scenario files are deleted; the log keeps the reason so the same candidate isn't re-built and re-rejected.
+Every candidate that reaches review gets a row: approvals and rejections alike. Rejected scenario files are deleted; the log keeps the reason so the same candidate isn't re-built and re-rejected. **This table and the two below are generated** from `docs/review-log.json` by `/review`. Edit the JSON, not the tables.
 
-| Date | Exercise ID | Candidate ID | Rule | Decision | Reviewer | Reason / notes |
-|---|---|---|---|---|---|---|
-| — | — | — | — | — | — | No real scenarios reviewed yet |
+<!-- review-log:start -->
+| Date | Exercise ID | Candidate ID | Rule | Decision | Reason | Reviewer | Notes |
+|---|---|---|---|---|---|---|---|
+| — | — | — | — | — | — | — | No real scenarios reviewed yet |
+<!-- review-log:end -->
+
+## Ambiguous Log
+
+Candidates flagged **ambiguous**: two reasonable traders would label the chart differently. Per the PRD's ambiguity rule (Section 5, "exactly one valid answer"), they never become exercises. Their files stay on disk with `provenance.review_status: "ambiguous"`, so they can be revisited once the definition behind them is settled (docs/CURRICULUM-REVIEW.md).
+
+<!-- ambiguous-log:start -->
+| Date | Exercise ID | Candidate ID | Rule | Decision | Reason | Reviewer | Notes |
+|---|---|---|---|---|---|---|---|
+| — | — | — | — | — | — | — | None flagged yet |
+<!-- ambiguous-log:end -->
