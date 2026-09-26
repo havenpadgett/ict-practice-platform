@@ -1,4 +1,4 @@
-import { getAvailableSessionLengths, type SessionLength } from "@/data/exercises";
+import { getAvailableSessionLengths, type SessionLength } from "@/lib/session-builder";
 import { CONCEPTS, type Concept } from "@/lib/concepts";
 
 export function SessionLengthPicker({

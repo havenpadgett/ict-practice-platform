@@ -8,30 +8,25 @@ import { ChoiceControls } from "@/components/practice/choice-controls";
 import { ConceptPicker } from "@/components/practice/concept-picker";
 import { ExerciseControls } from "@/components/practice/exercise-controls";
 import { FeedbackPanel } from "@/components/practice/feedback-panel";
-import { FreeTradeExercise, type FreeTradeAttempt } from "@/components/practice/free-trade-exercise";
-import { GuidedExercise } from "@/components/practice/guided-exercise";
+import { FreeTradeExercise, type FreeTradeAttempt, type FreeTradeGradeResponse } from "@/components/practice/free-trade-exercise";
+import { GuidedExercise, type GuidedGradeResponse } from "@/components/practice/guided-exercise";
 import { SessionLengthPicker } from "@/components/practice/session-length-picker";
 import { SessionSummary } from "@/components/practice/session-summary";
 import { SaveStatus } from "@/components/save-status";
-import {
-  buildSessionExerciseIds,
-  getExercise,
-  isPracticeReady,
-  type FreeTradeExercise as FreeTradeExerciseData,
-  type GuidedExercise as GuidedExerciseData,
-  type SessionLength,
-} from "@/data/exercises";
+import { gradeFreeTradeScenario, gradeGuided, gradeRecognition, loadSessionExercises } from "@/app/practice/actions";
+import { getExerciseMeta } from "@/data/catalog";
+import type { ZoneAnswer } from "@/data/exercises";
 import { useRequireAuth } from "@/hooks/use-require-auth";
-import { buildAnswerAttempt, buildFreeTradeAttempt, buildGuidedAttempt } from "@/lib/attempt-rows";
 import { DASHBOARD_COLUMNS, fetchAttempts, insertAttempt, nextAttemptNumber, type NewAttempt } from "@/lib/attempts";
 import { describeError, type FriendlyError } from "@/lib/errors";
 import { modeFor, track, type SessionSource } from "@/lib/events";
 import { CONCEPT_LIST, getConceptMeta, type Concept } from "@/lib/concepts";
-import { gradeAttempt, type GradeResult, type UserAnswer, type UserRegion } from "@/lib/grading";
-import type { FreeTradeGradeResult } from "@/lib/free-trade-grading";
-import type { GuidedGradeResult, GuidedUserAnswer } from "@/lib/guided-grading";
+import type { GradeResult, UserAnswer, UserRegion } from "@/lib/grading";
+import type { GuidedUserAnswer } from "@/lib/guided-grading";
 import { recordSessionCompletion } from "@/lib/profiles";
+import type { PublicExercise } from "@/lib/public-exercise";
 import { buildAdaptiveSession } from "@/lib/recommendations";
+import { buildSessionExerciseIds, type SessionLength } from "@/lib/session-builder";
 import {
   ADAPTIVE_SESSION,
   clearSession,
@@ -57,6 +52,16 @@ export default function PracticePage() {
   const [userLevel, setUserLevel] = useState<number | null>(null);
   const [userChoice, setUserChoice] = useState<string | null>(null);
   const [result, setResult] = useState<GradeResult | null>(null);
+  /** The key to draw on the chart, returned by the server with the verdict. */
+  const [reveal, setReveal] = useState<{ zone: ZoneAnswer | null; level: number | null } | null>(null);
+  const [grading, setGrading] = useState(false);
+  /** A recognition answer whose grading request failed, for "Try again". */
+  const [pendingAnswer, setPendingAnswer] = useState<{ answer: UserAnswer; responseTimeMs: number } | null>(null);
+  /** Exercises of the current session as the server sent them (answer-free,
+   * docs/ANSWER-KEYS.md); null = no longer available. */
+  const [loaded, setLoaded] = useState<Record<string, PublicExercise | null>>({});
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<FriendlyError | null>(null);
   /** The last attempt row that failed to save, so it can be retried. */
@@ -67,10 +72,40 @@ export default function PracticePage() {
   const exerciseStartRef = useRef<number>(0);
 
 
-  // Reset the response-time clock whenever a new exercise becomes active.
+  // Reset the response-time clock whenever a new exercise becomes active,
+  // including when it finishes loading.
+  const currentId = session && !session.completed ? session.exercise_order[session.current_index] : null;
+  const currentLoaded = currentId !== null && currentId in loaded;
   useEffect(() => {
     exerciseStartRef.current = Date.now();
-  }, [session?.session_id, session?.current_index]);
+  }, [session?.session_id, session?.current_index, currentLoaded]);
+
+  // Fetch the session's exercises from the server (without answer keys).
+  const sessionIds = session && !session.completed ? session.exercise_order.join(",") : "";
+  useEffect(() => {
+    if (!sessionIds) return;
+    const missing = sessionIds.split(",").filter((id) => !(id in loaded));
+    if (missing.length === 0) return;
+    let cancelled = false;
+    loadSessionExercises(missing)
+      .then((res) => {
+        if (cancelled) return;
+        if (!res.ok) {
+          setLoadError(res.error);
+          return;
+        }
+        setLoadError(null);
+        setLoaded((prev) => ({ ...prev, ...res.exercises }));
+      })
+      .catch((err) => {
+        if (!cancelled) setLoadError(describeError(err, "load this exercise").message);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // `loaded` is read, not a trigger: re-running on every merge would refetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionIds, loadAttempt]);
 
   function handlePickConcept(concept: Concept) {
     setShowPicker(false);
@@ -90,12 +125,11 @@ export default function PracticePage() {
     if (!user) return;
     setAdaptiveError(null);
     try {
-      // The engine works from the lightweight catalog; confirm each pick
-      // against the full data in case the catalog is stale.
-      const ids = buildAdaptiveSession(await fetchAttempts(user.id, DASHBOARD_COLUMNS)).filter((id) => {
-        const e = getExercise(id);
-        return e !== undefined && isPracticeReady(e);
-      });
+      // The engine works from the answer-free catalog; the server re-checks
+      // each pick is practice-ready when it serves it.
+      const ids = buildAdaptiveSession(await fetchAttempts(user.id, DASHBOARD_COLUMNS)).filter(
+        (id) => getExerciseMeta(id)?.practice_ready === true,
+      );
       beginSession(ADAPTIVE_SESSION, ids, "adaptive_mix");
     } catch (err) {
       setAdaptiveError(describeError(err, "load your practice history to build the session").message);
@@ -142,6 +176,9 @@ export default function PracticePage() {
     setUserLevel(null);
     setUserChoice(null);
     setResult(null);
+    setReveal(null);
+    setGradeError(null);
+    setPendingAnswer(null);
   }
 
   // A deep link (?concept=…[&difficulty=…&length=…], e.g. the dashboard's
@@ -261,7 +298,30 @@ export default function PracticePage() {
   }
 
   const exerciseId = session.exercise_order[session.current_index];
-  const exercise = getExercise(exerciseId);
+  if (!(exerciseId in loaded)) {
+    return (
+      <div className="flex flex-1 flex-col">
+        {loadError ? (
+          <div className="page" role="alert">
+            <h1 className="page-title">{conceptMeta.title}</h1>
+            <p className="mt-4 text-sm text-danger">{loadError}</p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button type="button" onClick={() => setLoadAttempt((n) => n + 1)} className="btn-primary">
+                Try again
+              </button>
+              <button type="button" onClick={handleBackToPicker} className="btn-secondary">
+                Start a new session
+              </button>
+            </div>
+          </div>
+        ) : (
+          <LoadingState />
+        )}
+        <DisclaimerFooter />
+      </div>
+    );
+  }
+  const exercise = loaded[exerciseId];
   if (!exercise) {
     // A saved session can outlive its exercises (e.g. a real scenario
     // rejected at review after the session started). Offer a way on
@@ -303,14 +363,15 @@ export default function PracticePage() {
   const attemptedCount = session.correct_count + session.missed_exercise_ids.length;
   const isLastExercise = session.current_index === session.exercise_order.length - 1;
   const canSubmit =
-    exercise.answer_type === "zone"
+    !grading &&
+    (exercise.answer_type === "zone"
       ? userRegion !== null
       : exercise.answer_type === "level"
         ? userLevel !== null
-        : userChoice !== null;
+        : userChoice !== null);
 
-  // Saving is the only async step. A failure keeps the built row so "Retry
-  // save" can resend it; session progress never depends on it.
+  // Saving is the only async step after grading. A failure keeps the built
+  // row so "Retry save" can resend it; session progress never depends on it.
   async function saveAttempt(userId: string, exerciseId: string, build: (attemptNumber: number) => NewAttempt) {
     setSaving(true);
     setSaveError(null);
@@ -333,121 +394,115 @@ export default function PracticePage() {
     await saveAttempt(user.id, row.exercise_id, (n) => ({ ...row, attempt_number: n }));
   }
 
-  // Grading happens synchronously and the verdict shows immediately — only
-  // *saving* the attempt is async, so a slow or failed network write never
-  // blocks the user from seeing their result or moving on. Session progress
-  // (local, not the database write) still advances either way; saveError
-  // surfaces a failed save without losing the user's place.
-  async function recordAttempt(answer: UserAnswer, grade: GradeResult) {
+  // Every mode ends here once the server has graded the answer: session
+  // progress (local bookkeeping) is updated synchronously, before the async
+  // save starts, so there's no window where clicking "Next" mid-save could
+  // race with this and overwrite newer state with a stale snapshot. The
+  // row comes from the server, built from the same grade the user sees.
+  async function recordGraded(isCorrect: boolean, row: NewAttempt) {
     if (!session || !user) return;
-
-    // Session progress is local bookkeeping, independent of whether the
-    // Supabase write below succeeds — update it synchronously, before the
-    // async save starts, so there's no window where clicking "Next
-    // Exercise" mid-save could race with this and overwrite newer state
-    // with a stale snapshot.
     const updatedSession: SessionState = {
       ...session,
-      correct_count: session.correct_count + (grade.isCorrect ? 1 : 0),
-      missed_exercise_ids: grade.isCorrect
-        ? session.missed_exercise_ids
-        : [...session.missed_exercise_ids, exercise!.exercise_id],
+      correct_count: session.correct_count + (isCorrect ? 1 : 0),
+      missed_exercise_ids: isCorrect ? session.missed_exercise_ids : [...session.missed_exercise_ids, exerciseId],
     };
     saveSession(updatedSession);
     setSession(updatedSession);
-
-    const responseTimeMs = msSince(exerciseStartRef.current);
-
-    await saveAttempt(user.id, exercise!.exercise_id, (attemptNumber) =>
-      buildAnswerAttempt(exercise!, answer, grade, { sessionId: session.session_id, responseTimeMs, attemptNumber }),
-    );
+    await saveAttempt(user.id, exerciseId, (attemptNumber) => ({ ...row, attempt_number: attemptNumber }));
   }
 
-  // Guided Entry's multi-step flow finalizes itself (Submit Setup or No
-  // Trade at any step) and calls this once, in place of handleSubmit /
-  // handleNoAnswer — session bookkeeping and the Supabase write follow the
-  // same shape as recordAttempt above, just with guided's own fields.
-  async function recordGuidedAttempt(answer: GuidedUserAnswer, grade: GuidedGradeResult) {
-    if (!session || !user || exercise!.answer_type !== "guided") return;
-
-    const updatedSession: SessionState = {
-      ...session,
-      correct_count: session.correct_count + (grade.isCorrect ? 1 : 0),
-      missed_exercise_ids: grade.isCorrect
-        ? session.missed_exercise_ids
-        : [...session.missed_exercise_ids, exercise!.exercise_id],
-    };
-    saveSession(updatedSession);
-    setSession(updatedSession);
-
-    const responseTimeMs = msSince(exerciseStartRef.current);
-
-
-    await saveAttempt(user.id, exercise!.exercise_id, (attemptNumber) =>
-      buildGuidedAttempt(exercise! as GuidedExerciseData, answer, grade, { sessionId: session.session_id, responseTimeMs, attemptNumber }),
-    );
-  }
-
-  // Free Trade's playback runner grades itself when the scenario ends
-  // (trade closed, End Session, or playback ran out) and calls this once —
-  // same shape as recordGuidedAttempt. is_correct is the process verdict,
-  // never the win/loss outcome.
-  async function recordFreeTradeAttempt(attempt: FreeTradeAttempt, grade: FreeTradeGradeResult) {
-    if (!session || !user || exercise!.answer_type !== "free") return;
-
-    const updatedSession: SessionState = {
-      ...session,
-      correct_count: session.correct_count + (grade.passed ? 1 : 0),
-      missed_exercise_ids: grade.passed
-        ? session.missed_exercise_ids
-        : [...session.missed_exercise_ids, exercise!.exercise_id],
-    };
-    saveSession(updatedSession);
-    setSession(updatedSession);
-
-    const responseTimeMs = msSince(exerciseStartRef.current);
-    const { position, exit } = attempt;
-
-    await saveAttempt(user.id, exercise!.exercise_id, (attemptNumber) =>
-      buildFreeTradeAttempt(exercise! as FreeTradeExerciseData, position, exit, grade, { sessionId: session.session_id, responseTimeMs, attemptNumber }),
-    );
+  /** Grading is a server round-trip (the key lives there). A failure keeps
+   * the answer so "Try again" can resend it. */
+  async function submitRecognition(answer: UserAnswer, responseTimeMs: number) {
+    if (!session) return;
+    setGrading(true);
+    setGradeError(null);
+    setPendingAnswer({ answer, responseTimeMs });
+    try {
+      const res = await gradeRecognition(exerciseId, answer, { sessionId: session.session_id, responseTimeMs });
+      if (!res.ok) {
+        setGradeError(res.error);
+        return;
+      }
+      setPendingAnswer(null);
+      setResult(res.grade);
+      setReveal(res.reveal);
+      await recordGraded(res.grade.isCorrect, res.row);
+    } catch (err) {
+      setGradeError(describeError(err, "grade this answer").message);
+    } finally {
+      setGrading(false);
+    }
   }
 
   async function handleSubmit() {
-    if (exercise!.answer_type === "zone" && !userRegion) return;
-    if (exercise!.answer_type === "level" && userLevel === null) return;
-    if (exercise!.answer_type === "choice" && userChoice === null) return;
+    if (!exercise || grading) return;
+    if (exercise.answer_type === "zone" && !userRegion) return;
+    if (exercise.answer_type === "level" && userLevel === null) return;
+    if (exercise.answer_type === "choice" && userChoice === null) return;
     const answer: UserAnswer =
-      exercise!.answer_type === "zone"
+      exercise.answer_type === "zone"
         ? { type: "region", region: userRegion! }
-        : exercise!.answer_type === "level"
+        : exercise.answer_type === "level"
           ? { type: "level", price: userLevel! }
           : { type: "choice", choice: userChoice! };
-    const grade = safeGrade(answer);
-    if (!grade) return;
-    setResult(grade);
-    await recordAttempt(answer, grade);
+    await submitRecognition(answer, msSince(exerciseStartRef.current));
   }
 
-  /** Grading throws on malformed exercise data; show that instead of
-   * silently doing nothing. */
-  function safeGrade(answer: UserAnswer): GradeResult | null {
+  async function handleNoAnswer() {
+    if (grading) return;
+    setUserRegion(null);
+    setUserLevel(null);
+    await submitRecognition({ type: "none" }, msSince(exerciseStartRef.current));
+  }
+
+  async function retryGrade() {
+    if (pendingAnswer) await submitRecognition(pendingAnswer.answer, pendingAnswer.responseTimeMs);
+  }
+
+  // Guided Entry's multi-step flow finalizes itself (Submit Setup or No
+  // Trade at any step) and calls this once.
+  async function gradeGuidedAnswer(answer: GuidedUserAnswer): Promise<GuidedGradeResponse | null> {
+    if (!session) return null;
+    setGradeError(null);
     try {
-      return gradeAttempt(exercise!, answer);
+      const res = await gradeGuided(exerciseId, answer, {
+        sessionId: session.session_id,
+        responseTimeMs: msSince(exerciseStartRef.current),
+      });
+      if (!res.ok) {
+        setGradeError(res.error);
+        return null;
+      }
+      void recordGraded(res.grade.isCorrect, res.row);
+      return { grade: res.grade, reveal: res.reveal };
     } catch (err) {
-      setGradeError(`This exercise couldn't be graded (${err instanceof Error ? err.message : "bad data"}).`);
+      setGradeError(describeError(err, "grade this setup").message);
       return null;
     }
   }
 
-  async function handleNoAnswer() {
-    setUserRegion(null);
-    setUserLevel(null);
-    const answer: UserAnswer = { type: "none" };
-    const grade = safeGrade(answer);
-    if (!grade) return;
-    setResult(grade);
-    await recordAttempt(answer, grade);
+  // Free Trade's playback runner calls this once when the scenario ends
+  // (trade closed, End Session, or playback ran out). is_correct is the
+  // process verdict, never the win/loss outcome.
+  async function gradeFreeTradeAttempt(attempt: FreeTradeAttempt): Promise<FreeTradeGradeResponse | null> {
+    if (!session) return null;
+    setGradeError(null);
+    try {
+      const res = await gradeFreeTradeScenario(exerciseId, attempt.position, attempt.exit, {
+        sessionId: session.session_id,
+        responseTimeMs: msSince(exerciseStartRef.current),
+      });
+      if (!res.ok) {
+        setGradeError(res.error);
+        return null;
+      }
+      void recordGraded(res.grade.passed, res.row);
+      return { grade: res.grade, key: res.key };
+    } catch (err) {
+      setGradeError(describeError(err, "grade this trade").message);
+      return null;
+    }
   }
 
   function handleNext() {
@@ -468,8 +523,10 @@ export default function PracticePage() {
     setUserLevel(null);
     setUserChoice(null);
     setResult(null);
+    setReveal(null);
     setSaveError(null);
     setGradeError(null);
+    setPendingAnswer(null);
     // Best-effort, off the critical path — a failure here shouldn't block
     // showing the session summary (matching how ensureProfile is called).
     if (completed && user) {
@@ -515,10 +572,11 @@ export default function PracticePage() {
             <FreeTradeExercise
               key={exercise.exercise_id}
               exercise={exercise}
-              onGraded={recordFreeTradeAttempt}
+              onGrade={gradeFreeTradeAttempt}
               onNext={handleNext}
               nextLabel={isLastExercise ? "See Results" : "Next Scenario"}
             />
+            {gradeError && <p className="mt-3 text-sm text-danger" role="alert">{gradeError}</p>}
             <SaveStatus saving={saving} error={saveError} onRetry={retrySave} />
           </div>
         ) : exercise.answer_type === "guided" ? (
@@ -526,10 +584,11 @@ export default function PracticePage() {
             <GuidedExercise
               key={exercise.exercise_id}
               exercise={exercise}
-              onGraded={recordGuidedAttempt}
+              onGrade={gradeGuidedAnswer}
               onNext={handleNext}
               nextLabel={isLastExercise ? "See Results" : "Next Exercise"}
             />
+            {gradeError && <p className="mt-3 text-sm text-danger" role="alert">{gradeError}</p>}
             <SaveStatus saving={saving} error={saveError} onRetry={retrySave} />
           </div>
         ) : (
@@ -539,27 +598,27 @@ export default function PracticePage() {
                 <CandlestickChart
                   answerType="zone"
                   candles={exercise.candles}
-                  interactive={result === null}
+                  interactive={result === null && !grading}
                   userRegion={userRegion}
                   onUserRegionChange={setUserRegion}
-                  correctZone={result?.revealZone ? exercise.answer : null}
+                  correctZone={reveal?.zone ?? null}
                 />
               ) : exercise.answer_type === "level" ? (
                 <CandlestickChart
                   answerType="level"
                   candles={exercise.candles}
-                  interactive={result === null}
+                  interactive={result === null && !grading}
                   userLevel={userLevel}
                   onUserLevelChange={setUserLevel}
-                  correctLevel={result?.revealZone ? exercise.answer?.price ?? null : null}
+                  correctLevel={reveal?.level ?? null}
                 />
               ) : (
                 <CandlestickChart
                   answerType="choice"
                   candles={exercise.candles}
                   interactive={false}
-                  fvgZone={exercise.answer.fvg_zone}
-                  dealingRange={exercise.answer.dealing_range}
+                  fvgZone={exercise.fvg_zone ?? undefined}
+                  dealingRange={exercise.dealing_range ?? undefined}
                   showEquilibrium={result !== null}
                 />
               )}
@@ -571,14 +630,25 @@ export default function PracticePage() {
               {gradeError ? (
                 <div role="alert">
                   <p className="text-sm text-danger">{gradeError}</p>
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    className="mt-3 btn-primary"
-                  >
-                    Skip this exercise
-                  </button>
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    {pendingAnswer && (
+                      <button type="button" onClick={retryGrade} className="btn-primary">
+                        Try again
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      className={pendingAnswer ? "btn-secondary" : "btn-primary"}
+                    >
+                      Skip this exercise
+                    </button>
+                  </div>
                 </div>
+              ) : grading ? (
+                <p className="text-sm text-muted" role="status">
+                  Grading…
+                </p>
               ) : result ? (
                 <FeedbackPanel
                   result={result}

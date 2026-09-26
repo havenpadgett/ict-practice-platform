@@ -2948,44 +2948,6 @@ export function getPracticeExercises(concept: Concept): Exercise[] {
   return exercises.filter((exercise) => exercise.concept === concept && isPracticeReady(exercise));
 }
 
-/** Fixed session-length caps offered in the UI, in addition to "all". */
-const SESSION_LENGTH_CAPS = [5, 10] as const;
-
-export type SessionLength = number | "all";
-
-/** Which length choices make sense for a concept — a cap only appears if
- * the concept actually has more exercises than that cap (offering "10"
- * when there are only 5 exercises would just be a second way to ask for
- * "all"). "all" is always offered. */
-export function getAvailableSessionLengths(concept: Concept): SessionLength[] {
-  const total = getExerciseIdsByConcept(concept).length;
-  const caps = SESSION_LENGTH_CAPS.filter((cap) => cap < total);
-  return [...caps, "all"];
-}
-
-/** Fisher-Yates — used so exercise order within a session isn't always the
- * same fixed sequence the exercises are authored in. */
-function shuffle<T>(items: T[]): T[] {
-  const shuffled = [...items];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
-
-/** Builds a randomly-ordered exercise list for a new session — `length`
- * caps how many exercises are included ("all" uses every exercise for the
- * concept, order still randomized). */
-export function buildSessionExerciseIds(concept: Concept, length: SessionLength, difficulty?: 1 | 2 | 3): string[] {
-  const pool = getPracticeExercises(concept);
-  if (difficulty === undefined) {
-    const shuffled = shuffle(pool.map((e) => e.exercise_id));
-    return length === "all" ? shuffled : shuffled.slice(0, Math.min(length, shuffled.length));
-  }
-  // Closest difficulty first, so a session asked for at one level still
-  // fills up from the next nearest when that level runs short.
-  const ordered = shuffle(pool).sort((a, b) => Math.abs(a.difficulty - difficulty) - Math.abs(b.difficulty - difficulty));
-  const ids = ordered.map((e) => e.exercise_id);
-  return shuffle(length === "all" ? ids : ids.slice(0, Math.min(length, ids.length)));
-}
+// Session building moved to src/lib/session-builder.ts, which reads the
+// answer-free catalog so the browser never needs this module.
+export type { SessionLength } from "@/lib/session-builder";

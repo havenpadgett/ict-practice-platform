@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useReducer, useRef } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { CandlestickChart } from "@/components/practice/candlestick-chart";
 import { FreeTradeFeedback } from "@/components/practice/free-trade-feedback";
-import type { FreeTradeDirection, FreeTradeExercise as FreeTradeExerciseData } from "@/data/exercises";
+import type { FreeTradeAnswer, FreeTradeDirection } from "@/data/exercises";
+import type { PublicFreeTradeExercise as FreeTradeExerciseData } from "@/lib/public-exercise";
 import {
   checkExit,
   computeRR,
-  gradeFreeTrade,
   isStopOnLosingSide,
   isTargetOnWinningSide,
   type FreeTradeExit,
@@ -50,7 +50,6 @@ type State = {
   trade: DraftTrade | null;
   activeField: LevelField;
   exit: FreeTradeExit | null;
-  result: FreeTradeGradeResult | null;
 };
 
 type Action =
@@ -72,7 +71,6 @@ const initialState: State = {
   trade: null,
   activeField: "stop",
   exit: null,
-  result: null,
 };
 
 function isPlacementValid(trade: DraftTrade | null): trade is DraftTrade & { stop: number; target: number } {
@@ -95,9 +93,9 @@ function toPosition(trade: DraftTrade & { stop: number; target: number }): FreeT
   };
 }
 
-/** Ends the scenario: an open trade is marked at the last revealed close, a
- * trade still being placed is discarded (it was never confirmed), and the
- * result is graded once, here. */
+/** Ends the scenario: an open trade is marked at the last revealed close
+ * and a trade still being placed is discarded (it was never confirmed).
+ * Grading happens on the server once the scenario is done. */
 function finish(exercise: FreeTradeExerciseData, state: State, exit: FreeTradeExit | null): State {
   const position = state.phase === "in_trade" && isPlacementValid(state.trade) ? toPosition(state.trade) : null;
   const lastIndex = exercise.candles.length + state.revealed - 1;
@@ -111,7 +109,6 @@ function finish(exercise: FreeTradeExerciseData, state: State, exit: FreeTradeEx
     phase: "done",
     trade: position === null ? null : state.trade,
     exit: finalExit,
-    result: gradeFreeTrade(exercise, position, finalExit),
   };
 }
 
@@ -183,21 +180,26 @@ export type FreeTradeAttempt = {
   exit: FreeTradeExit | null;
 };
 
+export type FreeTradeGradeResponse = { grade: FreeTradeGradeResult; key: FreeTradeAnswer };
+
 export function FreeTradeExercise({
   exercise,
-  onGraded,
+  onGrade,
   onNext,
   nextLabel,
 }: {
   exercise: FreeTradeExerciseData;
-  /** Fired once, the instant the scenario ends (trade closed, End Session,
-   * or playback ran out) — the parent records the attempt. */
-  onGraded: (attempt: FreeTradeAttempt, grade: FreeTradeGradeResult) => void;
+  /** Called once the scenario ends (trade closed, End Session, or playback
+   * ran out). The parent grades it on the server and records it; null means
+   * grading failed and the parent is showing why. */
+  onGrade: (attempt: FreeTradeAttempt) => Promise<FreeTradeGradeResponse | null>;
   onNext: () => void;
   nextLabel: string;
 }) {
   const [state, dispatch] = useReducer((s: State, a: Action) => reduce(exercise, s, a), initialState);
   const reportedRef = useRef(false);
+  const [graded, setGraded] = useState<FreeTradeGradeResponse | null>(null);
+  const [grading, setGrading] = useState(false);
 
   // Auto-advance. The reducer stops playback itself when the scenario ends.
   useEffect(() => {
@@ -206,13 +208,20 @@ export function FreeTradeExercise({
     return () => window.clearInterval(id);
   }, [state.playing, state.speed]);
 
-  // Report the graded attempt exactly once.
-  useEffect(() => {
-    if (state.phase !== "done" || !state.result || reportedRef.current) return;
-    reportedRef.current = true;
+  const requestGrade = useCallback(async () => {
     const position = state.trade && isPlacementValid(state.trade) ? toPosition(state.trade) : null;
-    onGraded({ position, exit: state.exit }, state.result);
-  }, [state.phase, state.result, state.trade, state.exit, onGraded]);
+    setGrading(true);
+    const res = await onGrade({ position, exit: state.exit });
+    setGrading(false);
+    if (res) setGraded(res);
+  }, [state.trade, state.exit, onGrade]);
+
+  // Grade exactly once when the scenario ends; a failure offers a retry.
+  useEffect(() => {
+    if (state.phase !== "done" || reportedRef.current) return;
+    reportedRef.current = true;
+    void requestGrade();
+  }, [state.phase, requestGrade]);
 
   const done = state.phase === "done";
   const hiddenCount = exercise.hidden_candles.length;
@@ -243,7 +252,7 @@ export function FreeTradeExercise({
       ? `Target must be ${trade.direction === "long" ? "above" : "below"} your entry.`
       : null;
 
-  const key = exercise.answer;
+  const key = graded?.key ?? null;
 
   return (
     <div>
@@ -255,7 +264,7 @@ export function FreeTradeExercise({
           candles={candles}
           // A real session's date would let the user look up what happened
           // next; it's shown once the scenario is over.
-          hideDates={!done && exercise.provenance !== undefined}
+          hideDates={!done && exercise.real}
           extraSlots={done ? 0 : PLAYBACK_EXTRA_SLOTS}
           interactive={placing}
           entryPrice={trade?.entry ?? null}
@@ -266,12 +275,10 @@ export function FreeTradeExercise({
           entryIndex={trade?.entryIndex ?? null}
           exit={state.exit}
           idealEntryZone={
-            done && key.entry_zone
-              ? { ...key.entry_zone, candle_start: key.entry_zone.earliest_index }
-              : null
+            key?.entry_zone ? { ...key.entry_zone, candle_start: key.entry_zone.earliest_index } : null
           }
-          idealStopZone={done ? key.stop_zone : null}
-          idealTarget={done ? key.target : null}
+          idealStopZone={key?.stop_zone ?? null}
+          idealTarget={key?.target ?? null}
         />
       </div>
 
@@ -282,13 +289,21 @@ export function FreeTradeExercise({
       )}
 
       <div className="mt-4">
-        {done && state.result ? (
-          <FreeTradeFeedback
-            result={state.result}
-            isValidSetup={key.is_valid_setup}
-            onNext={onNext}
-            nextLabel={nextLabel}
-          />
+        {done ? (
+          graded ? (
+            <FreeTradeFeedback
+              result={graded.grade}
+              isValidSetup={graded.key.is_valid_setup}
+              onNext={onNext}
+              nextLabel={nextLabel}
+            />
+          ) : grading ? (
+            <p className="text-sm text-muted" role="status">Grading…</p>
+          ) : (
+            <button type="button" onClick={() => void requestGrade()} className={primaryClass}>
+              Try grading again
+            </button>
+          )
         ) : (
           <div className="space-y-4">
             {/* Playback */}
@@ -372,12 +387,12 @@ export function FreeTradeExercise({
                 {liveRR !== null && (
                   <p className="mt-3 text-sm text-foreground">
                     Live R:R:{" "}
-                    <span className={liveRR >= key.min_rr ? "font-medium text-accent" : "font-medium"}>
+                    <span className={liveRR >= exercise.min_rr ? "font-medium text-accent" : "font-medium"}>
                       {liveRR.toFixed(2)}:1
                     </span>
                     <span className="text-muted">
                       {" "}
-                      · {liveRR >= key.min_rr ? "meets" : "below"} the {key.min_rr}:1 minimum
+                      · {liveRR >= exercise.min_rr ? "meets" : "below"} the {exercise.min_rr}:1 minimum
                     </span>
                   </p>
                 )}

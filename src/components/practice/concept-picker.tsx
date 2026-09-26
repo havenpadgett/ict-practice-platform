@@ -1,4 +1,4 @@
-import { getPracticeExercises } from "@/data/exercises";
+import { hasPracticeExercises } from "@/lib/session-builder";
 import { CONCEPT_LIST, CONCEPTS, type Concept } from "@/lib/concepts";
 
 export function ConceptPicker({
@@ -42,7 +42,7 @@ export function ConceptPicker({
           const meta = CONCEPTS[concept];
           // A concept can exist with nothing practice-ready yet (e.g. only
           // real scenarios still awaiting review).
-          const ready = getPracticeExercises(concept).length > 0;
+          const ready = hasPracticeExercises(concept);
           return (
             <button
               key={concept}

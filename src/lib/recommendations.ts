@@ -11,7 +11,7 @@
 //                        without dropping the strong ones
 
 import { getExerciseMeta, getPracticeCatalog, type ExerciseMeta } from "@/data/catalog";
-import type { SessionLength } from "@/data/exercises";
+import type { SessionLength } from "@/lib/session-builder";
 import type { DbAttempt } from "@/lib/attempts";
 import { CONCEPT_LIST, CONCEPTS, type Concept } from "@/lib/concepts";
 

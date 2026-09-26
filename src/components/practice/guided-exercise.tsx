@@ -5,22 +5,28 @@ import { CandlestickChart } from "@/components/practice/candlestick-chart";
 import { GuidedBiasControls } from "@/components/practice/guided-bias-controls";
 import { GuidedFeedback } from "@/components/practice/guided-feedback";
 import { GuidedLevelControls } from "@/components/practice/guided-level-controls";
-import type { GuidedBias, GuidedExercise as GuidedExerciseData } from "@/data/exercises";
-import { computeAchievedRR, gradeGuidedAttempt, type GuidedGradeResult, type GuidedUserAnswer } from "@/lib/guided-grading";
+import type { GuidedBias } from "@/data/exercises";
+import { computeAchievedRR, type GuidedGradeResult, type GuidedUserAnswer } from "@/lib/guided-grading";
+import type { PublicGuidedExercise } from "@/lib/public-exercise";
+
+export type GuidedGradeResponse = {
+  grade: GuidedGradeResult;
+  reveal: { entry: number | null; stop: number | null; target: number | null };
+};
 
 type Step = "bias" | "entry" | "stop" | "target" | "done";
 
 export function GuidedExercise({
   exercise,
-  onGraded,
+  onGrade,
   onNext,
   nextLabel,
 }: {
-  exercise: GuidedExerciseData;
-  /** Fired the instant the attempt is finalized (Submit Setup or No Trade
-   * at any step) — the parent records it the same way it does for every
-   * other answer type, independent of when "Next" is eventually pressed. */
-  onGraded: (answer: GuidedUserAnswer, grade: GuidedGradeResult) => void;
+  exercise: PublicGuidedExercise;
+  /** Called the instant the attempt is finalized (Submit Setup or No Trade
+   * at any step). The parent grades it on the server and records it; null
+   * means grading failed and the parent is showing why. */
+  onGrade: (answer: GuidedUserAnswer) => Promise<GuidedGradeResponse | null>;
   onNext: () => void;
   nextLabel: string;
 }) {
@@ -29,16 +35,27 @@ export function GuidedExercise({
   const [entry, setEntry] = useState<number | null>(null);
   const [stop, setStop] = useState<number | null>(null);
   const [target, setTarget] = useState<number | null>(null);
-  const [result, setResult] = useState<GuidedGradeResult | null>(null);
+  const [graded, setGraded] = useState<GuidedGradeResponse | null>(null);
+  const [grading, setGrading] = useState(false);
+  const [pending, setPending] = useState<GuidedUserAnswer | null>(null);
+
+  async function submit(answer: GuidedUserAnswer) {
+    setGrading(true);
+    setPending(answer);
+    const res = await onGrade(answer);
+    setGrading(false);
+    if (res) {
+      setGraded(res);
+      setPending(null);
+      setStep("done");
+    }
+  }
 
   function finalize(declaredTrade: boolean) {
-    if (bias === null) return;
-    const answer: GuidedUserAnswer = { bias, entry, stop, target, declaredTrade };
-    const grade = gradeGuidedAttempt(exercise, answer);
-    setResult(grade);
-    setStep("done");
-    onGraded(answer, grade);
+    if (bias === null || grading) return;
+    void submit({ bias, entry, stop, target, declaredTrade });
   }
+  const result = graded?.grade ?? null;
 
   function handleContinueFromBias() {
     if (bias === null) return;
@@ -56,7 +73,7 @@ export function GuidedExercise({
       ? computeAchievedRR(bias, entry, stop, target)
       : null;
 
-  const interactive = step !== "done";
+  const interactive = step !== "done" && !grading && pending === null;
   const activeField = step === "entry" || step === "stop" || step === "target" ? step : null;
 
   return (
@@ -75,14 +92,23 @@ export function GuidedExercise({
             else if (step === "stop") setStop(price);
             else if (step === "target") setTarget(price);
           }}
-          correctEntry={step === "done" ? exercise.answer.entry?.price ?? null : null}
-          correctStop={step === "done" ? exercise.answer.stop?.price ?? null : null}
-          correctTarget={step === "done" ? exercise.answer.target?.price ?? null : null}
+          correctEntry={graded?.reveal.entry ?? null}
+          correctStop={graded?.reveal.stop ?? null}
+          correctTarget={graded?.reveal.target ?? null}
         />
       </div>
 
       <div className="mt-5">
-        {step === "bias" && (
+        {(grading || pending) && step !== "done" ? (
+          grading ? (
+            <p className="text-sm text-muted" role="status">Grading…</p>
+          ) : (
+            <button type="button" onClick={() => pending && void submit(pending)} className="btn-primary">
+              Try grading again
+            </button>
+          )
+        ) : null}
+        {!grading && !pending && step === "bias" && (
           <GuidedBiasControls
             selected={bias}
             onSelect={setBias}
@@ -90,34 +116,34 @@ export function GuidedExercise({
             onNoTrade={() => finalize(false)}
           />
         )}
-        {step === "entry" && (
+        {!grading && !pending && step === "entry" && (
           <GuidedLevelControls
             step="entry"
             price={entry}
             onContinue={() => setStep("stop")}
             onNoTrade={() => finalize(false)}
             liveRR={null}
-            minRR={exercise.answer.min_rr}
+            minRR={exercise.min_rr}
           />
         )}
-        {step === "stop" && (
+        {!grading && !pending && step === "stop" && (
           <GuidedLevelControls
             step="stop"
             price={stop}
             onContinue={() => setStep("target")}
             onNoTrade={() => finalize(false)}
             liveRR={null}
-            minRR={exercise.answer.min_rr}
+            minRR={exercise.min_rr}
           />
         )}
-        {step === "target" && (
+        {!grading && !pending && step === "target" && (
           <GuidedLevelControls
             step="target"
             price={target}
             onContinue={() => finalize(true)}
             onNoTrade={() => finalize(false)}
             liveRR={liveRR}
-            minRR={exercise.answer.min_rr}
+            minRR={exercise.min_rr}
           />
         )}
         {step === "done" && result && (
