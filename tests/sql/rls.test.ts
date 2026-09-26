@@ -16,7 +16,7 @@ beforeAll(async () => {
   db = await migratedDb();
   await seed(db, [
     { user: A, correct: true, session: "sa", at: at(1) },
-    { user: B, correct: false, session: "sb", at: at(2), extra: { answer_type: "guided", user_answer_type: "guided", concept: "GuidedEntry", exercise_id: "guided-001", guided_bias_correct: false } },
+    { user: B, correct: false, session: "sb", at: at(2), answer_type: "guided", concept: "GuidedEntry", exercise: "guided-001", extra: { guided_bias_correct: false } },
   ]);
   await db.exec(`
     insert into practice_events (user_id, session_id, event_type, mode, source, planned_length, created_at) values

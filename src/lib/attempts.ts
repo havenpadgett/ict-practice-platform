@@ -175,13 +175,25 @@ export async function migrateLocalAttempts(
 
   const rows = localAttempts.map((a) => {
     const exercise = getExerciseMeta(a.exercise_id);
+    // The answer type is what the user actually did at the time, not what
+    // the exercise is today: Liquidity was answered with a box until
+    // 2026-09-09, and taking today's "level" recorded a box against a level
+    // exercise (Bug Log 2026-09-27).
+    const answerType =
+      a.user_answer_type === "region"
+        ? "zone"
+        : a.user_answer_type === "level"
+          ? "level"
+          : exercise?.answer_type === "level"
+            ? "level"
+            : "zone";
     return {
       user_id: userId,
       session_id: a.session_id,
       exercise_id: a.exercise_id,
       concept: a.concept,
       difficulty: exercise?.difficulty ?? null,
-      answer_type: exercise?.answer_type ?? "zone",
+      answer_type: answerType,
       user_answer_type: a.user_answer_type,
       user_price_low: a.user_price_low,
       user_price_high: a.user_price_high,
@@ -209,8 +221,10 @@ export async function migrateLocalAttempts(
       ...NULL_FREE_TRADE_FIELDS,
       is_correct: a.is_correct,
       failure_reason: a.failure_reason,
-      response_time_ms: a.response_time_ms,
-      attempt_number: a.attempt_number,
+      // Same 24-hour cap as the grading Server Functions and the
+      // attempts_ranges constraint.
+      response_time_ms: Math.min(Math.max(0, Math.round(a.response_time_ms)), 86_400_000),
+      attempt_number: Math.max(1, a.attempt_number),
     };
   });
 

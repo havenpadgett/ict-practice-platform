@@ -13,7 +13,14 @@
 import { getExercise, isPracticeReady, type Exercise, type FreeTradeAnswer, type ZoneAnswer } from "@/data/exercises";
 import type { NewAttempt } from "@/lib/attempts";
 import { buildAnswerAttempt, buildFreeTradeAttempt, buildGuidedAttempt } from "@/lib/attempt-rows";
-import { gradeFreeTrade, type FreeTradeExit, type FreeTradeGradeResult, type FreeTradePosition } from "@/lib/free-trade-grading";
+import {
+  gradeFreeTrade,
+  isStopOnLosingSide,
+  isTargetOnWinningSide,
+  type FreeTradeExit,
+  type FreeTradeGradeResult,
+  type FreeTradePosition,
+} from "@/lib/free-trade-grading";
 import { gradeAttempt, type GradeResult, type UserAnswer } from "@/lib/grading";
 import { gradeGuidedAttempt, type GuidedGradeResult, type GuidedUserAnswer } from "@/lib/guided-grading";
 import { toPublicExercise, type PublicExercise } from "@/lib/public-exercise";
@@ -47,6 +54,8 @@ export type FreeTradeGrading = {
 };
 
 const MAX_SESSION_IDS = 60;
+/** Matches the attempts_ranges constraint (20260927130000_attempt_integrity.sql). */
+const MAX_RESPONSE_MS = 24 * 60 * 60 * 1000;
 
 async function signedIn(): Promise<boolean> {
   const supabase = await createClient();
@@ -74,7 +83,7 @@ function practiceExercise(id: unknown): Exercise | null {
 function context(c: AttemptContext) {
   return {
     sessionId: typeof c?.sessionId === "string" ? c.sessionId.slice(0, 100) : "",
-    responseTimeMs: isNum(c?.responseTimeMs) ? Math.max(0, Math.round(c.responseTimeMs)) : 0,
+    responseTimeMs: isNum(c?.responseTimeMs) ? Math.min(MAX_RESPONSE_MS, Math.max(0, Math.round(c.responseTimeMs))) : 0,
     attemptNumber: 0,
   };
 }
@@ -180,7 +189,12 @@ function isPosition(p: unknown): p is FreeTradePosition | null {
   if (p === null) return true;
   if (typeof p !== "object") return false;
   const x = p as Record<string, unknown>;
-  return (x.direction === "long" || x.direction === "short") && isNum(x.entryIndex) && isNum(x.entry) && isNum(x.stop) && isNum(x.target);
+  if (!((x.direction === "long" || x.direction === "short") && isNum(x.entryIndex) && isNum(x.entry) && isNum(x.stop) && isNum(x.target))) {
+    return false;
+  }
+  // The UI only confirms a trade with the stop and target on the right
+  // sides; anything else is a forged request.
+  return isStopOnLosingSide(x.direction, x.entry, x.stop) && isTargetOnWinningSide(x.direction, x.entry, x.target);
 }
 
 function isExit(p: unknown): p is FreeTradeExit | null {
