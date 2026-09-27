@@ -26,6 +26,7 @@
 | — | Order Blocks, Premium & Discount, Time-based liquidity concepts | ✅ Done (constructed exercises) | 2026-09-24 |
 | — | Hardening: automated tests, error handling, CSV export, performance | ✅ Done. All tests pass (the live RLS check is skipped without test accounts) | 2026-09-25 |
 | — | Analytics layer: SQL views, event tracking, `/admin`, Python analysis | ✅ Built. **Three migrations not yet applied** (`20260926120000`, `…130000`, `…140000`); the app falls back until they are | 2026-09-26 |
+| — | Pre-launch batch: randomized chart framing, Review Mistakes (mastered tracking, mistakes-only sessions), Report a question (admin counts and re-review flags), session recovery, branded 404, favicon, per-route titles, Open Graph | ✅ Built. **Two migrations not yet applied** (`20260927140000`, `20260927150000`). Mistake events and reports fail gracefully until they are. **Accuracy from before the framing change isn't comparable with accuracy after it** (docs/SCENARIO-VALIDATION.md → Chart framing) | 2026-09-27 |
 
 **Still open from the original requirements:** NFR-1/2 have never been verified on a real phone (Decision Log 2026-09-14 and 2026-09-24). D-3's tolerances still need re-checking against real beginner attempts. D-4 (product name) is still open.
 

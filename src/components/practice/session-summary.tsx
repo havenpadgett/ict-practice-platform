@@ -23,9 +23,9 @@ export function SessionSummary({
         <div className="mt-4">
           <p className="text-sm text-muted">Missed:</p>
           <ul className="mt-1 flex flex-wrap gap-2">
-            {session.missed_exercise_ids.map((id) => (
+            {session.missed_exercise_ids.map((id, i) => (
               <li
-                key={id}
+                key={`${id}-${i}`}
                 className="rounded border border-line px-2 py-1 text-xs text-foreground"
               >
                 {id}

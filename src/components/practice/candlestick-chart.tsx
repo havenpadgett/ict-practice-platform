@@ -396,10 +396,11 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
       onPointerCancel={handlePointerUp}
     >
       {/* Price axis gridlines + labels */}
-      {priceTicks.map((price) => {
+      {priceTicks.map((price, i) => {
         const y = priceToY(layout, price);
         return (
-          <g key={price}>
+          // By position: on a flat chart every tick has the same price.
+          <g key={i}>
             <line
               x1={bounds.left}
               x2={bounds.right}

@@ -6,6 +6,7 @@
 // supabase/migrations/20260926140000_admin_functions.sql, which check the
 // role again themselves (is_admin(), redefined in 20260927120000_roles.sql).
 
+import type { Metadata } from "next";
 import { resolveReports } from "@/app/admin/actions";
 import { StatCard } from "@/components/stat-card";
 import { CONCEPTS, type Concept } from "@/lib/concepts";
@@ -16,6 +17,12 @@ import { listScenarios, readReviewLog, staleFor } from "@/lib/review/store";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Admin",
+  // Internal tooling: keep it out of search results.
+  robots: { index: false, follow: false },
+};
 
 type Overview = {
   total_users: number;

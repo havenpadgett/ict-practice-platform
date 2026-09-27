@@ -1,16 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
 import { clearSession } from "@/lib/storage";
 
 // Any render error below the root layout lands here instead of a blank
 // page. "Start over" also clears the stored practice session, the most
 // likely source of a repeatable crash (stale or hand-edited data).
-export default function Error({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
-
+// React already reports the error to the console; nothing extra is logged here.
+export default function Error({ retry }: { error: Error & { digest?: string }; retry: () => void }) {
   return (
     <div className="page">
       <h1 className="page-title">Something went wrong on this page</h1>

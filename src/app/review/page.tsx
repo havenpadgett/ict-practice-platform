@@ -4,6 +4,7 @@
 // definition beside each chart. src/proxy.ts requires a login; the reviewer
 // check happens here and again inside each Server Action.
 
+import type { Metadata } from "next";
 import { promises as fs } from "fs";
 import path from "path";
 import { ReviewQueue, type QueueGroup } from "@/app/review/review-queue";
@@ -13,6 +14,12 @@ import { canWrite, listScenarios, readReviewLog, staleFor } from "@/lib/review/s
 import { DEFINITIONS, definitionsForRule, splitSections } from "@/lib/curriculum";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Scenario review",
+  // Internal tooling: keep it out of search results.
+  robots: { index: false, follow: false },
+};
 
 const DRAFT_PREFIX = /^\[DRAFT[^\]]*\]\s*/;
 
