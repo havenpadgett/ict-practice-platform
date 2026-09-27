@@ -4,11 +4,21 @@
 
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { isDemoMode } from "@/lib/demo/gate";
 import { getSupabaseKey, getSupabaseUrl } from "@/lib/supabase/env";
 
-export async function createClient() {
-  const cookieStore = await cookies();
+export async function createClient(): Promise<ReturnType<typeof supabaseClient>> {
+  // DEMO MODE (src/lib/demo/gate.ts): seeded fake data, never Supabase.
+  // The inline NODE_ENV check folds to false in production builds, which
+  // then drop this branch and never load the demo store.
+  if (process.env.NODE_ENV !== "production" && isDemoMode()) {
+    const { createDemoServerClient } = await import("@/lib/demo/store");
+    return createDemoServerClient() as unknown as ReturnType<typeof supabaseClient>;
+  }
+  return supabaseClient(await cookies());
+}
 
+function supabaseClient(cookieStore: Awaited<ReturnType<typeof cookies>>) {
   return createServerClient(getSupabaseUrl(), getSupabaseKey(), {
     cookies: {
       getAll() {

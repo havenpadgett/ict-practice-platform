@@ -1,10 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isDemoMode } from "@/lib/demo/gate";
 import { getSupabaseKey, getSupabaseUrl } from "@/lib/supabase/env";
 
 const PROTECTED_PATHS = ["/dashboard", "/practice", "/mistakes", "/analytics", "/review", "/admin", "/api/export"];
 
 export async function proxy(request: NextRequest) {
+  // DEMO MODE (src/lib/demo/gate.ts): the demo reviewer is always signed in.
+  if (process.env.NODE_ENV !== "production" && isDemoMode()) return NextResponse.next({ request });
+
   let response = NextResponse.next({ request });
 
   let supabaseUrl: string;

@@ -179,6 +179,32 @@ Run through this before pushing to `main`, since Vercel deploys every push to pr
 - [ ] Record the Auth settings somewhere outside Supabase.
 - [ ] Decide between Pro and accepting pause/backup risk before inviting real users.
 
+## Demo mode (branch `demo-mode`, delete after review)
+
+> **The `demo-mode` branch exists only so a reviewer can walk the signed-in app without an account. Delete it once the review is done:** `git branch -D demo-mode`, plus `git push origin --delete demo-mode` if it was pushed. Never merge it into `main`.
+
+**Run it:** `NEXT_PUBLIC_DEMO_MODE=true npm run dev`, then open http://localhost:3000. Stop any other `next dev` for this project first; only one can run at a time.
+
+**What it does:** login is skipped, and every page shows a "Demo mode: all data here is made up" banner. The reviewer is signed in as `demo-reviewer@example.com`, an ordinary user, so `/admin` and `/review` stay closed and no scenario file can be edited. Both Supabase clients are replaced by an in-memory store with about three weeks of seeded fake practice history. Everything the reviewer does is written there and lost when the dev server stops. Supabase is never contacted, so no real row is read or written.
+
+**The gate:** it exists only when `NEXT_PUBLIC_DEMO_MODE` is exactly `true` **and** `NODE_ENV` isn't `production`. `next build` and `next start` always run as production, so a deployed or production build never has demo mode, whatever the variable says. A production build with the variable set was checked: none of the demo code is in the compiled output, and `/api/demo` only answers 404. `tests/demo-mode.test.ts` fails if any way in is reachable when either condition is false. Don't set the variable in Vercel.
+
+**Every file the branch changes.** Removing demo mode is reverting the branch's single commit:
+
+| File | Change |
+|---|---|
+| `src/lib/demo/gate.ts` | New. The two-condition gate and the demo user. |
+| `src/lib/demo/fake-supabase.ts` | New. The stand-in Supabase client (browser half posts to `/api/demo`). |
+| `src/lib/demo/store.ts` | New. Server-only in-memory store and seed data. |
+| `src/app/api/demo/route.ts` | New. Runs browser queries against the store; 404 outside demo mode. |
+| `src/components/demo-banner.tsx` | New. The banner. |
+| `tests/demo-mode.test.ts` | New. Gate tests. |
+| `src/lib/supabase/client.ts` | Returns the demo client when the gate is open. |
+| `src/lib/supabase/server.ts` | Returns the demo client when the gate is open. |
+| `src/proxy.ts` | Skips the login redirect when the gate is open. |
+| `src/app/layout.tsx` | Renders the banner. |
+| `docs/OPERATIONS.md` | This section. |
+
 ## Sources
 
 - [Supabase: Database Backups](https://supabase.com/docs/guides/platform/backups)
