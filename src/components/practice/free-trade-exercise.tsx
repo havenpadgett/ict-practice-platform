@@ -182,11 +182,41 @@ export type FreeTradeAttempt = {
 
 export type FreeTradeGradeResponse = { grade: FreeTradeGradeResult; key: FreeTradeAnswer };
 
+/** What's autosaved during playback (src/lib/storage.ts). */
+export type FreeTradeDraft = State;
+
+const PHASES: Phase[] = ["watching", "placing", "in_trade", "done"];
+
+/** A saved playback state, if it's usable for this scenario. Restored
+ * paused, so a refresh never resumes playing on its own. */
+function readDraft(d: unknown, hiddenCount: number): State | null {
+  if (typeof d !== "object" || d === null) return null;
+  const x = d as Record<string, unknown>;
+  const revealed = x.revealed;
+  if (typeof revealed !== "number" || !Number.isInteger(revealed) || revealed < 0 || revealed > hiddenCount) return null;
+  if (!PHASES.includes(x.phase as Phase) || !(x.speed === "slow" || x.speed === "normal" || x.speed === "fast")) return null;
+  if (x.activeField !== "stop" && x.activeField !== "target") return null;
+  const t = x.trade as Record<string, unknown> | null;
+  if (t !== null && (typeof t !== "object" || (t.direction !== "long" && t.direction !== "short") || typeof t.entry !== "number" || typeof t.entryIndex !== "number")) {
+    return null;
+  }
+  return { ...(x as unknown as State), playing: false };
+}
+
+function readGraded(g: unknown): FreeTradeGradeResponse | null {
+  if (typeof g !== "object" || g === null) return null;
+  const x = g as Record<string, unknown>;
+  return typeof x.grade === "object" && x.grade !== null && typeof x.key === "object" && x.key !== null ? (g as FreeTradeGradeResponse) : null;
+}
+
 export function FreeTradeExercise({
   exercise,
   onGrade,
   onNext,
   nextLabel,
+  initialDraft,
+  initialGraded,
+  onDraftChange,
 }: {
   exercise: FreeTradeExerciseData;
   /** Called once the scenario ends (trade closed, End Session, or playback
@@ -195,10 +225,32 @@ export function FreeTradeExercise({
   onGrade: (attempt: FreeTradeAttempt) => Promise<FreeTradeGradeResponse | null>;
   onNext: () => void;
   nextLabel: string;
+  /** Restored after a refresh: playback so far, and the grade if the
+   * scenario was already graded. */
+  initialDraft?: unknown;
+  initialGraded?: unknown;
+  onDraftChange?: (draft: FreeTradeDraft) => void;
 }) {
-  const [state, dispatch] = useReducer((s: State, a: Action) => reduce(exercise, s, a), initialState);
-  const reportedRef = useRef(false);
-  const [graded, setGraded] = useState<FreeTradeGradeResponse | null>(null);
+  const [restoredGrade] = useState(() => readGraded(initialGraded));
+  const [state, dispatch] = useReducer(
+    (s: State, a: Action) => reduce(exercise, s, a),
+    null,
+    () => {
+      const draft = readDraft(initialDraft, exercise.hidden_candles.length);
+      if (restoredGrade) return { ...(draft ?? initialState), playing: false, phase: "done" as const };
+      return draft ?? initialState;
+    },
+  );
+  // Already graded before a refresh: never grade (and record) it again.
+  const reportedRef = useRef(restoredGrade !== null);
+  const [graded, setGraded] = useState<FreeTradeGradeResponse | null>(restoredGrade);
+
+  // Autosave playback as it goes.
+  useEffect(() => {
+    onDraftChange?.(state);
+    // onDraftChange is a fresh closure each parent render; the state is what matters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
   const [grading, setGrading] = useState(false);
 
   // Auto-advance. The reducer stops playback itself when the scenario ends.

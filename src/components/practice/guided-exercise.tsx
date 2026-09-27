@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CandlestickChart } from "@/components/practice/candlestick-chart";
 import { GuidedBiasControls } from "@/components/practice/guided-bias-controls";
 import { GuidedFeedback } from "@/components/practice/guided-feedback";
@@ -16,11 +16,42 @@ export type GuidedGradeResponse = {
 
 type Step = "bias" | "entry" | "stop" | "target" | "done";
 
+/** What's autosaved while the flow is in progress (src/lib/storage.ts). */
+export type GuidedDraft = {
+  step: Step;
+  bias: GuidedBias | null;
+  entry: number | null;
+  stop: number | null;
+  target: number | null;
+};
+
+const STEPS: Step[] = ["bias", "entry", "stop", "target", "done"];
+const numOrNull = (x: unknown) => x === null || (typeof x === "number" && Number.isFinite(x));
+
+function readDraft(d: unknown): GuidedDraft | null {
+  if (typeof d !== "object" || d === null) return null;
+  const x = d as Record<string, unknown>;
+  const biasOk = x.bias === null || x.bias === "bullish" || x.bias === "bearish" || x.bias === "unclear";
+  if (!STEPS.includes(x.step as Step) || !biasOk || !numOrNull(x.entry) || !numOrNull(x.stop) || !numOrNull(x.target)) return null;
+  return x as GuidedDraft;
+}
+
+function readGraded(g: unknown): GuidedGradeResponse | null {
+  if (typeof g !== "object" || g === null) return null;
+  const x = g as Record<string, unknown>;
+  return typeof x.grade === "object" && x.grade !== null && typeof x.reveal === "object" && x.reveal !== null
+    ? (g as GuidedGradeResponse)
+    : null;
+}
+
 export function GuidedExercise({
   exercise,
   onGrade,
   onNext,
   nextLabel,
+  initialDraft,
+  initialGraded,
+  onDraftChange,
 }: {
   exercise: PublicGuidedExercise;
   /** Called the instant the attempt is finalized (Submit Setup or No Trade
@@ -29,13 +60,33 @@ export function GuidedExercise({
   onGrade: (answer: GuidedUserAnswer) => Promise<GuidedGradeResponse | null>;
   onNext: () => void;
   nextLabel: string;
+  /** Restored after a refresh: the flow so far, and the grade if it was
+   * already graded (then the feedback shows instead of the flow). */
+  initialDraft?: unknown;
+  initialGraded?: unknown;
+  onDraftChange?: (draft: GuidedDraft) => void;
 }) {
-  const [step, setStep] = useState<Step>("bias");
-  const [bias, setBias] = useState<GuidedBias | null>(null);
-  const [entry, setEntry] = useState<number | null>(null);
-  const [stop, setStop] = useState<number | null>(null);
-  const [target, setTarget] = useState<number | null>(null);
-  const [graded, setGraded] = useState<GuidedGradeResponse | null>(null);
+  const [restored] = useState(() => {
+    const graded = readGraded(initialGraded);
+    const draft = readDraft(initialDraft);
+    // "done" without its grade means grading never came back: resume at
+    // the last step so it can be submitted again.
+    const step: Step = graded ? "done" : draft?.step === "done" ? (draft.bias === "unclear" ? "bias" : "target") : (draft?.step ?? "bias");
+    return { graded, draft, step };
+  });
+  const [step, setStep] = useState<Step>(restored.step);
+  const [bias, setBias] = useState<GuidedBias | null>(restored.draft?.bias ?? null);
+  const [entry, setEntry] = useState<number | null>(restored.draft?.entry ?? null);
+  const [stop, setStop] = useState<number | null>(restored.draft?.stop ?? null);
+  const [target, setTarget] = useState<number | null>(restored.draft?.target ?? null);
+  const [graded, setGraded] = useState<GuidedGradeResponse | null>(restored.graded);
+
+  // Autosave the flow as it goes.
+  useEffect(() => {
+    onDraftChange?.({ step, bias, entry, stop, target });
+    // onDraftChange is a fresh closure each parent render; the values are what matter.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, bias, entry, stop, target]);
   const [grading, setGrading] = useState(false);
   const [pending, setPending] = useState<GuidedUserAnswer | null>(null);
 

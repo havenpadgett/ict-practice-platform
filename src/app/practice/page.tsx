@@ -11,6 +11,7 @@ import { FeedbackPanel } from "@/components/practice/feedback-panel";
 import { FreeTradeExercise, type FreeTradeAttempt, type FreeTradeGradeResponse } from "@/components/practice/free-trade-exercise";
 import { ReportQuestion } from "@/components/practice/report-question";
 import { GuidedExercise, type GuidedGradeResponse } from "@/components/practice/guided-exercise";
+import { NavigationGuard } from "@/components/practice/navigation-guard";
 import { SessionLengthPicker } from "@/components/practice/session-length-picker";
 import { SessionSummary } from "@/components/practice/session-summary";
 import { SaveStatus } from "@/components/save-status";
@@ -32,9 +33,12 @@ import { buildSessionExerciseIds, type SessionLength } from "@/lib/session-build
 import {
   ADAPTIVE_SESSION,
   MISTAKES_SESSION,
+  clearProgress,
   clearSession,
   createSession,
+  loadProgress,
   loadSession,
+  saveProgress,
   saveSession,
   type SessionState,
 } from "@/lib/storage";
@@ -79,13 +83,92 @@ export default function PracticePage() {
   const pendingMistakesRef = useRef<{ retryId?: string } | null>(null);
 
 
-  // Reset the response-time clock whenever a new exercise becomes active,
-  // including when it finishes loading.
+  // ---- Autosave (src/lib/storage.ts → ExerciseProgress) ------------------
+  // The exercise on screen is saved as it's answered: the box, line or
+  // choice so far, a Guided/Free Trade flow part-way through, and the grade
+  // the moment it arrives. A refresh restores it onto the same exercise.
+  const sessionRef = useRef<SessionState | null>(null);
+  const progressRef = useRef<{ draft: unknown; graded: unknown; started_at: number | null }>({
+    draft: null,
+    graded: null,
+    started_at: null,
+  });
+  /** Which exercise the saved progress was restored for, and what it held
+   * for the Guided/Free Trade components to start from. */
+  const [restored, setRestored] = useState<{ key: string; draft: unknown; graded: unknown } | null>(null);
+  const progressKey = session && !session.completed ? `${session.session_id}:${session.current_index}` : null;
+
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
+
+  function persistProgress(patch: { draft?: unknown; graded?: unknown }) {
+    const s = sessionRef.current;
+    if (!s || s.completed) return;
+    progressRef.current = { ...progressRef.current, ...patch };
+    saveProgress({
+      session_id: s.session_id,
+      current_index: s.current_index,
+      exercise_id: s.exercise_order[s.current_index],
+      started_at: progressRef.current.started_at ?? Date.now(),
+      draft: progressRef.current.draft,
+      graded: progressRef.current.graded,
+    });
+  }
+
+  // Restore the saved progress whenever the exercise on screen changes.
+  // Reading localStorage is a sync from browser-only state, so the
+  // setState-in-effect here is intentional.
+  useEffect(() => {
+    if (!progressKey || !session) return;
+    const p = loadProgress(session);
+    progressRef.current = { draft: p?.draft ?? null, graded: p?.graded ?? null, started_at: p?.started_at ?? null };
+    const draft = (p?.draft ?? null) as { region?: unknown; level?: unknown; choice?: unknown } | null;
+    const graded = (p?.graded ?? null) as { result?: unknown; reveal?: unknown } | null;
+    if (draft && typeof draft === "object") {
+      const r = draft.region as UserRegion | null | undefined;
+      if (r && typeof r === "object" && [r.priceLow, r.priceHigh, r.candleIndexLow, r.candleIndexHigh].every(Number.isFinite)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setUserRegion(r);
+      }
+      if (typeof draft.level === "number" && Number.isFinite(draft.level)) setUserLevel(draft.level);
+      if (typeof draft.choice === "string") setUserChoice(draft.choice);
+    }
+    if (graded && typeof graded === "object") {
+      if (graded.result && typeof graded.result === "object" && "isCorrect" in graded.result) {
+        setResult(graded.result as GradeResult);
+        setReveal((graded.reveal ?? null) as typeof reveal);
+      } else {
+        // Guided Entry / Free Trade: the component restores its own feedback.
+        setFlowGraded(true);
+      }
+    }
+    setRestored({ key: progressKey, draft: p?.draft ?? null, graded: p?.graded ?? null });
+    // Keyed on the exercise position; `session` is read, not a trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progressKey]);
+
+  // Start the response-time clock when the exercise is first shown, or keep
+  // the one from before a refresh.
   const currentId = session && !session.completed ? session.exercise_order[session.current_index] : null;
   const currentLoaded = currentId !== null && currentId in loaded;
   useEffect(() => {
-    exerciseStartRef.current = Date.now();
+    if (!currentLoaded) return;
+    const isNew = progressRef.current.started_at === null;
+    const started = progressRef.current.started_at ?? Date.now();
+    exerciseStartRef.current = started;
+    progressRef.current.started_at = started;
+    if (isNew) persistProgress({});
   }, [session?.session_id, session?.current_index, currentLoaded]);
+
+  // Autosave a recognition answer as it's drawn or picked.
+  useEffect(() => {
+    if (!currentLoaded || restored?.key !== progressKey) return;
+    if (userRegion === null && userLevel === null && userChoice === null && progressRef.current.draft === null) return;
+    persistProgress({ draft: { region: userRegion, level: userLevel, choice: userChoice } });
+    // persistProgress reads refs only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userRegion, userLevel, userChoice]);
 
   // Fetch the session's exercises from the server (without answer keys).
   // Each session frames its charts differently (src/lib/framing.ts), so
@@ -201,6 +284,7 @@ export default function PracticePage() {
       planned_length: exerciseIds.length,
     });
     saveSession(fresh);
+    clearProgress();
     setLoaded({});
     setSession(fresh);
     setShowPicker(false);
@@ -397,6 +481,8 @@ export default function PracticePage() {
               onClick={() => {
                 const next = { ...session, current_index: session.current_index + 1 };
                 next.completed = next.current_index >= next.exercise_order.length;
+                clearProgress();
+                progressRef.current = { draft: null, graded: null, started_at: null };
                 saveSession(next);
                 setSession(next);
               }}
@@ -485,6 +571,9 @@ export default function PracticePage() {
       setPendingAnswer(null);
       setResult(res.grade);
       setReveal(res.reveal);
+      // Before the score and attempt are recorded: a refresh from here on
+      // shows this feedback rather than asking (and scoring) again.
+      persistProgress({ graded: { result: res.grade, reveal: res.reveal } });
       await recordGraded(res.grade.isCorrect, res.row);
     } catch (err) {
       setGradeError(describeError(err, "grade this answer").message);
@@ -533,6 +622,7 @@ export default function PracticePage() {
         return null;
       }
       setFlowGraded(true);
+      persistProgress({ graded: { grade: res.grade, reveal: res.reveal } });
       void recordGraded(res.grade.isCorrect, res.row);
       return { grade: res.grade, reveal: res.reveal };
     } catch (err) {
@@ -557,6 +647,7 @@ export default function PracticePage() {
         return null;
       }
       setFlowGraded(true);
+      persistProgress({ graded: { grade: res.grade, key: res.key } });
       void recordGraded(res.grade.passed, res.row);
       return { grade: res.grade, key: res.key };
     } catch (err) {
@@ -570,6 +661,8 @@ export default function PracticePage() {
     const nextIndex = session.current_index + 1;
     const completed = nextIndex >= session.exercise_order.length;
     const updatedSession: SessionState = { ...session, current_index: nextIndex, completed };
+    clearProgress();
+    progressRef.current = { draft: null, graded: null, started_at: null };
     if (completed) {
       track({
         event_type: "session_completed",
@@ -630,25 +723,35 @@ export default function PracticePage() {
 
         {exercise.answer_type === "free" ? (
           <div className="mt-6">
+            {restored?.key === progressKey && (
             <FreeTradeExercise
               key={exercise.exercise_id}
               exercise={exercise}
+              initialDraft={restored.draft}
+              initialGraded={restored.graded}
+              onDraftChange={(draft) => persistProgress({ draft })}
               onGrade={gradeFreeTradeAttempt}
               onNext={handleNext}
               nextLabel={isLastExercise ? "See Results" : "Next Scenario"}
             />
+            )}
             {gradeError && <p className="mt-3 text-sm text-danger" role="alert">{gradeError}</p>}
             <SaveStatus saving={saving} error={saveError} onRetry={retrySave} />
           </div>
         ) : exercise.answer_type === "guided" ? (
           <div className="mt-6">
+            {restored?.key === progressKey && (
             <GuidedExercise
               key={exercise.exercise_id}
               exercise={exercise}
+              initialDraft={restored.draft}
+              initialGraded={restored.graded}
+              onDraftChange={(draft) => persistProgress({ draft })}
               onGrade={gradeGuidedAnswer}
               onNext={handleNext}
               nextLabel={isLastExercise ? "See Results" : "Next Exercise"}
             />
+            )}
             {gradeError && <p className="mt-3 text-sm text-danger" role="alert">{gradeError}</p>}
             <SaveStatus saving={saving} error={saveError} onRetry={retrySave} />
           </div>
@@ -740,6 +843,9 @@ export default function PracticePage() {
             </div>
           </>
         )}
+
+        {/* Unanswered = unfinished; once graded there's nothing to lose. */}
+        <NavigationGuard active={result === null && !flowGraded} />
 
         <ReportQuestion
           key={`${session.session_id}:${exercise.exercise_id}`}

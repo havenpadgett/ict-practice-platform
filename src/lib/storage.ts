@@ -1,9 +1,12 @@
-// Browser-only, localStorage-backed state. Two things live here now:
+// Browser-only, localStorage-backed state. Three things live here now:
 //
 // 1. SessionState — the current in-progress practice session (which
 //    exercise, running score). Stays local; it's ephemeral UI state, not a
 //    durable record, so it was never part of the Supabase move.
-// 2. StoredAttempt — the *old* attempt-recording shape, from before
+// 2. ExerciseProgress — autosave of the exercise on screen (the answer
+//    being drawn, a Guided/Free Trade flow part-way through, or the
+//    feedback once graded), so a refresh picks up exactly where it was.
+// 3. StoredAttempt — the *old* attempt-recording shape, from before
 //    accounts existed. Attempts are now written straight to Supabase (see
 //    src/lib/attempts.ts); this only sticks around so a signed-in user's
 //    pre-login attempts can be read once and offered for migration (see
@@ -148,6 +151,76 @@ export function saveSession(session: SessionState): void {
 export function clearSession(): void {
   if (!isBrowser()) return;
   window.localStorage.removeItem(SESSION_KEY);
+  clearProgress();
+}
+
+const PROGRESS_KEY = "ict-practice:progress";
+
+/** Autosave of the exercise currently on screen. Only ever restored onto
+ * the same session, position and exercise it was saved for. */
+export type ExerciseProgress = {
+  session_id: string;
+  current_index: number;
+  exercise_id: string;
+  /** When the exercise was first shown (ms since epoch), so response time
+   * still counts from then after a refresh. */
+  started_at: number;
+  /** The mode's in-progress state (answer drawn so far, Guided step, Free
+   * Trade playback). Each mode validates its own shape on restore. */
+  draft: unknown;
+  /** The server's grade, saved the moment it arrives and before the
+   * attempt is recorded, so a refresh shows the feedback instead of asking
+   * again (which would record, and score, the exercise twice). */
+  graded: unknown;
+};
+
+function isExerciseProgress(v: unknown): v is ExerciseProgress {
+  if (typeof v !== "object" || v === null) return false;
+  const p = v as Record<string, unknown>;
+  return (
+    typeof p.session_id === "string" &&
+    typeof p.current_index === "number" &&
+    typeof p.exercise_id === "string" &&
+    typeof p.started_at === "number" &&
+    "draft" in p &&
+    "graded" in p
+  );
+}
+
+/** The saved progress for the exercise the session is on, or null. */
+export function loadProgress(session: SessionState): ExerciseProgress | null {
+  if (!isBrowser() || session.completed) return null;
+  try {
+    const raw = window.localStorage.getItem(PROGRESS_KEY);
+    if (!raw) return null;
+    const p: unknown = JSON.parse(raw);
+    if (!isExerciseProgress(p)) return null;
+    const matches =
+      p.session_id === session.session_id &&
+      p.current_index === session.current_index &&
+      p.exercise_id === session.exercise_order[session.current_index];
+    return matches ? p : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveProgress(progress: ExerciseProgress): void {
+  if (!isBrowser()) return;
+  try {
+    window.localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+  } catch {
+    // Storage full or blocked: autosave is best-effort.
+  }
+}
+
+export function clearProgress(): void {
+  if (!isBrowser()) return;
+  try {
+    window.localStorage.removeItem(PROGRESS_KEY);
+  } catch {
+    // Best-effort.
+  }
 }
 
 function generateId(prefix: string): string {
