@@ -13,6 +13,7 @@ export const orderBlockExercises: ZoneExercise[] = [
   // Order block = candle 25 [21,199.5, 21,210]; breaks the swing at 21,245.75.
   {
     exercise_id: "ob-001",
+    setup_span: [17, 27],
     concept: "OrderBlock",
     answer_type: "zone",
     answerLabel: "Order Block",
@@ -75,6 +76,7 @@ export const orderBlockExercises: ZoneExercise[] = [
   // Order block = candle 25 [21,270, 21,280.25]; breaks the swing at 21,233.5.
   {
     exercise_id: "ob-002",
+    setup_span: [17, 27],
     concept: "OrderBlock",
     answer_type: "zone",
     answerLabel: "Order Block",
@@ -137,6 +139,7 @@ export const orderBlockExercises: ZoneExercise[] = [
   // Order block = candle 22 [21,200, 21,216.25]; breaks the swing at 21,249.5.
   {
     exercise_id: "ob-003",
+    setup_span: [15, 35],
     concept: "OrderBlock",
     answer_type: "zone",
     answerLabel: "Order Block",
@@ -199,6 +202,7 @@ export const orderBlockExercises: ZoneExercise[] = [
   // Order block = candle 25 [21,273.25, 21,282]; breaks the swing at 21,235.
   {
     exercise_id: "ob-004",
+    setup_span: [18, 27],
     concept: "OrderBlock",
     answer_type: "zone",
     answerLabel: "Order Block",
@@ -260,6 +264,7 @@ export const orderBlockExercises: ZoneExercise[] = [
   // ob-005: no order block: a sharp rally off the low that stalls below the lower high without breaking structure.
   {
     exercise_id: "ob-005",
+    setup_span: [16, 35],
     concept: "OrderBlock",
     answer_type: "zone",
     answerLabel: "Order Block",

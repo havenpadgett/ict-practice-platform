@@ -172,6 +172,16 @@ export function parseRealScenario(raw: unknown): RealScenario {
     }
   }
   if (s.answer_type === "free" && typeof s.title !== "string") fail(id, "a Free Trade scenario needs a title");
+  if (s.setup_span !== undefined) {
+    const span = s.setup_span as unknown[];
+    const n = (s.candles as unknown[]).length;
+    if (
+      !Array.isArray(span) || span.length !== 2 || !span.every(Number.isInteger) ||
+      (span[0] as number) < 0 || (span[0] as number) > (span[1] as number) || (span[1] as number) >= n
+    ) {
+      fail(id, "setup_span must be [first, last] candle indices inside the window");
+    }
+  }
 
   const p = s.provenance as Record<string, unknown> | undefined;
   if (typeof p !== "object" || p === null) fail(id, "missing provenance");

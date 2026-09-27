@@ -14,6 +14,7 @@ export const timeLiquidityExercises: LevelExercise[] = [
   // (Wednesday tops out at 21463).
   {
     exercise_id: "tliq-001",
+    setup_span: [0, 24],
     concept: "TimeLiquidity",
     answer_type: "level",
     answerLabel: "Previous Day High",
@@ -83,6 +84,7 @@ export const timeLiquidityExercises: LevelExercise[] = [
   // the previous day. Friday stays above 21362.
   {
     exercise_id: "tliq-002",
+    setup_span: [3, 30],
     concept: "TimeLiquidity",
     answer_type: "level",
     answerLabel: "Previous Day Low",
@@ -150,6 +152,7 @@ export const timeLiquidityExercises: LevelExercise[] = [
   // highs stay at or below 21495.
   {
     exercise_id: "tliq-003",
+    setup_span: [14, 19],
     concept: "TimeLiquidity",
     answer_type: "level",
     answerLabel: "NY AM Session High",
@@ -217,6 +220,7 @@ export const timeLiquidityExercises: LevelExercise[] = [
   // 21325) — neither is inside 9:30-11:00.
   {
     exercise_id: "tliq-004",
+    setup_span: [6, 31],
     concept: "TimeLiquidity",
     answer_type: "level",
     answerLabel: "NY AM Session Low",
@@ -288,6 +292,7 @@ export const timeLiquidityExercises: LevelExercise[] = [
   // 21603.
   {
     exercise_id: "tliq-005",
+    setup_span: [0, 31],
     concept: "TimeLiquidity",
     answer_type: "level",
     answerLabel: "Previous Week High",

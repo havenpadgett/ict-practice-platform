@@ -156,6 +156,12 @@ type ExerciseBase = {
   distractor_note?: string;
   /** Present on real-data scenarios only (src/data/real-scenarios/). */
   provenance?: ScenarioProvenance;
+  /** First and last candle index that must stay on screen when the chart
+   * is framed (src/lib/framing.ts): the setup, the context it depends on,
+   * everything the explanation refers to, and for a no-answer exercise the
+   * near-miss. Server-only — it points at the answer. Recognition exercises
+   * only; without it the chart is always shown whole. */
+  setup_span?: [number, number];
 };
 
 /** Zone and level exercises always carry a "no answer exists" button —
@@ -295,6 +301,7 @@ export type Exercise = ZoneExercise | LevelExercise | ChoiceExercise | GuidedExe
 const conceptExercises: Exercise[] = [
   {
     exercise_id: "fvg-001",
+    setup_span: [19, 21],
     concept: "FVG",
     answer_type: "zone",
     answerLabel: "Fair Value Gap",
@@ -365,6 +372,7 @@ const conceptExercises: Exercise[] = [
   // one qualifying gap in the whole series.
   {
     exercise_id: "fvg-002",
+    setup_span: [12, 14],
     concept: "FVG",
     answer_type: "zone",
     answerLabel: "Fair Value Gap",
@@ -434,6 +442,7 @@ const conceptExercises: Exercise[] = [
   // candles[22..24]. Verified: exactly one qualifying gap in the series.
   {
     exercise_id: "fvg-003",
+    setup_span: [22, 24],
     concept: "FVG",
     answer_type: "zone",
     answerLabel: "Fair Value Gap",
@@ -505,6 +514,7 @@ const conceptExercises: Exercise[] = [
   // qualifying gaps anywhere in the series.
   {
     exercise_id: "fvg-004",
+    setup_span: [17, 19],
     concept: "FVG",
     answer_type: "zone",
     answerLabel: "Fair Value Gap",
@@ -571,6 +581,7 @@ const conceptExercises: Exercise[] = [
   // one qualifying gap in the series.
   {
     exercise_id: "fvg-005",
+    setup_span: [20, 22],
     concept: "FVG",
     answer_type: "zone",
     answerLabel: "Fair Value Gap",
@@ -643,6 +654,7 @@ const conceptExercises: Exercise[] = [
   // strongest pool here because two touches cluster at the same price.
   {
     exercise_id: "liq-001",
+    setup_span: [6, 26],
     concept: "Liquidity",
     answer_type: "level",
     prompt: "Mark the strongest Buy-Side Liquidity, if there is one.",
@@ -710,6 +722,7 @@ const conceptExercises: Exercise[] = [
   // lows within reach of that level anywhere in the series.
   {
     exercise_id: "liq-002",
+    setup_span: [6, 26],
     concept: "Liquidity",
     answer_type: "level",
     prompt: "Mark the strongest Sell-Side Liquidity, if there is one.",
@@ -778,6 +791,7 @@ const conceptExercises: Exercise[] = [
   // the series comes close to that level.
   {
     exercise_id: "liq-003",
+    setup_span: [4, 32],
     concept: "Liquidity",
     answer_type: "level",
     prompt: "Mark the strongest Buy-Side Liquidity, if there is one.",
@@ -848,6 +862,7 @@ const conceptExercises: Exercise[] = [
   // swing high anywhere in the series is within 15 points of either.
   {
     exercise_id: "liq-004",
+    setup_span: [6, 26],
     concept: "Liquidity",
     answer_type: "level",
     prompt: "Mark the equal highs, if there are any.",
@@ -913,6 +928,7 @@ const conceptExercises: Exercise[] = [
   // to that level.
   {
     exercise_id: "liq-005",
+    setup_span: [4, 32],
     concept: "Liquidity",
     answer_type: "level",
     prompt: "Mark the strongest Sell-Side Liquidity, if there is one.",
@@ -985,6 +1001,7 @@ const conceptExercises: Exercise[] = [
   // high genuinely fails to exceed it).
   {
     exercise_id: "mss-001",
+    setup_span: [4, 31],
     concept: "MSS",
     answer_type: "level",
     answerLabel: "Market Structure Shift",
@@ -1059,6 +1076,7 @@ const conceptExercises: Exercise[] = [
   // below 21,055, and 20,995 is the lowest point anywhere in the series.
   {
     exercise_id: "mss-002",
+    setup_span: [4, 31],
     concept: "MSS",
     answer_type: "level",
     answerLabel: "Market Structure Shift",
@@ -1134,6 +1152,7 @@ const conceptExercises: Exercise[] = [
   // above 21,085, and 21,130 is the highest point anywhere in the series.
   {
     exercise_id: "mss-003",
+    setup_span: [3, 31],
     concept: "MSS",
     answer_type: "level",
     answerLabel: "Market Structure Shift",
@@ -1213,6 +1232,7 @@ const conceptExercises: Exercise[] = [
   // the series (checked window by window between each pair of swing lows).
   {
     exercise_id: "mss-004",
+    setup_span: [3, 28],
     concept: "MSS",
     answer_type: "level",
     answerLabel: "Market Structure Shift",
@@ -1290,6 +1310,7 @@ const conceptExercises: Exercise[] = [
   // highest point anywhere in the series.
   {
     exercise_id: "mss-005",
+    setup_span: [3, 34],
     concept: "MSS",
     answer_type: "level",
     answerLabel: "Market Structure Shift",
@@ -1363,6 +1384,7 @@ const conceptExercises: Exercise[] = [
   // dips back into the zone.
   {
     exercise_id: "fvg-resp-001",
+    setup_span: [8, 39],
     concept: "FVG",
     answer_type: "choice",
     answerLabel: "Respected vs. Disrespected",
@@ -1436,6 +1458,7 @@ const conceptExercises: Exercise[] = [
   // and the return (12-27) rallies back into the zone.
   {
     exercise_id: "fvg-resp-002",
+    setup_span: [8, 39],
     concept: "FVG",
     answer_type: "choice",
     answerLabel: "Respected vs. Disrespected",
@@ -1509,6 +1532,7 @@ const conceptExercises: Exercise[] = [
   // and the break (12-27) dips back into the zone before candle 28.
   {
     exercise_id: "fvg-resp-003",
+    setup_span: [8, 39],
     concept: "FVG",
     answer_type: "choice",
     answerLabel: "Respected vs. Disrespected",
@@ -1583,6 +1607,7 @@ const conceptExercises: Exercise[] = [
   // zone before candle 28.
   {
     exercise_id: "fvg-resp-004",
+    setup_span: [8, 39],
     concept: "FVG",
     answer_type: "choice",
     answerLabel: "Respected vs. Disrespected",
@@ -1657,6 +1682,7 @@ const conceptExercises: Exercise[] = [
   // leaves the zone by reversing back out or by closing through it.
   {
     exercise_id: "fvg-resp-005",
+    setup_span: [8, 39],
     concept: "FVG",
     answer_type: "choice",
     answerLabel: "Respected vs. Disrespected",
@@ -1732,6 +1758,7 @@ const conceptExercises: Exercise[] = [
   // zone after the break.
   {
     exercise_id: "ifvg-001",
+    setup_span: [8, 36],
     concept: "IFVG",
     answer_type: "zone",
     answerLabel: "Inverse Fair Value Gap",
@@ -1805,6 +1832,7 @@ const conceptExercises: Exercise[] = [
   // candles[31..36] is rejected above the zone, confirming the flip.
   {
     exercise_id: "ifvg-002",
+    setup_span: [8, 36],
     concept: "IFVG",
     answer_type: "zone",
     answerLabel: "Inverse Fair Value Gap",
@@ -1880,6 +1908,7 @@ const conceptExercises: Exercise[] = [
   // in the series, and Gap A's zone is never touched again after it forms.
   {
     exercise_id: "ifvg-003",
+    setup_span: [6, 32],
     concept: "IFVG",
     answer_type: "zone",
     answerLabel: "Inverse Fair Value Gap",
@@ -1958,6 +1987,7 @@ const conceptExercises: Exercise[] = [
   // anywhere in the series.
   {
     exercise_id: "ifvg-004",
+    setup_span: [8, 28],
     concept: "IFVG",
     answer_type: "zone",
     answerLabel: "Inverse Fair Value Gap",
@@ -2027,6 +2057,7 @@ const conceptExercises: Exercise[] = [
   // closes beyond the boundary before candle 29.
   {
     exercise_id: "ifvg-005",
+    setup_span: [8, 29],
     concept: "IFVG",
     answer_type: "zone",
     answerLabel: "Inverse Fair Value Gap",
@@ -2102,6 +2133,7 @@ const conceptExercises: Exercise[] = [
   // during the retest closes back above 21118.
   {
     exercise_id: "ifvg-resp-001",
+    setup_span: [8, 39],
     concept: "IFVG",
     answer_type: "choice",
     answerLabel: "IFVG Respected vs. Disrespected",
@@ -2173,6 +2205,7 @@ const conceptExercises: Exercise[] = [
   // lower boundary — RESPECTED.
   {
     exercise_id: "ifvg-resp-002",
+    setup_span: [8, 39],
     concept: "IFVG",
     answer_type: "choice",
     answerLabel: "IFVG Respected vs. Disrespected",
@@ -2244,6 +2277,7 @@ const conceptExercises: Exercise[] = [
   // boundary (21118), undoing the flip. DISRESPECTED.
   {
     exercise_id: "ifvg-resp-003",
+    setup_span: [8, 39],
     concept: "IFVG",
     answer_type: "choice",
     answerLabel: "IFVG Respected vs. Disrespected",
@@ -2316,6 +2350,7 @@ const conceptExercises: Exercise[] = [
   // DISRESPECTED.
   {
     exercise_id: "ifvg-resp-004",
+    setup_span: [8, 39],
     concept: "IFVG",
     answer_type: "choice",
     answerLabel: "IFVG Respected vs. Disrespected",
@@ -2388,6 +2423,7 @@ const conceptExercises: Exercise[] = [
   // above the zone — DISRESPECTED, despite the pause.
   {
     exercise_id: "ifvg-resp-005",
+    setup_span: [8, 39],
     concept: "IFVG",
     answer_type: "choice",
     answerLabel: "IFVG Respected vs. Disrespected",

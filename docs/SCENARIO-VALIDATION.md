@@ -15,7 +15,7 @@ raw CSV ──ingest.py──▶ clean JSON ──detect.py──▶ candidates 
 | 1. Source | — | Data comes from a named vendor/dataset whose license allows this use. Raw files go in `data/raw/` (git-ignored — never commit licensed data); generated outputs go in `data/clean/` (also git-ignored). Every new source is checked against [Data quality lessons](#data-quality-lessons) before use. |
 | 2. Clean | `scripts/ingest.py` | Strict ordering, no duplicate timestamps, no gaps outside scheduled CME closures (holidays must be named with `--allow-gap-on`), bar integrity (`low ≤ open/close ≤ high`), sane bar ranges and jumps. Timestamps converted to ET. Any error aborts with nothing written. |
 | 3. Detect | `scripts/detect.py` | Every candidate is flagged by a rule that implements a CURRICULUM.md definition exactly: three-candle FVG, equal highs/lows, MSS by body close, previous day / NY AM / weekly highs and lows. Output lists each candidate's rule, timestamps, and price levels. |
-| 4. Build | `scripts/build_scenario.py` | Turns one chosen candidate plus a candle window into an exercise in the app's format. The answer key is copied from the detected levels. It refuses (unless `--allow-ambiguous`) if the window holds another candidate of the same rule — PRD Section 5: exactly one valid answer per scenario. Writes `provenance.human_reviewed: false` and a placeholder explanation marked `[DRAFT`. |
+| 4. Build | `scripts/build_scenario.py` | Turns one chosen candidate plus a candle window into an exercise in the app's format. The answer key is copied from the detected levels. It refuses (unless `--allow-ambiguous`) if the window holds another candidate of the same rule — PRD Section 5: exactly one valid answer per scenario. Writes `provenance.human_reviewed: false`, a placeholder explanation marked `[DRAFT`, and the `setup_span` the app frames the chart around (see [Chart framing](#chart-framing)). |
 | 5. Review | a human, this checklist | The candidate really is what the rule says, in curriculum terms; the chart is fair to a beginner; the explanation is rewritten in plain language. |
 | 6. Promote or reject | `/review` (or by hand) + the log below | Approved: explanation rewritten, review fields filled in. Rejected: file deleted and unregistered, reason logged. Commit to make it live. |
 
@@ -94,6 +94,45 @@ Every step explanation and the overall verdict are drafts. `/review` asks for ea
 To try the pipeline without licensed data, generate synthetic bars first: `python3 scripts/sample/make_synthetic.py`, then run the same commands on `scripts/sample/synthetic_nq_5m.csv`. **Never promote a scenario built from synthetic data.**
 
 Previous-day and weekly levels span a full day or week; build those from 1h (or 4h) bars so the chart stays around 40 candles. `build_scenario.py` warns when a window exceeds 120 bars.
+
+## Chart framing
+
+*Added 2026-09-27.* **Accuracy recorded before this change may be inflated, so accuracy from before and after it can't be compared.** Until then every chart was served whole, so the answer sat in the same place in a window of the same size. A user could learn where to look instead of what to look for.
+
+### What was found
+
+Measured over every registered recognition exercise:
+
+| Finding | Detail |
+|---|---|
+| Fixed chart size | Every constructed chart was 40 candles (Order Block and Premium/Discount: 36). Every real chart was one whole session: 18 candles (NY AM 5m), 26 (RTH 15m) or 48 (NY AM with 07:00 context), always starting at 9:30 (or 07:00). |
+| Identical answer positions | 3 of 4 IFVG answers on candle 9 of 40. 3 of 4 Order Blocks on candle 25 of 36. The gap in all 10 FVG/IFVG respected exercises at candles 8–10. All 5 Premium/Discount dealing ranges at candles 7 and 21. |
+| Clustered constructed answers | Constructed FVG answers all fall between 33% and 59% of the window. Among constructed exercises, one tenth of the window held 50–75% of each concept's answers (FVG, Liquidity, MSS, IFVG, Order Block), and 60% for time-based levels. |
+| Real MSS at the right | The context bars fill the left of every 48-candle chart, so the swing and break always sat in the right half. |
+
+The answer's position is its middle candle for a zone. For a level, it's the swing that makes the level. Numbers come from `tests/framing.test.ts`, which calls the old whole-chart framing clustered.
+
+### How charts are framed now
+
+`src/lib/framing.ts` picks the window server-side each time an exercise is served (`loadSessionExercises` in `src/app/practice/actions.ts`):
+
+- Each zone, level and choice exercise has a `setup_span`: the first and last candle that must always be on screen. That covers the setup, the swings or context it depends on, and anything the explanation refers to. For a no-answer exercise it's the near-miss. For a choice exercise it runs to the last candle, because the question is what price did afterwards. `build_scenario.py` writes it from the candidate: FVG candles; equal-high/low touches ± the swing lookback; MSS from the first swing (minus lookback) to the break; Order Block from the broken swing to the break or mitigation; the whole window for time-based levels. Constructed exercises have it written by hand.
+- The window always contains the span, plus 3 lead-in candles for a zone. It is never shorter than half the stored window or 12 candles. Candles are only ever removed from the stored window, so framing can't cut off the setup, show price the scenario was built to hide, or add a second valid answer.
+- The picker first chooses one of five position bands the setup allows, then a window within it. The answer lands near the start, middle or end about equally often wherever there's room, and the candle count varies with it.
+- The window is picked from the session id and exercise id. Loading and grading agree without storing anything, and a refresh shows the same chart. A new session frames the exercise again.
+- Grading moves a drawn box back into the stored window's candle indices before grading and saving. `user_candle_start`/`user_candle_end` stay in one coordinate system whatever was shown. To see what a post-fix attempt was shown, call `pickFrame(exercise, attempt.session_id)`.
+- Guided Entry and Free Trade are shown whole. Their windows end at a decision point.
+
+`tests/framing.test.ts` fails if, for any concept, one tenth of the window holds more than 45% of served answers, fewer than four tenths hold any, or chart sizes barely vary. It also fails if a frame could cut into a setup span, or if a span doesn't cover its answer.
+
+### What framing can't fix yet
+
+- **Constructed IFVG and Order Block charts have little room to move.** The IFVG gap sits at candles 8–10 and must stay on screen through the retest the explanation describes, so it still lands in the first half of the window. Order Blocks keep their preceding trend, so they stay in the right half. Fixing this means re-authoring these charts with more candles around the setup. Prepending candles would shift the candle indices of recorded attempts, so those candles have to go on the end, or the attempts need migrating.
+- **Vertical position.** Many level answers sit at the top or bottom of the chart's price range: all 4 constructed Liquidity answers, 3 of 5 time-based levels, 6 of 10 real Liquidity scenarios, and all 4 Order Blocks within 8% of an extreme. "Mark the highest high" wins too often. Trimming can't add earlier price history, so this is a content fix: charts need earlier swings beyond the answer that don't compete with it. It needs a curriculum call on what outranks what (docs/CURRICULUM.md, Liquidity).
+
+### Accuracy before and after
+
+Accuracy recorded before framing shipped may be inflated. A user who had seen an exercise, or a few of its concept, could find the answer by position. Treat accuracy, per-concept accuracy and the D-3 tolerance check (PRD Section 13) as two separate series: attempts before the deploy of the 2026-09-27 framing commit, and attempts after. Don't pool or trend them together. Attempts don't record which framing they were shown, so the deploy date is the dividing line.
 
 ## Data sources
 

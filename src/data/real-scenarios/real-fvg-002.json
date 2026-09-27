@@ -17,6 +17,10 @@
     "candle_end": 16,
     "key_candle_index": 15
   },
+  "setup_span": [
+    14,
+    16
+  ],
   "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bullish Fair Value Gap: the first candle's high and the third candle's low leave the range 18317-18336.5 untraded.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",

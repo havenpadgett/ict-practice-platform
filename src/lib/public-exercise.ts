@@ -6,6 +6,7 @@
 
 import type { Candle, ChoiceAnswer, ChoiceOption, Exercise } from "@/data/exercises";
 import type { Concept } from "@/lib/concepts";
+import type { Frame } from "@/lib/framing";
 
 type PublicBase = {
   exercise_id: string;
@@ -39,14 +40,18 @@ export type PublicFreeTradeExercise = PublicBase & {
 
 export type PublicExercise = PublicZoneExercise | PublicLevelExercise | PublicChoiceExercise | PublicGuidedExercise | PublicFreeTradeExercise;
 
-export function toPublicExercise(e: Exercise): PublicExercise {
+/** `frame` is the slice of candles to show (src/lib/framing.ts); candle
+ * indices sent along with the chart are moved into it. Omitted = whole. */
+export function toPublicExercise(e: Exercise, frame?: Frame): PublicExercise {
+  const whole = !frame || (frame.start === 0 && frame.end === e.candles.length - 1);
+  const shift = whole ? 0 : frame.start;
   const base: PublicBase = {
     exercise_id: e.exercise_id,
     concept: e.concept,
     difficulty: e.difficulty,
     timeframe: e.timeframe,
     prompt: e.prompt,
-    candles: e.candles,
+    candles: whole ? e.candles : e.candles.slice(frame.start, frame.end + 1),
     real: e.provenance !== undefined,
   };
   switch (e.answer_type) {
@@ -59,8 +64,12 @@ export function toPublicExercise(e: Exercise): PublicExercise {
         ...base,
         answer_type: "choice",
         options: e.options,
-        fvg_zone: e.answer.fvg_zone ?? null,
-        dealing_range: e.answer.dealing_range ?? null,
+        fvg_zone: e.answer.fvg_zone
+          ? { ...e.answer.fvg_zone, candle_start: e.answer.fvg_zone.candle_start - shift, candle_end: e.answer.fvg_zone.candle_end - shift }
+          : null,
+        dealing_range: e.answer.dealing_range
+          ? { ...e.answer.dealing_range, high_index: e.answer.dealing_range.high_index - shift, low_index: e.answer.dealing_range.low_index - shift }
+          : null,
       };
     case "guided":
       return { ...base, answer_type: "guided", min_rr: e.answer.min_rr };

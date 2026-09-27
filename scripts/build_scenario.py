@@ -63,6 +63,25 @@ def default_window(cand: Dict[str, Any], before: int, after: int) -> Tuple[int, 
     return start, end
 
 
+def setup_span(cand: Dict[str, Any], start: int, end: int, lookback: int) -> List[int]:
+    """Window-relative first and last candle that must stay on screen when the
+    app frames the chart (src/lib/framing.ts): the candles that define the
+    candidate plus the lookback bars that make its swings swings. Time-based
+    levels need the whole period, so they keep the whole window."""
+    rule, inv = cand["rule"], cand["involved_indices"]
+    if rule == "fvg":
+        lo, hi = min(inv), max(inv)
+    elif rule in ("equal_highs", "equal_lows"):
+        lo, hi = min(inv) - lookback, max(inv) + lookback
+    elif rule == "mss":
+        lo, hi = min(inv) - lookback, cand["break_index"]
+    elif rule == "order_block":
+        lo, hi = cand["swing_index"] - lookback, max(cand["break_index"], cand.get("mitigated_index") or 0)
+    else:
+        lo, hi = start, end
+    return [max(lo, start) - start, min(hi, end) - start]
+
+
 def map_exercise(cand: Dict[str, Any], start: int) -> Dict[str, Any]:
     """Concept, answer_type, answer key and copy for a candidate, with candle
     indices made relative to the window start."""
@@ -269,6 +288,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         "difficulty": args.difficulty,
         "has_answer": True,
         "answer": mapped["answer"],
+        "setup_span": setup_span(cand, start, end, cands["meta"].get("detection_params", {}).get("swing_lookback", 2)),
         "explanation": mapped["explanation"],
         "provenance": {
             "data_source": meta["source"],

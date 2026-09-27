@@ -17,6 +17,10 @@
     "candle_end": 9,
     "key_candle_index": 8
   },
+  "setup_span": [
+    7,
+    9
+  ],
   "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bearish Fair Value Gap: the first candle's low and the third candle's high leave the range 18895.2-18911.8 untraded.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",

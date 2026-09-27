@@ -14,6 +14,10 @@
     "price": 19822.5,
     "tolerance": 10.75
   },
+  "setup_span": [
+    20,
+    43
+  ],
   "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bullish Market Structure Shift: a candle body closed beyond the swing at 19822.5, against the prevailing trend.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",

@@ -81,13 +81,16 @@ export default function PracticePage() {
   }, [session?.session_id, session?.current_index, currentLoaded]);
 
   // Fetch the session's exercises from the server (without answer keys).
+  // Each session frames its charts differently (src/lib/framing.ts), so
+  // what's loaded belongs to one session id.
+  const activeSessionId = session && !session.completed ? session.session_id : "";
   const sessionIds = session && !session.completed ? session.exercise_order.join(",") : "";
   useEffect(() => {
     if (!sessionIds) return;
     const missing = sessionIds.split(",").filter((id) => !(id in loaded));
     if (missing.length === 0) return;
     let cancelled = false;
-    loadSessionExercises(missing)
+    loadSessionExercises(missing, activeSessionId)
       .then((res) => {
         if (cancelled) return;
         if (!res.ok) {
@@ -105,7 +108,7 @@ export default function PracticePage() {
     };
     // `loaded` is read, not a trigger: re-running on every merge would refetch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionIds, loadAttempt]);
+  }, [activeSessionId, sessionIds, loadAttempt]);
 
   function handlePickConcept(concept: Concept) {
     setShowPicker(false);
@@ -169,6 +172,7 @@ export default function PracticePage() {
       planned_length: exerciseIds.length,
     });
     saveSession(fresh);
+    setLoaded({});
     setSession(fresh);
     setShowPicker(false);
     setLengthPickerConcept(null);

@@ -14,6 +14,10 @@
     "price": 17854.125,
     "tolerance": 11.25
   },
+  "setup_span": [
+    8,
+    16
+  ],
   "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] 2 highs land within 3.75 points of each other around 17854.1, stacking resting stops into one larger pool.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",

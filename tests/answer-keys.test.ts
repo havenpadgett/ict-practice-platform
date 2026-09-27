@@ -8,6 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { exercises, isPracticeReady } from "@/data/exercises";
+import { pickFrame, zoneToFrame } from "@/lib/framing";
 import { gradeAttempt } from "@/lib/grading";
 import { toPublicExercise } from "@/lib/public-exercise";
 
@@ -33,6 +34,7 @@ const KEY_FIELDS = [
   "stop_zone",
   "intended_bias",
   "has_answer",
+  "setup_span",
 ];
 
 function keysDeep(x: unknown, out = new Set<string>()): Set<string> {
@@ -74,15 +76,15 @@ describe("grading Server Functions", () => {
 
   it("refuse signed-out callers", async () => {
     signedIn = false;
-    expect(await loadSessionExercises([zone.exercise_id])).toMatchObject({ ok: false });
+    expect(await loadSessionExercises([zone.exercise_id], "s1")).toMatchObject({ ok: false });
     expect(await gradeRecognition(zone.exercise_id, { type: "none" }, ctx)).toMatchObject({ ok: false });
   });
 
   it("serve practice-ready exercises without keys, and never an unreviewed one", async () => {
-    const res = await loadSessionExercises([zone.exercise_id, unreviewed.exercise_id, "no-such-id"]);
+    const res = await loadSessionExercises([zone.exercise_id, unreviewed.exercise_id, "no-such-id"], "s1");
     expect(res.ok).toBe(true);
     if (!res.ok) return;
-    expect(res.exercises[zone.exercise_id]).toEqual(toPublicExercise(zone));
+    expect(res.exercises[zone.exercise_id]).toEqual(toPublicExercise(zone, pickFrame(zone, "s1")));
     expect(res.exercises[unreviewed.exercise_id]).toBeNull();
     expect(res.exercises["no-such-id"]).toBeNull();
   });
@@ -90,16 +92,23 @@ describe("grading Server Functions", () => {
   it("grade exactly as the grading library does, and return the key with the verdict", async () => {
     if (zone.answer_type !== "zone" || !zone.answer) throw new Error("fixture");
     const a = zone.answer;
+    // The browser sees the framed chart, so it sends framed candle indices;
+    // the grade and the stored row use the exercise's own.
+    const frame = pickFrame(zone, "s1");
     const answer = {
       type: "region" as const,
-      region: { priceLow: a.price_low, priceHigh: a.price_high, candleIndexLow: a.candle_start, candleIndexHigh: a.candle_end },
+      region: { priceLow: a.price_low, priceHigh: a.price_high, candleIndexLow: a.candle_start - frame.start, candleIndexHigh: a.candle_end - frame.start },
     };
+    const source = { ...answer, region: { ...answer.region, candleIndexLow: a.candle_start, candleIndexHigh: a.candle_end } };
     const res = await gradeRecognition(zone.exercise_id, answer, ctx);
     expect(res.ok).toBe(true);
     if (!res.ok) return;
-    expect(res.grade).toEqual(gradeAttempt(zone, answer));
-    expect(res.reveal.zone).toEqual(a);
-    expect(res.row).toMatchObject({ exercise_id: zone.exercise_id, session_id: "s1", response_time_ms: 1234, is_correct: true });
+    expect(res.grade).toEqual(gradeAttempt(zone, source));
+    expect(res.reveal.zone).toEqual(zoneToFrame(a, frame));
+    expect(res.row).toMatchObject({
+      exercise_id: zone.exercise_id, session_id: "s1", response_time_ms: 1234, is_correct: true,
+      user_candle_start: a.candle_start, user_candle_end: a.candle_end,
+    });
   });
 
   it("won't grade an unreviewed scenario or a malformed answer", async () => {

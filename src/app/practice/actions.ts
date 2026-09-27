@@ -21,6 +21,7 @@ import {
   type FreeTradeGradeResult,
   type FreeTradePosition,
 } from "@/lib/free-trade-grading";
+import { pickFrame, zoneToFrame, type Frame } from "@/lib/framing";
 import { gradeAttempt, type GradeResult, type UserAnswer } from "@/lib/grading";
 import { gradeGuidedAttempt, type GuidedGradeResult, type GuidedUserAnswer } from "@/lib/guided-grading";
 import { toPublicExercise, type PublicExercise } from "@/lib/public-exercise";
@@ -92,20 +93,38 @@ const NOT_SIGNED_IN: Failure = { ok: false, error: "Your login has expired. Log 
 const UNAVAILABLE: Failure = { ok: false, error: "This exercise isn't available any more." };
 const BAD_ANSWER: Failure = { ok: false, error: "That answer couldn't be read. Try again." };
 
+function sessionKey(sessionId: unknown): string {
+  return typeof sessionId === "string" ? sessionId.slice(0, 100) : "";
+}
+
 /** The public (answer-free) form of each practice-ready exercise in a
- * session; null for an id that's missing or no longer practice-ready. */
+ * session, framed for that session; null for an id that's missing or no
+ * longer practice-ready. */
 export async function loadSessionExercises(
   ids: string[],
+  sessionId: string,
 ): Promise<{ ok: true; exercises: Record<string, PublicExercise | null> } | Failure> {
   if (!(await signedIn())) return NOT_SIGNED_IN;
   if (!Array.isArray(ids) || ids.length > MAX_SESSION_IDS) return { ok: false, error: "Invalid session." };
+  const key = sessionKey(sessionId);
   const exercises: Record<string, PublicExercise | null> = {};
   for (const id of ids) {
     if (typeof id !== "string") continue;
     const e = practiceExercise(id);
-    exercises[id] = e ? toPublicExercise(e) : null;
+    exercises[id] = e ? toPublicExercise(e, pickFrame(e, key)) : null;
   }
   return { ok: true, exercises };
+}
+
+/** A drawn box arrives in the framed chart's candle indices; grading and
+ * the stored attempt use the exercise's own. */
+function unframeAnswer(answer: UserAnswer, frame: Frame): UserAnswer {
+  if (answer.type !== "region" || frame.start === 0) return answer;
+  const { region } = answer;
+  return {
+    type: "region",
+    region: { ...region, candleIndexLow: region.candleIndexLow + frame.start, candleIndexHigh: region.candleIndexHigh + frame.start },
+  };
 }
 
 function isUserAnswer(a: unknown): a is UserAnswer {
@@ -140,9 +159,12 @@ export async function gradeRecognition(
   const e = practiceExercise(exerciseId);
   if (!e || (e.answer_type !== "zone" && e.answer_type !== "level" && e.answer_type !== "choice")) return UNAVAILABLE;
   if (!isUserAnswer(answer)) return BAD_ANSWER;
+  // Seeded by the session id, so this is the window the user was shown.
+  const frame = pickFrame(e, sessionKey(ctx?.sessionId));
+  const graded = unframeAnswer(answer, frame);
   let grade: GradeResult;
   try {
-    grade = gradeAttempt(e, answer);
+    grade = gradeAttempt(e, graded);
   } catch (err) {
     return { ok: false, error: `This exercise couldn't be graded (${err instanceof Error ? err.message : "bad data"}).` };
   }
@@ -150,10 +172,10 @@ export async function gradeRecognition(
     ok: true,
     grade,
     reveal: {
-      zone: grade.revealZone && e.answer_type === "zone" ? e.answer : null,
+      zone: grade.revealZone && e.answer_type === "zone" && e.answer ? zoneToFrame(e.answer, frame) : null,
       level: grade.revealZone && e.answer_type === "level" ? e.answer?.price ?? null : null,
     },
-    row: buildAnswerAttempt(e, answer, grade, context(ctx)),
+    row: buildAnswerAttempt(e, graded, grade, context(ctx)),
   };
 }
 

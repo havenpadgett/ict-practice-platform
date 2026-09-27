@@ -23,6 +23,7 @@ export const premiumDiscountExercises: ChoiceExercise[] = [
   // last close 21,043.25 = 24% of the range.
   {
     exercise_id: "pd-001",
+    setup_span: [7, 35],
     concept: "PremiumDiscount",
     answer_type: "choice",
     answerLabel: "Premium vs. Discount",
@@ -80,6 +81,7 @@ export const premiumDiscountExercises: ChoiceExercise[] = [
   // last close 21,182.25 = 79% of the range.
   {
     exercise_id: "pd-002",
+    setup_span: [7, 35],
     concept: "PremiumDiscount",
     answer_type: "choice",
     answerLabel: "Premium vs. Discount",
@@ -137,6 +139,7 @@ export const premiumDiscountExercises: ChoiceExercise[] = [
   // last close 20,980.75 = 63% of the range.
   {
     exercise_id: "pd-003",
+    setup_span: [7, 35],
     concept: "PremiumDiscount",
     answer_type: "choice",
     answerLabel: "Premium vs. Discount",
@@ -194,6 +197,7 @@ export const premiumDiscountExercises: ChoiceExercise[] = [
   // last close 21,364 = 40% of the range.
   {
     exercise_id: "pd-004",
+    setup_span: [7, 35],
     concept: "PremiumDiscount",
     answer_type: "choice",
     answerLabel: "Premium vs. Discount",
@@ -251,6 +255,7 @@ export const premiumDiscountExercises: ChoiceExercise[] = [
   // last close 21,211.75 = 51% of the range.
   {
     exercise_id: "pd-005",
+    setup_span: [7, 35],
     concept: "PremiumDiscount",
     answer_type: "choice",
     answerLabel: "Premium vs. Discount",

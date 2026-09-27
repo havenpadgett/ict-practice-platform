@@ -14,6 +14,10 @@
     "price": 17755.5,
     "tolerance": 6.0
   },
+  "setup_span": [
+    10,
+    31
+  ],
   "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bearish Market Structure Shift: a candle body closed beyond the swing at 17755.5, against the prevailing trend.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
