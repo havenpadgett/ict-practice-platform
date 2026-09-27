@@ -5,8 +5,9 @@
 
 import { createClient } from "@/lib/supabase/client";
 
-export type EventMode = "recognition" | "guided_entry" | "free_trade" | "adaptive";
-export type SessionSource = "recommendation" | "adaptive_mix" | "picker" | "deep_link";
+export type EventMode = "recognition" | "guided_entry" | "free_trade" | "adaptive" | "mistakes";
+/** "mistakes": started from Review Mistakes (all open mistakes, or one retry). */
+export type SessionSource = "recommendation" | "adaptive_mix" | "picker" | "deep_link" | "mistakes";
 
 export type PracticeEvent =
   | { event_type: "session_started"; session_id: string; mode: EventMode; concept: string; source: SessionSource; planned_length: number }
@@ -17,6 +18,7 @@ export type PracticeEvent =
 /** The mode a session's `concept` (SessionState.concept) belongs to. */
 export function modeFor(concept: string): EventMode {
   if (concept === "Adaptive") return "adaptive";
+  if (concept === "Mistakes") return "mistakes";
   if (concept === "GuidedEntry") return "guided_entry";
   if (concept === "FreeTrade") return "free_trade";
   return "recognition";

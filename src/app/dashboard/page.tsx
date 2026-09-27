@@ -21,6 +21,7 @@ import { CONCEPTS, type Concept } from "@/lib/concepts";
 import { fetchProfile } from "@/lib/profiles";
 import { describeError } from "@/lib/errors";
 import { trackRecommendationShown } from "@/lib/events";
+import { mistakeCounts } from "@/lib/mistakes";
 import { recommendSession } from "@/lib/recommendations";
 import { clearLocalAttempts, getSessionScoreLabel, loadAttempts, loadSession } from "@/lib/storage";
 
@@ -205,12 +206,43 @@ export default function DashboardPage() {
               <RecommendedSession recommendation={recommendSession(attempts)} />
             </div>
           )}
+
+          {attempts && <MistakesCard counts={mistakeCounts(attempts)} />}
         </>
       )}
 
       <div className="mt-10">
         <Link href="/practice" className="btn-secondary">
           Browse all concepts
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+/** Open mistakes and how many have been mastered (src/lib/mistakes.ts). */
+function MistakesCard({ counts }: { counts: { open: number; mastered: number } }) {
+  if (counts.open === 0 && counts.mastered === 0) return null;
+  return (
+    <div className="card mt-8">
+      <p className="eyebrow">Review mistakes</p>
+      <p className="mt-2 text-base font-semibold text-foreground">
+        {counts.open === 0 ? "All caught up" : `${counts.open} to review`}
+        <span className="font-normal text-muted"> · {counts.mastered} mastered</span>
+      </p>
+      <p className="mt-1 text-sm text-muted">
+        {counts.open === 0
+          ? "Every exercise you've missed, you've since answered correctly."
+          : "Exercises you last answered incorrectly. Get one right and it counts as mastered."}
+      </p>
+      <div className="mt-4 flex flex-wrap gap-3">
+        {counts.open > 0 && (
+          <Link href="/practice?mode=mistakes" className="btn-primary">
+            Practice mistakes
+          </Link>
+        )}
+        <Link href="/mistakes" className="btn-secondary">
+          See all
         </Link>
       </div>
     </div>

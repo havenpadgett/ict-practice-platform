@@ -4,11 +4,14 @@ import { CONCEPT_LIST, CONCEPTS, type Concept } from "@/lib/concepts";
 export function ConceptPicker({
   onPick,
   onPickAdaptive,
+  onPickMistakes,
   adaptiveError,
 }: {
   onPick: (concept: Concept) => void;
   /** Starts a mixed session weighted toward weak concepts. */
   onPickAdaptive?: () => void;
+  /** Starts a session of the exercises the user has answered incorrectly. */
+  onPickMistakes?: () => void;
   adaptiveError?: string | null;
 }) {
   return (
@@ -28,6 +31,18 @@ export function ConceptPicker({
           <p className="mt-1 text-base font-semibold text-foreground">Adaptive mix</p>
           <p className="mt-1 text-sm text-muted">
             10 exercises across concepts, weighted toward the ones you miss most, with some of your stronger ones mixed in.
+          </p>
+        </button>
+      )}
+      {onPickMistakes && (
+        <button
+          type="button"
+          onClick={onPickMistakes}
+          className="card mt-4 w-full text-left transition-colors hover:border-control"
+        >
+          <p className="text-base font-semibold text-foreground">Review mistakes</p>
+          <p className="mt-1 text-sm text-muted">
+            Only the exercises you last got wrong, most recent first. Get one right and it counts as mastered.
           </p>
         </button>
       )}

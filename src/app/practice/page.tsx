@@ -25,10 +25,12 @@ import type { GradeResult, UserAnswer, UserRegion } from "@/lib/grading";
 import type { GuidedUserAnswer } from "@/lib/guided-grading";
 import { recordSessionCompletion } from "@/lib/profiles";
 import type { PublicExercise } from "@/lib/public-exercise";
+import { mistakeSessionIds } from "@/lib/mistakes";
 import { buildAdaptiveSession } from "@/lib/recommendations";
 import { buildSessionExerciseIds, type SessionLength } from "@/lib/session-builder";
 import {
   ADAPTIVE_SESSION,
+  MISTAKES_SESSION,
   clearSession,
   createSession,
   loadSession,
@@ -70,6 +72,8 @@ export default function PracticePage() {
   const [gradeError, setGradeError] = useState<string | null>(null);
   const [adaptiveError, setAdaptiveError] = useState<string | null>(null);
   const exerciseStartRef = useRef<number>(0);
+  /** A Review Mistakes deep link waiting for auth to resolve. */
+  const pendingMistakesRef = useRef<{ retryId?: string } | null>(null);
 
 
   // Reset the response-time clock whenever a new exercise becomes active,
@@ -139,6 +143,24 @@ export default function PracticePage() {
     }
   }
 
+  /** Review Mistakes: every open mistake (most recent first, capped), or
+   * one exercise to retry. The server re-checks each id when serving it. */
+  async function handleStartMistakes(retryId?: string) {
+    if (!user) return;
+    setAdaptiveError(null);
+    const available = (id: string) => getExerciseMeta(id)?.practice_ready === true;
+    if (retryId) {
+      beginSession(MISTAKES_SESSION, available(retryId) ? [retryId] : [], "mistakes");
+      return;
+    }
+    try {
+      const rows = await fetchAttempts(user.id, "exercise_id,is_correct,created_at");
+      beginSession(MISTAKES_SESSION, mistakeSessionIds(rows, available), "mistakes");
+    } catch (err) {
+      setAdaptiveError(describeError(err, "load your mistakes").message);
+    }
+  }
+
   /** A session still in progress is recorded as abandoned at the point the
    * user left it (product analytics, src/lib/events.ts). */
   function trackAbandoned(s: SessionState | null) {
@@ -154,7 +176,11 @@ export default function PracticePage() {
   function beginSession(kind: string, exerciseIds: string[], source: SessionSource) {
     if (exerciseIds.length === 0) {
       // e.g. a concept whose only exercises are real scenarios still awaiting review.
-      setNotice(`There are no exercises ready for ${kind === ADAPTIVE_SESSION ? "an adaptive session" : getConceptMeta(kind).pickerLabel} yet. Pick another concept.`);
+      setNotice(
+        kind === MISTAKES_SESSION
+          ? "No mistakes to review right now. Anything you miss shows up here to practice again."
+          : `There are no exercises ready for ${kind === ADAPTIVE_SESSION ? "an adaptive session" : getConceptMeta(kind).pickerLabel} yet. Pick another concept.`,
+      );
       setSession(null);
       setLengthPickerConcept(null);
       setShowPicker(true);
@@ -195,6 +221,13 @@ export default function PracticePage() {
   // the setState-in-effect here is intentional.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const retryId = params.get("retry");
+    if (params.get("mode") === "mistakes" || retryId) {
+      // Needs the user's attempts, so it starts once auth has resolved.
+      window.history.replaceState(null, "", "/practice");
+      pendingMistakesRef.current = { retryId: retryId ?? undefined };
+      return;
+    }
     const requestedConcept = params.get("concept");
     if (requestedConcept && CONCEPT_LIST.includes(requestedConcept as Concept)) {
       const d = Number(params.get("difficulty"));
@@ -219,6 +252,15 @@ export default function PracticePage() {
     // Mount-only: reads the URL/localStorage once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const pending = pendingMistakesRef.current;
+    if (!user || !pending) return;
+    pendingMistakesRef.current = null;
+    void handleStartMistakes(pending.retryId);
+    // Runs once auth resolves; handleStartMistakes only closes over state setters and `user`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   function handleBackToPicker() {
     trackAbandoned(session);
@@ -246,7 +288,12 @@ export default function PracticePage() {
               {notice}
             </p>
           )}
-          <ConceptPicker onPick={handlePickConcept} onPickAdaptive={handleStartAdaptive} adaptiveError={adaptiveError} />
+          <ConceptPicker
+            onPick={handlePickConcept}
+            onPickAdaptive={handleStartAdaptive}
+            onPickMistakes={() => handleStartMistakes()}
+            adaptiveError={adaptiveError}
+          />
         </div>
         <DisclaimerFooter />
       </div>
@@ -281,9 +328,12 @@ export default function PracticePage() {
   }
 
   const isAdaptive = session.concept === ADAPTIVE_SESSION;
+  const isMistakes = session.concept === MISTAKES_SESSION;
   const conceptMeta = isAdaptive
     ? { title: "Adaptive Practice", pickerLabel: "Adaptive", pickerDescription: "" }
-    : getConceptMeta(session.concept);
+    : isMistakes
+      ? { title: "Review Mistakes", pickerLabel: "Mistakes", pickerDescription: "" }
+      : getConceptMeta(session.concept);
 
   if (session.completed) {
     return (
@@ -547,7 +597,7 @@ export default function PracticePage() {
         <div className="flex items-baseline justify-between gap-4">
           <h1 className="eyebrow">
             {conceptMeta.title}
-            {isAdaptive && <> · {getConceptMeta(exercise.concept).pickerLabel}</>}
+            {(isAdaptive || isMistakes) && <> · {getConceptMeta(exercise.concept).pickerLabel}</>}
           </h1>
           <p className="eyebrow tabular-nums">
             {session.current_index + 1} / {session.exercise_order.length}

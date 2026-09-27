@@ -154,12 +154,13 @@ Run through this before pushing to `main`, since Vercel deploys every push to pr
 
 1. **Back up the database:** `npm run backup` (above).
 2. **Apply pending migrations** in filename order in the Supabase SQL editor, or with `supabase db push`, **before** the code that needs them goes live.
-   - Pending as of 2026-09-26:
+   - Pending as of 2026-09-27:
      1. `20260926120000_analytics_views.sql`
      2. `20260926130000_practice_events.sql`
      3. `20260926140000_admin_functions.sql`
      4. `20260927120000_roles.sql`
      5. `20260927130000_attempt_integrity.sql`
+     6. `20260927140000_mistakes_session_events.sql` (allows the Review Mistakes `mode`/`source` on events; until then those event inserts fail silently)
    - Afterwards, run `supabase/audit/attempt_integrity_audit.sql` and deal with anything it lists ([DATA-INTEGRITY.md](DATA-INTEGRITY.md)).
    - To see what's applied, check the Supabase dashboard → Database → Migrations, or `select version from supabase_migrations.schema_migrations`. Migrations pasted into the SQL editor by hand aren't recorded there, so keep a note of which ones you ran.
 3. **Check the Vercel environment variables:** `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are set for Production and Preview ([DEPLOYMENT.md](DEPLOYMENT.md)). After changing one, redeploy.

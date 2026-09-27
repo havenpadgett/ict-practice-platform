@@ -59,7 +59,7 @@ const CONTAINMENT_EPSILON = 0.01;
 /** Rounds to a whole number for display — feedback text shouldn't stack
  * multiple decimal values into one sentence. Grading itself still uses the
  * exercise's full-precision stored values; only what's shown is rounded. */
-function formatPrice(value: number): string {
+export function formatPrice(value: number): string {
   return Math.round(value).toLocaleString("en-US");
 }
 
@@ -70,7 +70,7 @@ function formatPrice(value: number): string {
 // so it reads naturally leading the explanation; it carries the actual
 // coordinates when something does exist, so it reads naturally trailing
 // the reasoning (numbers last, per the feedback restructuring below).
-function buildCorrectAnswerStatement(exercise: GradableExercise): string {
+export function buildCorrectAnswerStatement(exercise: GradableExercise): string {
   // Choice exercises (FVG respected/disrespected) always have a definite
   // correct option among the choices offered — there's no "no X on this
   // chart" case the way zone/level exercises have, so this branches before
