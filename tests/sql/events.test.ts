@@ -75,3 +75,14 @@ describe("practice_events views", () => {
     await expect(asUser(db, B, () => ev(A, { event_type: "session_started", session_id: "x" }))).rejects.toThrow(/row-level security/);
   });
 });
+
+describe("Review Mistakes sessions (20260927140000_mistakes_session_events.sql)", () => {
+  it("accept the mistakes mode, source and concept", async () => {
+    await ev(B, { event_type: "session_started", session_id: "sm", mode: "mistakes", concept: "Mistakes", source: "mistakes", planned_length: 3, created_at: at(50) });
+    expect(await q(`select mode, concept, source from practice_events where session_id = 'sm'`)).toEqual([
+      { mode: "mistakes", concept: "Mistakes", source: "mistakes" },
+    ]);
+    await expect(ev(B, { event_type: "session_started", session_id: "sx", mode: "nonsense", concept: "Mistakes", source: "mistakes", created_at: at(51) })).rejects.toThrow(/mode_check/);
+  });
+});
+

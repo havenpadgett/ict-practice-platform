@@ -6,9 +6,11 @@
 // supabase/migrations/20260926140000_admin_functions.sql, which check the
 // role again themselves (is_admin(), redefined in 20260927120000_roles.sql).
 
+import { resolveReports } from "@/app/admin/actions";
 import { StatCard } from "@/components/stat-card";
 import { CONCEPTS, type Concept } from "@/lib/concepts";
 import { reviewProgress, type RuleProgress } from "@/lib/admin/review-progress";
+import { reasonLabel } from "@/lib/report-reasons";
 import { getAccess, ROLE_SETUP_HINT } from "@/lib/review/access";
 import { listScenarios, readReviewLog, staleFor } from "@/lib/review/store";
 import { createClient } from "@/lib/supabase/server";
@@ -44,6 +46,64 @@ type DbState =
   | { kind: "error"; message: string };
 
 const MIN_ATTEMPTS = 5;
+
+type ExerciseReports = {
+  exercise_id: string;
+  reports: number;
+  open_reports: number;
+  reporters: number;
+  answer_wrong: number;
+  chart_unclear: number;
+  ambiguous: number;
+  technical: number;
+  other: number;
+  last_reported_at: string;
+};
+type RecentReport = { id: string; exercise_id: string; reason: string; note: string | null; stage: string; created_at: string };
+type ReviewFlag = {
+  exercise_id: string;
+  concept: string | null;
+  attempts: number;
+  success_rate: number | null;
+  peer_success_rate: number | null;
+  open_reports: number;
+  flagged_reports: boolean;
+  flagged_failure_rate: boolean;
+};
+
+type ReportsState =
+  | { kind: "ok"; perExercise: ExerciseReports[]; recent: RecentReport[]; flags: ReviewFlag[] }
+  | { kind: "not_applied" }
+  | { kind: "error"; message: string };
+
+/** Open reports that flag an exercise for re-review. */
+const FLAG_MIN_REPORTS = 2;
+/** Failure-rate flag: attempts needed, and how far below the rest of its
+ * concept the success rate must be (it must also be 2 standard errors
+ * below; see admin_review_flags in 20260927150000_question_reports.sql). */
+const FLAG_MIN_ATTEMPTS = 10;
+const FLAG_MIN_GAP = 0.25;
+
+async function loadReports(): Promise<ReportsState> {
+  const supabase = await createClient();
+  const [perExercise, recent, flags] = await Promise.all([
+    supabase.rpc("admin_exercise_reports"),
+    supabase.rpc("admin_recent_reports", { max_rows: 20 }),
+    supabase.rpc("admin_review_flags", { min_reports: FLAG_MIN_REPORTS, min_attempts: FLAG_MIN_ATTEMPTS, min_gap: FLAG_MIN_GAP }),
+  ]);
+  const error = perExercise.error ?? recent.error ?? flags.error;
+  if (error) {
+    return error.code === "PGRST202" || /admin_(exercise_reports|recent_reports|review_flags)/.test(error.message)
+      ? { kind: "not_applied" }
+      : { kind: "error", message: error.message };
+  }
+  return {
+    kind: "ok",
+    perExercise: perExercise.data as ExerciseReports[],
+    recent: recent.data as RecentReport[],
+    flags: flags.data as ReviewFlag[],
+  };
+}
 
 function pct(x: number | null | undefined): string {
   return x === null || x === undefined ? "—" : `${Math.round(Number(x) * 100)}%`;
@@ -100,7 +160,7 @@ export default async function AdminPage() {
       </div>
     );
   }
-  const [db, review] = await Promise.all([loadDb(), loadReview()]);
+  const [db, review, reports] = await Promise.all([loadDb(), loadReview(), loadReports()]);
 
   return (
     <div className="page max-w-5xl">
@@ -108,6 +168,8 @@ export default async function AdminPage() {
       <p className="page-lede">Every user, every attempt. Your own progress is on Analytics.</p>
 
       <DbSections state={db.state} />
+
+      <ReportSections state={reports} />
 
       <section className="mt-section">
         <p className="eyebrow">Real scenario review</p>
@@ -279,5 +341,137 @@ function ReviewTable({ rows }: { rows: RuleProgress[] }) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+function ReportSections({ state }: { state: ReportsState }) {
+  if (state.kind !== "ok") {
+    return (
+      <section className="mt-section">
+        <p className="eyebrow">Question reports</p>
+        <div className="card mt-3 text-sm" role="status">
+          <p className={state.kind === "error" ? "text-danger" : "text-muted"}>
+            {state.kind === "error"
+              ? `Couldn't load reports: ${state.message}`
+              : "Reports need supabase/migrations/20260927150000_question_reports.sql applied."}
+          </p>
+        </div>
+      </section>
+    );
+  }
+  const { perExercise, recent, flags } = state;
+  return (
+    <>
+      <section className="mt-section">
+        <p className="eyebrow">Flagged for re-review</p>
+        <p className="mt-1 text-xs text-muted">
+          {FLAG_MIN_REPORTS}+ open reports, or a success rate at least {Math.round(FLAG_MIN_GAP * 100)} points below the
+          rest of its concept over {FLAG_MIN_ATTEMPTS}+ attempts (and clear of chance). Re-review the answer key and chart,
+          then mark it re-reviewed to close its reports.
+        </p>
+        {flags.length === 0 ? (
+          <p className="mt-3 text-sm text-muted">Nothing flagged.</p>
+        ) : (
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[640px] text-left text-sm">
+              <thead className="text-xs text-muted">
+                <tr>
+                  <th className="py-2 pr-3 font-medium">Exercise</th>
+                  <th className="py-2 pr-3 font-medium">Why</th>
+                  <th className="py-2 pr-3 font-medium">Open reports</th>
+                  <th className="py-2 pr-3 font-medium">Success</th>
+                  <th className="py-2 pr-3 font-medium">Rest of concept</th>
+                  <th className="py-2 font-medium" />
+                </tr>
+              </thead>
+              <tbody>
+                {flags.map((f) => (
+                  <tr key={f.exercise_id} className="border-t border-line">
+                    <td className="py-2 pr-3 font-mono text-foreground">{f.exercise_id}</td>
+                    <td className="py-2 pr-3 text-muted">
+                      {[f.flagged_reports && "Reports", f.flagged_failure_rate && "Failure rate"].filter(Boolean).join(" + ")}
+                    </td>
+                    <td className="py-2 pr-3 text-muted">{f.open_reports}</td>
+                    <td className="py-2 pr-3 text-muted">
+                      {pct(f.success_rate)} {f.attempts > 0 && <span className="text-xs">of {f.attempts}</span>}
+                    </td>
+                    <td className="py-2 pr-3 text-muted">{pct(f.peer_success_rate)}</td>
+                    <td className="py-2 text-right">
+                      {f.open_reports > 0 && (
+                        <form action={resolveReports}>
+                          <input type="hidden" name="exerciseId" value={f.exercise_id} />
+                          <button type="submit" className="btn-link">
+                            Mark re-reviewed
+                          </button>
+                        </form>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className="mt-section">
+        <p className="eyebrow">Question reports</p>
+        <p className="mt-1 text-xs text-muted">Every exercise users have reported, most open reports first.</p>
+        {perExercise.length === 0 ? (
+          <p className="mt-3 text-sm text-muted">No reports yet.</p>
+        ) : (
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[720px] text-left text-sm">
+              <thead className="text-xs text-muted">
+                <tr>
+                  <th className="py-2 pr-3 font-medium">Exercise</th>
+                  <th className="py-2 pr-3 font-medium">Open</th>
+                  <th className="py-2 pr-3 font-medium">Total</th>
+                  <th className="py-2 pr-3 font-medium">Users</th>
+                  <th className="py-2 pr-3 font-medium">Answer wrong</th>
+                  <th className="py-2 pr-3 font-medium">Chart unclear</th>
+                  <th className="py-2 pr-3 font-medium">Ambiguous</th>
+                  <th className="py-2 pr-3 font-medium">Technical</th>
+                  <th className="py-2 font-medium">Other</th>
+                </tr>
+              </thead>
+              <tbody>
+                {perExercise.map((r) => (
+                  <tr key={r.exercise_id} className="border-t border-line">
+                    <td className="py-2 pr-3 font-mono text-foreground">{r.exercise_id}</td>
+                    <td className="py-2 pr-3 font-medium text-foreground">{r.open_reports}</td>
+                    <td className="py-2 pr-3 text-muted">{r.reports}</td>
+                    <td className="py-2 pr-3 text-muted">{r.reporters}</td>
+                    <td className="py-2 pr-3 text-muted">{r.answer_wrong}</td>
+                    <td className="py-2 pr-3 text-muted">{r.chart_unclear}</td>
+                    <td className="py-2 pr-3 text-muted">{r.ambiguous}</td>
+                    <td className="py-2 pr-3 text-muted">{r.technical}</td>
+                    <td className="py-2 text-muted">{r.other}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {recent.length > 0 && (
+          <>
+            <p className="eyebrow mt-6">Latest open reports</p>
+            <ul className="mt-3 space-y-2 text-sm">
+              {recent.map((r) => (
+                <li key={r.id} className="border-t border-line pt-2">
+                  <span className="font-mono text-foreground">{r.exercise_id}</span>
+                  <span className="text-muted">
+                    {" "}
+                    · {reasonLabel(r.reason)} · {r.stage === "feedback" ? "after answering" : "while answering"} ·{" "}
+                    {new Date(r.created_at).toISOString().slice(0, 10)}
+                  </span>
+                  {r.note && <p className="mt-1 text-muted">&ldquo;{r.note}&rdquo;</p>}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </section>
+    </>
   );
 }

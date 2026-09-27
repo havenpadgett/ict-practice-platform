@@ -9,6 +9,7 @@ import { ConceptPicker } from "@/components/practice/concept-picker";
 import { ExerciseControls } from "@/components/practice/exercise-controls";
 import { FeedbackPanel } from "@/components/practice/feedback-panel";
 import { FreeTradeExercise, type FreeTradeAttempt, type FreeTradeGradeResponse } from "@/components/practice/free-trade-exercise";
+import { ReportQuestion } from "@/components/practice/report-question";
 import { GuidedExercise, type GuidedGradeResponse } from "@/components/practice/guided-exercise";
 import { SessionLengthPicker } from "@/components/practice/session-length-picker";
 import { SessionSummary } from "@/components/practice/session-summary";
@@ -57,6 +58,8 @@ export default function PracticePage() {
   /** The key to draw on the chart, returned by the server with the verdict. */
   const [reveal, setReveal] = useState<{ zone: ZoneAnswer | null; level: number | null } | null>(null);
   const [grading, setGrading] = useState(false);
+  /** Guided Entry / Free Trade feedback is on screen (they grade internally). */
+  const [flowGraded, setFlowGraded] = useState(false);
   /** A recognition answer whose grading request failed, for "Try again". */
   const [pendingAnswer, setPendingAnswer] = useState<{ answer: UserAnswer; responseTimeMs: number } | null>(null);
   /** Exercises of the current session as the server sent them (answer-free,
@@ -209,6 +212,7 @@ export default function PracticePage() {
     setReveal(null);
     setGradeError(null);
     setPendingAnswer(null);
+    setFlowGraded(false);
   }
 
   // A deep link (?concept=…[&difficulty=…&length=…], e.g. the dashboard's
@@ -528,6 +532,7 @@ export default function PracticePage() {
         setGradeError(res.error);
         return null;
       }
+      setFlowGraded(true);
       void recordGraded(res.grade.isCorrect, res.row);
       return { grade: res.grade, reveal: res.reveal };
     } catch (err) {
@@ -551,6 +556,7 @@ export default function PracticePage() {
         setGradeError(res.error);
         return null;
       }
+      setFlowGraded(true);
       void recordGraded(res.grade.passed, res.row);
       return { grade: res.grade, key: res.key };
     } catch (err) {
@@ -581,6 +587,7 @@ export default function PracticePage() {
     setSaveError(null);
     setGradeError(null);
     setPendingAnswer(null);
+    setFlowGraded(false);
     // Best-effort, off the critical path — a failure here shouldn't block
     // showing the session summary (matching how ensureProfile is called).
     if (completed && user) {
@@ -733,6 +740,13 @@ export default function PracticePage() {
             </div>
           </>
         )}
+
+        <ReportQuestion
+          key={`${session.session_id}:${exercise.exercise_id}`}
+          exerciseId={exercise.exercise_id}
+          stage={result !== null || flowGraded ? "feedback" : "exercise"}
+          sessionId={session.session_id}
+        />
       </div>
 
       <DisclaimerFooter />

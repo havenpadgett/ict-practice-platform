@@ -8,7 +8,14 @@ export type Query = (sql: string, params?: unknown[]) => Promise<Record<string, 
 /** Restore order matters: each table's foreign keys point at tables above
  * it. auth.identities holds each user's sign-in method; a table that
  * doesn't exist (e.g. in the test database) is skipped. */
-export const BACKUP_TABLES = ["auth.users", "auth.identities", "public.profiles", "public.attempts", "public.practice_events"] as const;
+export const BACKUP_TABLES = [
+  "auth.users",
+  "auth.identities",
+  "public.profiles",
+  "public.attempts",
+  "public.practice_events",
+  "public.question_reports",
+] as const;
 
 export type Backup = {
   format: "ict-practice-backup";

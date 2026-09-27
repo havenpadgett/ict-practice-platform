@@ -38,7 +38,7 @@ Tick **Production** and **Preview** for both, save, then **redeploy**.
 - **Authentication → URL Configuration:**
   - Site URL: `https://ict-practice-platform.vercel.app`
   - Redirect URLs: add `https://ict-practice-platform.vercel.app/auth/callback`. Email-confirmation links need this.
-- **Apply the pending migrations in filename order:** `20260926120000` through `20260927140000`. Back up first (docs/OPERATIONS.md).
+- **Apply the pending migrations in filename order:** `20260926120000` through `20260927150000`. Back up first (docs/OPERATIONS.md).
 - **Grant yourself the admin role** (docs/SECURITY-AUDIT.md → Roles).
 
 ## Known production limits

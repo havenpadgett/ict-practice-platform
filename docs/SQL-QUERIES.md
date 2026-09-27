@@ -287,3 +287,27 @@ After applying the migrations, make yourself an admin in the SQL editor:
 update public.profiles set role = 'admin'
 where id = (select id from auth.users where email = 'you@example.com');
 ```
+
+## Question reports
+
+`20260927150000_question_reports.sql` adds `question_reports`: one row per "Report a problem" a user sends from an exercise or its feedback (`src/components/practice/report-question.tsx`).
+
+| Column | Meaning |
+|---|---|
+| `exercise_id` | The exercise on screen, filled in by the app, not typed by the user. |
+| `reason` | `answer_wrong`, `chart_unclear`, `ambiguous`, `technical` or `other`. `other` requires a `note`. |
+| `note` | Optional free text, up to 1,000 characters. |
+| `stage` | `exercise` (before answering) or `feedback` (after). |
+| `session_id` | With `exercise_id`, reproduces the exact chart window the user saw (`pickFrame` in `src/lib/framing.ts`). |
+| `status`, `resolved_at` | `open` until an admin marks the exercise re-reviewed. |
+
+**RLS:** users insert reports as themselves, always `open`, and can read only their own. They can't edit, resolve or delete a report. Admins read reports through these `security definer` functions, which call `require_admin()`:
+
+| Function | Returns |
+|---|---|
+| `admin_exercise_reports()` | Per exercise: total, open, distinct reporters, a count per reason, and the last report time. Most open first. |
+| `admin_recent_reports(max_rows default 20)` | The latest open reports with their notes. No reporter identity. |
+| `admin_review_flags(min_reports default 2, min_attempts default 10, min_gap default 0.25)` | Exercises to re-review, with the reason. **Reports:** `min_reports` or more open reports. **Failure rate:** at least `min_attempts` attempts, a `success_rate` at least `min_gap` below `peer_success_rate`, and a gap of at least 2 standard errors. `peer_success_rate` is the rest of the concept's attempts pooled. |
+| `admin_resolve_reports(target_exercise_id)` | Marks that exercise's open reports resolved and returns how many. `/admin` → "Mark re-reviewed". |
+
+The failure-rate flag compares an exercise with its own concept, not the whole app. A hard concept doesn't flag every exercise in it. The standard-error test stops a handful of unlucky attempts from tripping it.

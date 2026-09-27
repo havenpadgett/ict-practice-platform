@@ -10,6 +10,7 @@
 | Curriculum and its versions | `profiles`: username, practice streak, **role** (reviewer / admin) |
 | Review decisions (`docs/review-log.json`) and scenario approvals | `attempts`: every graded answer, the whole analytics history |
 | Schema: every table, view, policy and function (`supabase/migrations/`) | `practice_events`: session and recommendation tracking |
+| | `question_reports`: users' reports of problems with an exercise |
 
 **If the database is lost with no backup:**
 - **The app still deploys and works:** exercises, grading and review are unaffected.
@@ -34,7 +35,7 @@
 
 ### Option 1: `npm run backup` (recommended; no extra tools)
 
-It exports every row of user data to one JSON file: `auth.users`, `auth.identities`, `profiles`, `attempts` and `practice_events`. It also records which migrations the database had applied.
+It exports every row of user data to one JSON file: `auth.users`, `auth.identities`, `profiles`, `attempts`, `practice_events` and `question_reports`. It also records which migrations the database had applied.
 
 1. **Copy the connection string** in the Supabase Dashboard: **Connect** → **Session pooler**. It looks like `postgresql://postgres.<ref>:[YOUR-PASSWORD]@aws-0-<region>.pooler.supabase.com:5432/postgres`.
 2. **Fill in the password.** If you don't have it, reset it under **Project Settings → Database**.
@@ -161,6 +162,7 @@ Run through this before pushing to `main`, since Vercel deploys every push to pr
      4. `20260927120000_roles.sql`
      5. `20260927130000_attempt_integrity.sql`
      6. `20260927140000_mistakes_session_events.sql` (allows the Review Mistakes `mode`/`source` on events; until then those event inserts fail silently)
+     7. `20260927150000_question_reports.sql` (the `question_reports` table and its admin functions; until then "Report a problem" says reporting isn't available yet, and /admin says the reports section needs it)
    - Afterwards, run `supabase/audit/attempt_integrity_audit.sql` and deal with anything it lists ([DATA-INTEGRITY.md](DATA-INTEGRITY.md)).
    - To see what's applied, check the Supabase dashboard → Database → Migrations, or `select version from supabase_migrations.schema_migrations`. Migrations pasted into the SQL editor by hand aren't recorded there, so keep a note of which ones you ran.
 3. **Check the Vercel environment variables:** `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are set for Production and Preview ([DEPLOYMENT.md](DEPLOYMENT.md)). After changing one, redeploy.

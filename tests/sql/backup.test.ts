@@ -22,6 +22,8 @@ async function populated(): Promise<PGlite> {
       values ('${A}', 'sa', 'session_started', 'recognition', 'FVG', 'picker', 5, '${at(1)}');
     insert into practice_events (user_id, event_type, recommended_concept, recommended_difficulty, created_at)
       values ('${B}', 'recommendation_shown', 'MSS', 2, '${at(0)}');
+    insert into question_reports (user_id, exercise_id, reason, note, stage, session_id, status, resolved_at, created_at)
+      values ('${B}', 'fvg-001', 'other', 'Looks off', 'feedback', 'sb', 'resolved', '${at(5)}', '${at(4)}');
   `);
   return db;
 }
@@ -30,7 +32,9 @@ describe("backup and restore", () => {
   it("round-trips every table, roles included, and re-running inserts nothing", async () => {
     const source = await populated();
     const backup = await exportAll(query(source));
-    expect(backup.row_counts).toEqual({ "auth.users": 2, "public.profiles": 2, "public.attempts": 3, "public.practice_events": 2 });
+    expect(backup.row_counts).toEqual({
+      "auth.users": 2, "public.profiles": 2, "public.attempts": 3, "public.practice_events": 2, "public.question_reports": 1,
+    });
 
     const target = await migratedDb();
     // Through JSON, exactly as the file on disk.
@@ -40,7 +44,7 @@ describe("backup and restore", () => {
     const again = await exportAll(query(target));
     expect(again.tables).toEqual(backup.tables);
     expect(await restoreAll(query(target), fromFile, { replica: true })).toEqual({
-      "auth.users": 0, "public.profiles": 0, "public.attempts": 0, "public.practice_events": 0,
+      "auth.users": 0, "public.profiles": 0, "public.attempts": 0, "public.practice_events": 0, "public.question_reports": 0,
     });
   // Two full migrations plus a load: well over the 5s default when the whole
   // suite runs in parallel. The assertions are unchanged.
