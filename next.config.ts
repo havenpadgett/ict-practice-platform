@@ -13,6 +13,11 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // DEMO MODE (branch demo-mode only; docs/OPERATIONS.md → Demo mode): lets
+  // a reviewer reach `next dev` through an ngrok tunnel. Without it Next.js
+  // refuses the page's dev scripts from any host but localhost (403), so
+  // client-rendered pages never load. Dev server only; ignored in builds.
+  allowedDevOrigins: ["*.ngrok-free.app", "*.ngrok-free.dev", "*.ngrok.app", "*.ngrok.io"],
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

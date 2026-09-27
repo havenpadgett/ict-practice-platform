@@ -183,7 +183,7 @@ Run through this before pushing to `main`, since Vercel deploys every push to pr
 
 > **The `demo-mode` branch exists only so a reviewer can walk the signed-in app without an account. Delete it once the review is done:** `git branch -D demo-mode`, plus `git push origin --delete demo-mode` if it was pushed. Never merge it into `main`.
 
-**Run it:** `NEXT_PUBLIC_DEMO_MODE=true npm run dev`, then open http://localhost:3000. Stop any other `next dev` for this project first; only one can run at a time.
+**Run it:** `NEXT_PUBLIC_DEMO_MODE=true npm run dev`, then open http://localhost:3000. Stop any other `next dev` for this project first; only one can run at a time. To share it through ngrok (`ngrok http 3000`), the tunnel's host must match `allowedDevOrigins` in `next.config.ts`. Otherwise pages load but never finish ("Loading…"). Anyone with the tunnel URL gets the demo, so stop the tunnel when the review is done.
 
 **What it does:** login is skipped, and every page shows a "Demo mode: all data here is made up" banner. The reviewer is signed in as `demo-reviewer@example.com`, an ordinary user, so `/admin` and `/review` stay closed and no scenario file can be edited. Both Supabase clients are replaced by an in-memory store with about three weeks of seeded fake practice history. Everything the reviewer does is written there and lost when the dev server stops. Supabase is never contacted, so no real row is read or written.
 
@@ -203,6 +203,7 @@ Run through this before pushing to `main`, since Vercel deploys every push to pr
 | `src/lib/supabase/server.ts` | Returns the demo client when the gate is open. |
 | `src/proxy.ts` | Skips the login redirect when the gate is open. |
 | `src/app/layout.tsx` | Renders the banner. |
+| `next.config.ts` | `allowedDevOrigins` for ngrok hosts, so the dev server can be reviewed through a tunnel. |
 | `docs/OPERATIONS.md` | This section. |
 
 ## Sources
