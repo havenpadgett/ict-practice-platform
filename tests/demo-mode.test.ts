@@ -1,9 +1,11 @@
 // DEMO MODE (branch demo-mode; src/lib/demo/gate.ts). The login bypass
-// must exist only when NEXT_PUBLIC_DEMO_MODE=true AND NODE_ENV isn't
-// production. These tests fail if any way into it (the browser and server
+// must exist only when NEXT_PUBLIC_DEMO_MODE=true AND the build isn't
+// production: local `next dev`, or a Vercel preview of the demo-mode
+// branch. These tests fail if any way into it (the browser and server
 // Supabase clients, the proxy, the demo route, the banner) is reachable
-// when either condition is false, or if demo mode ever creates a real
-// Supabase client.
+// when either condition is false (including every Vercel production
+// deployment and previews of other branches), or if demo mode ever creates
+// a real Supabase client.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
@@ -29,21 +31,35 @@ const { POST: demoRoute } = await import("@/app/api/demo/route");
 const { DemoBanner } = await import("@/components/demo-banner");
 const { resetDemoStore } = await import("@/lib/demo/store");
 
-/** Every combination; only the first may open demo mode. */
-const COMBOS: { nodeEnv: string; flag: string | undefined; demo: boolean }[] = [
+type Combo = { nodeEnv: string; flag: string | undefined; vercel?: string; ref?: string; demo: boolean };
+
+/** Only a flagged local dev server, or a flagged Vercel preview of the
+ * demo-mode branch, may open demo mode. */
+const COMBOS: Combo[] = [
   { nodeEnv: "development", flag: "true", demo: true },
+  { nodeEnv: "production", flag: "true", vercel: "preview", ref: "demo-mode", demo: true },
+  // Flag set, but a production build that isn't a demo-mode preview.
   { nodeEnv: "production", flag: "true", demo: false },
+  { nodeEnv: "production", flag: "true", vercel: "production", ref: "demo-mode", demo: false },
+  { nodeEnv: "production", flag: "true", vercel: "production", ref: "main", demo: false },
+  { nodeEnv: "production", flag: "true", vercel: "preview", ref: "main", demo: false },
+  { nodeEnv: "production", flag: "true", vercel: "development", ref: "demo-mode", demo: false },
+  // Flag missing or not exactly "true".
   { nodeEnv: "development", flag: undefined, demo: false },
   { nodeEnv: "development", flag: "false", demo: false },
   { nodeEnv: "development", flag: "1", demo: false },
   { nodeEnv: "development", flag: "TRUE", demo: false },
+  { nodeEnv: "production", flag: undefined, vercel: "preview", ref: "demo-mode", demo: false },
   { nodeEnv: "production", flag: undefined, demo: false },
 ];
-const label = (c: (typeof COMBOS)[number]) => `NODE_ENV=${c.nodeEnv}, NEXT_PUBLIC_DEMO_MODE=${c.flag ?? "(unset)"}`;
+const label = (c: Combo) =>
+  `NODE_ENV=${c.nodeEnv}, NEXT_PUBLIC_DEMO_MODE=${c.flag ?? "(unset)"}, VERCEL_ENV=${c.vercel ?? "(unset)"}, ref=${c.ref ?? "(unset)"}`;
 
-function setEnv(nodeEnv: string, flag: string | undefined) {
+function setEnv(nodeEnv: string, flag: string | undefined, vercel?: string, ref?: string) {
   vi.stubEnv("NODE_ENV", nodeEnv);
   vi.stubEnv("NEXT_PUBLIC_DEMO_MODE", flag);
+  vi.stubEnv("NEXT_PUBLIC_VERCEL_ENV", vercel);
+  vi.stubEnv("NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF", ref);
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "anon");
 }
@@ -58,8 +74,8 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllEnvs());
 
-describe.each(COMBOS)("$nodeEnv / $flag", (combo) => {
-  beforeEach(() => setEnv(combo.nodeEnv, combo.flag));
+describe.each(COMBOS)("$nodeEnv / $flag / $vercel / $ref", (combo) => {
+  beforeEach(() => setEnv(combo.nodeEnv, combo.flag, combo.vercel, combo.ref));
 
   it(`the gate is ${combo.demo ? "open" : "closed"}`, () => {
     expect(isDemoMode(), label(combo)).toBe(combo.demo);

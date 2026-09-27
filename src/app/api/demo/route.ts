@@ -1,13 +1,13 @@
 // DEMO MODE (see src/lib/demo/gate.ts). The browser half of the fake
 // Supabase client sends its queries here; they run against the in-memory
 // demo store. Outside demo mode this route answers 404 as if it didn't
-// exist, and a production build never loads the store.
+// exist, and a build without the flag never loads the store.
 
 import { NextResponse } from "next/server";
 import { isDemoMode } from "@/lib/demo/gate";
 
 export async function POST(request: Request) {
-  if (process.env.NODE_ENV === "production" || !isDemoMode()) {
+  if (process.env.NEXT_PUBLIC_DEMO_MODE !== "true" || !isDemoMode()) {
     return new NextResponse(null, { status: 404 });
   }
   const body: unknown = await request.json().catch(() => null);

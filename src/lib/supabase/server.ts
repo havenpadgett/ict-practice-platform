@@ -9,9 +9,9 @@ import { getSupabaseKey, getSupabaseUrl } from "@/lib/supabase/env";
 
 export async function createClient(): Promise<ReturnType<typeof supabaseClient>> {
   // DEMO MODE (src/lib/demo/gate.ts): seeded fake data, never Supabase.
-  // The inline NODE_ENV check folds to false in production builds, which
-  // then drop this branch and never load the demo store.
-  if (process.env.NODE_ENV !== "production" && isDemoMode()) {
+  // The inline flag check folds to false in any build without the flag,
+  // which then drops this branch and never loads the demo store.
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === "true" && isDemoMode()) {
     const { createDemoServerClient } = await import("@/lib/demo/store");
     return createDemoServerClient() as unknown as ReturnType<typeof supabaseClient>;
   }

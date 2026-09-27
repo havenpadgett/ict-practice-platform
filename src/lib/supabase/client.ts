@@ -13,9 +13,9 @@ function supabaseClient() {
 
 export function createClient(): ReturnType<typeof supabaseClient> {
   // DEMO MODE (src/lib/demo/gate.ts): seeded fake data, never Supabase.
-  // The inline NODE_ENV check folds to false in production builds, which
-  // then drop this branch and the unused demo client with it.
-  if (process.env.NODE_ENV !== "production" && isDemoMode()) {
+  // The inline flag check folds to false in any build without the flag,
+  // which then drops this branch and the unused demo client with it.
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === "true" && isDemoMode()) {
     return createDemoBrowserClient() as unknown as ReturnType<typeof supabaseClient>;
   }
   return supabaseClient();

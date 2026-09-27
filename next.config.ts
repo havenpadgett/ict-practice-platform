@@ -18,6 +18,12 @@ const nextConfig: NextConfig = {
   // refuses the page's dev scripts from any host but localhost (403), so
   // client-rendered pages never load. Dev server only; ignored in builds.
   allowedDevOrigins: ["*.ngrok-free.app", "*.ngrok-free.dev", "*.ngrok.app", "*.ngrok.io"],
+  // DEMO MODE: the gate (src/lib/demo/gate.ts) needs to know, in the browser
+  // too, whether this is a Vercel preview of the demo-mode branch.
+  env: {
+    NEXT_PUBLIC_VERCEL_ENV: process.env.VERCEL_ENV ?? "",
+    NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF: process.env.VERCEL_GIT_COMMIT_REF ?? "",
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

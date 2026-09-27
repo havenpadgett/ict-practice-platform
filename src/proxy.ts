@@ -7,7 +7,7 @@ const PROTECTED_PATHS = ["/dashboard", "/practice", "/mistakes", "/analytics", "
 
 export async function proxy(request: NextRequest) {
   // DEMO MODE (src/lib/demo/gate.ts): the demo reviewer is always signed in.
-  if (process.env.NODE_ENV !== "production" && isDemoMode()) return NextResponse.next({ request });
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === "true" && isDemoMode()) return NextResponse.next({ request });
 
   let response = NextResponse.next({ request });
 

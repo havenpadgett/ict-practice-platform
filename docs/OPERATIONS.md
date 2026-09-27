@@ -187,9 +187,21 @@ Run through this before pushing to `main`, since Vercel deploys every push to pr
 
 **What it does:** login is skipped, and every page shows a "Demo mode: all data here is made up" banner. The reviewer is signed in as `demo-reviewer@example.com`, an ordinary user, so `/admin` and `/review` stay closed and no scenario file can be edited. Both Supabase clients are replaced by an in-memory store with about three weeks of seeded fake practice history. Everything the reviewer does is written there and lost when the dev server stops. Supabase is never contacted, so no real row is read or written.
 
-**The gate:** it exists only when `NEXT_PUBLIC_DEMO_MODE` is exactly `true` **and** `NODE_ENV` isn't `production`. `next build` and `next start` always run as production, so a deployed or production build never has demo mode, whatever the variable says. A production build with the variable set was checked: none of the demo code is in the compiled output, and `/api/demo` only answers 404. `tests/demo-mode.test.ts` fails if any way in is reachable when either condition is false. Don't set the variable in Vercel.
+**The gate:** it exists only when `NEXT_PUBLIC_DEMO_MODE` is exactly `true` **and** the build isn't production. That means either local `next dev`, or a Vercel **preview** built from the `demo-mode` branch (`VERCEL_ENV=preview` and `VERCEL_GIT_COMMIT_REF=demo-mode`). All of these never have demo mode, whatever the variable says:
+- a Vercel production deployment;
+- a preview of any other branch;
+- a local `next build` / `next start`.
 
-**Every file the branch changes.** Removing demo mode is reverting the branch's single commit:
+This was checked by building and serving each variant: only the demo-mode preview opens `/dashboard` without login. Without the variable, the demo code isn't in the compiled output at all, and `/api/demo` only answers 404. `tests/demo-mode.test.ts` fails if any way in is reachable when either condition is false.
+
+**Vercel preview (for reviewers who can't reach a tunnel):**
+1. In Vercel → Settings → Environment Variables, add `NEXT_PUBLIC_DEMO_MODE` = `true`. Tick **Preview only**, and set the branch to `demo-mode`. **Never** tick Production.
+2. Push `demo-mode`, or redeploy its latest preview so it picks up the variable. Vercel posts the preview URL on the commit.
+3. If Deployment Protection covers previews, the reviewer hits Vercel's own login. Use the deployment's **Share** link, or turn protection off for previews during the review.
+4. On a preview, each serverless instance keeps its own in-memory store. The seeded data is identical everywhere, but answers the reviewer gives may not show up on the next page.
+5. **After the review:** delete the variable, delete the preview deployment, and delete the branch.
+
+**Every file the branch changes.** Removing demo mode is deleting the branch; nothing from it is on `main`:
 
 | File | Change |
 |---|---|
@@ -203,7 +215,7 @@ Run through this before pushing to `main`, since Vercel deploys every push to pr
 | `src/lib/supabase/server.ts` | Returns the demo client when the gate is open. |
 | `src/proxy.ts` | Skips the login redirect when the gate is open. |
 | `src/app/layout.tsx` | Renders the banner. |
-| `next.config.ts` | `allowedDevOrigins` for ngrok hosts, so the dev server can be reviewed through a tunnel. |
+| `next.config.ts` | `allowedDevOrigins` for ngrok hosts, so the dev server can be reviewed through a tunnel; exposes `VERCEL_ENV` / `VERCEL_GIT_COMMIT_REF` to the gate. |
 | `docs/OPERATIONS.md` | This section. |
 
 ## Sources

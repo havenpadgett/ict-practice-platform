@@ -5,14 +5,22 @@
 // Demo mode skips login and swaps Supabase for an in-memory store of
 // seeded fake data, so a reviewer can walk the signed-in app without an
 // account and without touching a real row. It exists only when BOTH hold:
-//   1. NEXT_PUBLIC_DEMO_MODE is exactly "true" (never set in production), and
-//   2. NODE_ENV is not "production" (i.e. `next dev`, never `next build`).
-// NEXT_PUBLIC_ so the browser half can see it too. Each call site also
-// repeats the NODE_ENV check inline, so a production build compiles the
-// demo branch out entirely (the bundler folds it to `false`).
+//   1. NEXT_PUBLIC_DEMO_MODE is exactly "true" (never set for Production), and
+//   2. the build isn't production: either `next dev` locally, or a Vercel
+//      *preview* built from the demo-mode branch. A Vercel production
+//      deployment (VERCEL_ENV=production), a preview of any other branch,
+//      and a local `next build` / `next start` never qualify.
+// Everything read here is NEXT_PUBLIC_ (next.config.ts copies Vercel's
+// VERCEL_ENV / VERCEL_GIT_COMMIT_REF into NEXT_PUBLIC_ names), so the
+// browser half sees the same answer. Each call site also checks the flag
+// inline: a build without it folds that to `false` and drops the demo code.
+
+export const DEMO_BRANCH = "demo-mode";
 
 export function isDemoMode(): boolean {
-  return process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+  if (process.env.NEXT_PUBLIC_DEMO_MODE !== "true") return false;
+  if (process.env.NODE_ENV !== "production") return true;
+  return process.env.NEXT_PUBLIC_VERCEL_ENV === "preview" && process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF === DEMO_BRANCH;
 }
 
 export const DEMO_USER = {
