@@ -196,7 +196,9 @@ describe("applying the constraints over existing data", () => {
       old.exec(`insert into attempts (user_id, exercise_id, concept, answer_type, user_answer_type, is_correct, response_time_ms, attempt_number)
         values ('${A}', 'liq-001', 'Liquidity', 'level', 'region', false, 3000, 1)`),
     ).rejects.toThrow(/attempts_answer_shape/);
-  });
+  // Migrates a database inside the test, then applies every later migration:
+  // over the 5s default when the whole suite runs in parallel.
+  }, 60_000);
 });
 
 describe("pre-login attempt migration (Bug Log 2026-09-27)", () => {
