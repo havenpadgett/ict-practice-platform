@@ -19,6 +19,13 @@ export const DEMO_BRANCH = "demo-mode";
 
 export function isDemoMode(): boolean {
   if (process.env.NEXT_PUBLIC_DEMO_MODE !== "true") return false;
+  // Runtime backstop, server side: the NEXT_PUBLIC_ values below are fixed
+  // when the bundle is built, so a demo-mode preview build promoted to
+  // production would still carry them. VERCEL_ENV is read from the live
+  // environment on the server (it isn't NEXT_PUBLIC_, so it's never
+  // inlined), which keeps the proxy, the server client and /api/demo closed
+  // on any production deployment whatever the bundle says.
+  if (typeof window === "undefined" && process.env.VERCEL_ENV === "production") return false;
   if (process.env.NODE_ENV !== "production") return true;
   return process.env.NEXT_PUBLIC_VERCEL_ENV === "preview" && process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF === DEMO_BRANCH;
 }

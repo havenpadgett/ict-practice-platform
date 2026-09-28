@@ -31,7 +31,9 @@ const { POST: demoRoute } = await import("@/app/api/demo/route");
 const { DemoBanner } = await import("@/components/demo-banner");
 const { resetDemoStore } = await import("@/lib/demo/store");
 
-type Combo = { nodeEnv: string; flag: string | undefined; vercel?: string; ref?: string; demo: boolean };
+/** `runtime` is the server's live VERCEL_ENV; the others are what the
+ * bundle was built with. */
+type Combo = { nodeEnv: string; flag: string | undefined; vercel?: string; ref?: string; runtime?: string; demo: boolean };
 
 /** Only a flagged local dev server, or a flagged Vercel preview of the
  * demo-mode branch, may open demo mode. */
@@ -51,12 +53,17 @@ const COMBOS: Combo[] = [
   { nodeEnv: "development", flag: "TRUE", demo: false },
   { nodeEnv: "production", flag: undefined, vercel: "preview", ref: "demo-mode", demo: false },
   { nodeEnv: "production", flag: undefined, demo: false },
+  // A demo-mode preview build promoted to production: the bundle still says
+  // preview, but the server's live environment says production.
+  { nodeEnv: "production", flag: "true", vercel: "preview", ref: "demo-mode", runtime: "production", demo: false },
+  { nodeEnv: "development", flag: "true", runtime: "production", demo: false },
 ];
 const label = (c: Combo) =>
-  `NODE_ENV=${c.nodeEnv}, NEXT_PUBLIC_DEMO_MODE=${c.flag ?? "(unset)"}, VERCEL_ENV=${c.vercel ?? "(unset)"}, ref=${c.ref ?? "(unset)"}`;
+  `NODE_ENV=${c.nodeEnv}, NEXT_PUBLIC_DEMO_MODE=${c.flag ?? "(unset)"}, VERCEL_ENV=${c.vercel ?? "(unset)"}, ref=${c.ref ?? "(unset)"}, runtime VERCEL_ENV=${c.runtime ?? "(unset)"}`;
 
-function setEnv(nodeEnv: string, flag: string | undefined, vercel?: string, ref?: string) {
+function setEnv(nodeEnv: string, flag: string | undefined, vercel?: string, ref?: string, runtime?: string) {
   vi.stubEnv("NODE_ENV", nodeEnv);
+  vi.stubEnv("VERCEL_ENV", runtime);
   vi.stubEnv("NEXT_PUBLIC_DEMO_MODE", flag);
   vi.stubEnv("NEXT_PUBLIC_VERCEL_ENV", vercel);
   vi.stubEnv("NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF", ref);
@@ -74,8 +81,8 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllEnvs());
 
-describe.each(COMBOS)("$nodeEnv / $flag / $vercel / $ref", (combo) => {
-  beforeEach(() => setEnv(combo.nodeEnv, combo.flag, combo.vercel, combo.ref));
+describe.each(COMBOS)("$nodeEnv / $flag / $vercel / $ref / $runtime", (combo) => {
+  beforeEach(() => setEnv(combo.nodeEnv, combo.flag, combo.vercel, combo.ref, combo.runtime));
 
   it(`the gate is ${combo.demo ? "open" : "closed"}`, () => {
     expect(isDemoMode(), label(combo)).toBe(combo.demo);

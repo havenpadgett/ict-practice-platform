@@ -192,6 +192,8 @@ Run through this before pushing to `main`, since Vercel deploys every push to pr
 - a preview of any other branch;
 - a local `next build` / `next start`.
 
+On the server there is also a runtime backstop: if the live `VERCEL_ENV` is `production`, the gate is closed whatever the bundle was built with, so a demo-mode preview build promoted to production can't open it (added 2026-09-28).
+
 This was checked by building and serving each variant: only the demo-mode preview opens `/dashboard` without login. Without the variable, the demo code isn't in the compiled output at all, and `/api/demo` only answers 404. `tests/demo-mode.test.ts` fails if any way in is reachable when either condition is false.
 
 **Vercel preview (for reviewers who can't reach a tunnel):**
