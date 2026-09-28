@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu, MENU_ITEM } from "@/components/menu";
 import { AnalyticsIcon, ChevronDownIcon, DashboardIcon, MistakesIcon, PracticeIcon } from "@/components/nav/nav-icons";
 import { useAuth } from "@/contexts/auth-context";
@@ -90,6 +90,7 @@ function AccountMenu({ email, onSignOut }: { email: string; onSignOut: () => voi
 export function TopNav() {
   const { user, loading, signOut } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
   const mistakes = useOpenMistakeCount(user?.id ?? null);
   const signedIn = !loading && user !== null;
 
@@ -128,7 +129,12 @@ export function TopNav() {
           )}
 
           <div className="flex items-center gap-2">
-            {signedIn && user && <AccountMenu email={user.email ?? ""} onSignOut={() => void signOut()} />}
+            {signedIn && user && <AccountMenu
+                email={user.email ?? ""}
+                onSignOut={() => {
+                  void signOut().then(() => router.push("/"));
+                }}
+              />}
             {!loading && !user && (
               <Link href="/login" className="inline-flex min-h-11 items-center px-2 text-sm text-muted transition-colors hover:text-foreground">
                 Log in
