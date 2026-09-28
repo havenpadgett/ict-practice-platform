@@ -48,7 +48,17 @@ export type GradeResult = {
   explanation: string;
   /** Whether the feedback view should draw the true answer on the chart. */
   revealZone: boolean;
+  /** Each test the answer went through, measured, for the feedback's
+   * checklist (buildChecks below). Null where there's nothing to measure
+   * (choice answers). */
+  checks: GradeCheck[] | null;
 };
+
+/** One line of the feedback checklist. `passed` is null for a measurement
+ * shown for information that isn't itself a pass/fail test. */
+export type GradeCheck = { id: string; label: string; passed: boolean | null; detail: string };
+
+type GradeCore = Omit<GradeResult, "checks">;
 
 const COVERAGE_THRESHOLD = 0.6;
 const PRECISION_THRESHOLD = 2.5;
@@ -114,13 +124,15 @@ function composeExplanation(exercise: GradableExercise): string {
 
 export function gradeAttempt(exercise: Exercise, userAnswer: UserAnswer): GradeResult {
   if (exercise.answer_type === "zone") {
-    return gradeZoneAttempt(exercise, userAnswer);
+    const core = gradeZoneAttempt(exercise, userAnswer);
+    return { ...core, checks: buildChecks(exercise, userAnswer, core) };
   }
   if (exercise.answer_type === "level") {
-    return gradeLevelAttempt(exercise, userAnswer);
+    const core = gradeLevelAttempt(exercise, userAnswer);
+    return { ...core, checks: buildChecks(exercise, userAnswer, core) };
   }
   if (exercise.answer_type === "choice") {
-    return gradeChoiceAttempt(exercise, userAnswer);
+    return { ...gradeChoiceAttempt(exercise, userAnswer), checks: null };
   }
   // Guided Entry's multi-step flow doesn't reduce to a single UserAnswer/
   // GradeResult — it's graded by gradeGuidedAttempt (src/lib/guided-grading.ts)
@@ -176,7 +188,7 @@ function includesKeyCandle(
   return candleIndexLow <= keyCandleIndex && keyCandleIndex <= candleIndexHigh;
 }
 
-function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): GradeResult {
+function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): GradeCore {
   const { has_answer, answer } = exercise;
 
   if (!has_answer) {
@@ -302,7 +314,7 @@ function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): Grade
 // isn't tied to a fixed number of candles the way an FVG is). Correctness
 // is a single check: is the placed line within tolerance of the true price?
 
-function gradeLevelAttempt(exercise: LevelExercise, userAnswer: UserAnswer): GradeResult {
+function gradeLevelAttempt(exercise: LevelExercise, userAnswer: UserAnswer): GradeCore {
   const { has_answer, answer } = exercise;
 
   if (!has_answer) {
@@ -377,7 +389,7 @@ function gradeLevelAttempt(exercise: LevelExercise, userAnswer: UserAnswer): Gra
 // nothing to measure coverage, precision, or distance against. Correctness
 // is a single equality check against the exercise's correct_choice.
 
-function gradeChoiceAttempt(exercise: ChoiceExercise, userAnswer: UserAnswer): GradeResult {
+function gradeChoiceAttempt(exercise: ChoiceExercise, userAnswer: UserAnswer): GradeCore {
   if (userAnswer.type !== "choice") {
     throw new Error(`Choice exercise ${exercise.exercise_id} received a non-choice answer`);
   }
@@ -398,4 +410,87 @@ function gradeChoiceAttempt(exercise: ChoiceExercise, userAnswer: UserAnswer): G
     // feedback rather than toggling it.
     revealZone: true,
   };
+}
+
+// ---- Feedback checklist ------------------------------------------------------
+// The same tests as above, reported one by one with the measured value, so
+// feedback says *how* an answer was off ("Coverage ✓ · Candles ✓ · Size ✗,
+// box 3.1× the zone's height") rather than only which test failed first.
+// Pure reporting: it never changes the verdict, which gradeZoneAttempt /
+// gradeLevelAttempt decide.
+
+/** What the key candle is, per zone concept, for the Candles check. */
+const KEY_CANDLE: Record<string, string> = {
+  FVG: "the middle candle of the three-candle gap",
+  IFVG: "the middle candle of the original gap",
+  OrderBlock: "the order block candle",
+};
+
+function signedPoints(x: number): string {
+  const r = Math.round(x);
+  return r === 0 ? "level with" : `${Math.abs(r)} point${Math.abs(r) === 1 ? "" : "s"} ${r > 0 ? "above" : "below"}`;
+}
+
+export function buildChecks(exercise: ZoneExercise | LevelExercise, userAnswer: UserAnswer, result: GradeCore): GradeCheck[] | null {
+  // Nothing measured when the question was "is there one at all": the
+  // explanation already opens (or closes) with the plain answer.
+  if (!exercise.has_answer || userAnswer.type === "none") return null;
+
+  if (exercise.answer_type === "zone" && userAnswer.type === "region" && exercise.answer) {
+    const a = exercise.answer;
+    const r = userAnswer.region;
+    const coverage = result.coverage ?? 0;
+    const ratio = result.precisionRatio ?? 0;
+    const timeOk = includesKeyCandle(r.candleIndexLow, r.candleIndexHigh, a.key_candle_index);
+    const key = KEY_CANDLE[exercise.concept] ?? "the setup's key candle";
+    return [
+      {
+        id: "coverage",
+        label: "Coverage",
+        passed: coverage >= COVERAGE_THRESHOLD,
+        detail:
+          `Your box covers ${Math.round(coverage * 100)}% of the zone's price range (${Math.round(COVERAGE_THRESHOLD * 100)}% needed).` +
+          (result.failureReason === "too_small" ? " It sits inside the zone, so draw it taller." : ""),
+      },
+      {
+        id: "size",
+        label: "Size",
+        passed: ratio <= PRECISION_THRESHOLD,
+        detail: `Your box is ${ratio.toFixed(1)}× the zone's height (up to ${PRECISION_THRESHOLD}× passes).`,
+      },
+      {
+        id: "candles",
+        label: "Candles",
+        passed: timeOk,
+        detail: timeOk ? `Your box spans ${key}.` : `Your box doesn't span ${key}. It's highlighted on the chart.`,
+      },
+      {
+        id: "edges",
+        label: "Edges",
+        passed: null,
+        detail: `Your top edge is ${signedPoints(r.priceHigh - a.price_high)} the zone's top; your bottom edge is ${signedPoints(r.priceLow - a.price_low)} its bottom.`,
+      },
+    ];
+  }
+
+  if (exercise.answer_type === "level" && userAnswer.type === "level" && exercise.answer) {
+    const d = userAnswer.price - exercise.answer.price;
+    const tol = exercise.answer.tolerance;
+    const abs = Math.round(Math.abs(d));
+    const within = Math.abs(d) <= tol;
+    const dir = d > 0 ? "high" : "low";
+    return [
+      {
+        id: "placement",
+        label: "Placement",
+        passed: within,
+        detail: within
+          ? `Your line is ${abs} point${abs === 1 ? "" : "s"} from the level, inside the ±${tol} tolerance.`
+          : Math.abs(d) <= 2 * tol
+            ? `Right area, but ${abs} points too ${dir}: just outside the ±${tol} tolerance.`
+            : `Your line is ${abs} points too ${dir}. It needs to be within ±${tol} points of the level.`,
+      },
+    ];
+  }
+  return null;
 }

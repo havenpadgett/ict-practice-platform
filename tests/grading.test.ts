@@ -99,3 +99,36 @@ describe("choice grading", () => {
     expect(wrong.explanation).toContain("The correct answer was: Discount.");
   });
 });
+
+describe("feedback checklist (reports every test, never changes the verdict)", () => {
+  it("reports all three zone tests with measured values when several fail", () => {
+    const r = gradeAttempt(zone(), box(0, 1000, 20, 25));
+    expect(r.isCorrect).toBe(false);
+    const byId = Object.fromEntries((r.checks ?? []).map((c) => [c.id, c]));
+    expect(byId.coverage.passed).toBe(true);
+    expect(byId.size.passed).toBe(false);
+    expect(byId.candles.passed).toBe(false);
+    expect(byId.edges.passed).toBeNull();
+    expect(byId.size.detail).toMatch(/× the zone's height/);
+  });
+
+  it("all zone checks pass on a correct box", () => {
+    const r = gradeAttempt(zone(), box(99, 121));
+    expect(r.checks?.filter((c) => c.passed === false)).toEqual([]);
+  });
+
+  it("says how far off a level is, and when it's close but outside tolerance", () => {
+    const lv = level();
+    const tol = lv.answer!.tolerance;
+    const near = gradeAttempt(lv, { type: "level", price: lv.answer!.price + tol * 1.5 });
+    expect(near.checks?.[0].passed).toBe(false);
+    expect(near.checks?.[0].detail).toMatch(/Right area/);
+    const far = gradeAttempt(lv, { type: "level", price: lv.answer!.price - tol * 5 });
+    expect(far.checks?.[0].detail).toMatch(/too low/);
+  });
+
+  it("has no checklist for presence-only answers or choices", () => {
+    expect(gradeAttempt(zone(), { type: "none" }).checks).toBeNull();
+    expect(gradeAttempt(choice(), { type: "choice", choice: "respected" }).checks).toBeNull();
+  });
+});

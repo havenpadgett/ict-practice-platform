@@ -61,6 +61,9 @@ type CommonProps = {
   interactive: boolean;
   /** Show times only, never dates, on the time axis. */
   hideDates?: boolean;
+  /** Candles to shade behind (inclusive indices), e.g. the setup's candles
+   * when feedback explains the rule. */
+  highlight?: { start: number; end: number } | null;
 };
 
 type ZoneProps = CommonProps & {
@@ -148,6 +151,9 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
   const viewBox = viewBoxFor(renderedWidth ?? VIEWBOX_WIDTH);
   const [dragStart, setDragStart] = useState<PixelPoint | null>(null);
   const [isPlacingLevel, setIsPlacingLevel] = useState(false);
+  /** Pointer position over the plot while answering, for the crosshair
+   * and its price readout. */
+  const [hover, setHover] = useState<PixelPoint | null>(null);
 
   // Guided Entry and Free Trade both place labeled horizontal lines, one
   // "active" field at a time; nothing is placeable while activeField is null.
@@ -276,6 +282,7 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
     if (!interactive || props.answerType === "choice") return;
     if (isMultiLine && !hasActiveField) return;
     const point = toSvgPoint(e.clientX, e.clientY);
+    setHover(point);
 
     if (props.answerType === "level") {
       if (!isPlacingLevel) return;
@@ -310,6 +317,12 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
   function handlePointerUp() {
     setDragStart(null);
     setIsPlacingLevel(false);
+  }
+
+  function handlePointerLeave(e: React.PointerEvent<SVGSVGElement>) {
+    // A touch lifts off the glass; a mouse leaves the chart. Either way the
+    // crosshair goes, but a drag in progress keeps its captured pointer.
+    if (e.pointerType !== "mouse" || (!dragStart && !isPlacingLevel)) setHover(null);
   }
 
   const priceTicks = Array.from({ length: PRICE_TICK_COUNT }, (_, i) => {
@@ -392,8 +405,15 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
       className={`w-full select-none ${touchClass} ${cursorClass}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
+      onPointerUp={(e) => {
+        handlePointerUp();
+        if (e.pointerType !== "mouse") setHover(null);
+      }}
+      onPointerCancel={(e) => {
+        handlePointerUp();
+        handlePointerLeave(e);
+      }}
+      onPointerLeave={handlePointerLeave}
     >
       {/* Price axis gridlines + labels */}
       {priceTicks.map((price, i) => {
@@ -423,6 +443,16 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
       })}
 
       {timeContext && <ChartTimeBackground ctx={timeContext} bounds={bounds} slotW={slotW} />}
+
+      {props.highlight && (
+        <rect
+          x={candleIndexToX(layout, props.highlight.start) - slotW / 2}
+          y={bounds.top}
+          width={slotW * (props.highlight.end - props.highlight.start + 1)}
+          height={bounds.bottom - bounds.top}
+          className="fill-foreground/[0.07]"
+        />
+      )}
 
       {/* Candles */}
       {candleMarks}
@@ -689,6 +719,42 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
             </g>
           );
         })}
+
+      {/* The user's line price, on the axis, so a placed level reads as a
+          number as well as a position. */}
+      {userLevelY !== null && props.answerType === "level" && props.userLevel !== null && (
+        <PriceTag y={userLevelY} x={bounds.right} price={props.userLevel} strong />
+      )}
+
+      {/* Crosshair while answering: where a click would land, and at what
+          price. Horizontal only for line placement; both axes for boxes. */}
+      {hover && interactive && props.answerType !== "choice" && (!isMultiLine || hasActiveField) && (
+        <g pointerEvents="none">
+          <line
+            x1={bounds.left}
+            x2={bounds.right}
+            y1={hover.y}
+            y2={hover.y}
+            className="stroke-muted"
+            strokeWidth={1}
+            strokeDasharray="3 3"
+            shapeRendering="crispEdges"
+          />
+          {props.answerType === "zone" && (
+            <line
+              x1={hover.x}
+              x2={hover.x}
+              y1={bounds.top}
+              y2={bounds.bottom}
+              className="stroke-muted"
+              strokeWidth={1}
+              strokeDasharray="3 3"
+              shapeRendering="crispEdges"
+            />
+          )}
+          <PriceTag y={hover.y} x={bounds.right} price={yToPrice(layout, hover.y)} />
+        </g>
+      )}
     </svg>
     {answerShown && (
       <div className="flex flex-wrap gap-x-5 gap-y-1 px-2 pt-2 pb-1 text-xs text-muted">
@@ -705,5 +771,20 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
       </div>
     )}
     </>
+  );
+}
+
+/** A price label sitting on the right-hand axis at height `y`. */
+function PriceTag({ x, y, price, strong = false }: { x: number; y: number; price: number; strong?: boolean }) {
+  // Shown to NQ's 0.25 tick, the way a trading platform would.
+  const text = (Math.round(price * 4) / 4).toFixed(2);
+  const w = text.length * 6.3 + 8;
+  return (
+    <g pointerEvents="none">
+      <rect x={x + 2} y={y - 9} width={w} height={18} rx={3} className={strong ? "fill-foreground" : "fill-control"} />
+      <text x={x + 6} y={y} dominantBaseline="middle" className="chart-axis fill-background font-medium">
+        {text}
+      </text>
+    </g>
   );
 }

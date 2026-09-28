@@ -3,15 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { LoadingState } from "@/components/loading-state";
-import { CandlestickChart } from "@/components/practice/candlestick-chart";
-import { ChoiceControls } from "@/components/practice/choice-controls";
 import { ConceptPicker, type ActiveSessionInfo } from "@/components/practice/concept-picker";
-import { ExerciseControls } from "@/components/practice/exercise-controls";
-import { FeedbackPanel } from "@/components/practice/feedback-panel";
 import { FreeTradeExercise, type FreeTradeAttempt, type FreeTradeGradeResponse } from "@/components/practice/free-trade-exercise";
 import { ReportQuestion } from "@/components/practice/report-question";
 import { GuidedExercise, type GuidedGradeResponse } from "@/components/practice/guided-exercise";
 import { NavigationGuard } from "@/components/practice/navigation-guard";
+import { RecognitionExercise } from "@/components/practice/recognition-exercise";
 import { SessionLengthPicker } from "@/components/practice/session-length-picker";
 import { SessionSummary } from "@/components/practice/session-summary";
 import { SaveStatus } from "@/components/save-status";
@@ -22,7 +19,7 @@ import { useRequireAuth } from "@/hooks/use-require-auth";
 import { DASHBOARD_COLUMNS, fetchAttempts, insertAttempt, nextAttemptNumber, type DbAttempt, type NewAttempt } from "@/lib/attempts";
 import { describeError, type FriendlyError } from "@/lib/errors";
 import { modeFor, track, type SessionSource } from "@/lib/events";
-import { CONCEPT_LIST, getConceptMeta, type Concept } from "@/lib/concepts";
+import { CONCEPT_LIST, conceptShortName, DIFFICULTY_LABELS, getConceptMeta, type Concept } from "@/lib/concepts";
 import type { GradeResult, UserAnswer, UserRegion } from "@/lib/grading";
 import type { GuidedUserAnswer } from "@/lib/guided-grading";
 import { recordSessionCompletion } from "@/lib/profiles";
@@ -63,6 +60,9 @@ export default function PracticePage() {
   /** The key to draw on the chart, returned by the server with the verdict. */
   const [reveal, setReveal] = useState<{ zone: ZoneAnswer | null; level: number | null } | null>(null);
   const [grading, setGrading] = useState(false);
+  /** Answering the same chart again after feedback. Graded, never recorded:
+   * an immediate retry isn't independent evidence of anything. */
+  const [retrying, setRetrying] = useState(false);
   /** Guided Entry / Free Trade feedback is on screen (they grade internally). */
   const [flowGraded, setFlowGraded] = useState(false);
   /** A recognition answer whose grading request failed, for "Try again". */
@@ -320,6 +320,7 @@ export default function PracticePage() {
     setGradeError(null);
     setPendingAnswer(null);
     setFlowGraded(false);
+    setRetrying(false);
   }
 
   // A deep link (?concept=…[&difficulty=…&length=…], e.g. the dashboard's
@@ -549,14 +550,6 @@ export default function PracticePage() {
 
   const attemptedCount = session.correct_count + session.missed_exercise_ids.length;
   const isLastExercise = session.current_index === session.exercise_order.length - 1;
-  const canSubmit =
-    !grading &&
-    (exercise.answer_type === "zone"
-      ? userRegion !== null
-      : exercise.answer_type === "level"
-        ? userLevel !== null
-        : userChoice !== null);
-
   // Saving is the only async step after grading. A failure keeps the built
   // row so "Retry save" can resend it; session progress never depends on it.
   async function saveAttempt(userId: string, exerciseId: string, build: (attemptNumber: number) => NewAttempt) {
@@ -615,6 +608,7 @@ export default function PracticePage() {
       setPendingAnswer(null);
       setResult(res.grade);
       setReveal(res.reveal);
+      if (retrying) return;
       // Before the score and attempt are recorded: a refresh from here on
       // shows this feedback rather than asking (and scoring) again.
       persistProgress({ graded: { result: res.grade, reveal: res.reveal } });
@@ -645,6 +639,15 @@ export default function PracticePage() {
     setUserRegion(null);
     setUserLevel(null);
     await submitRecognition({ type: "none" }, msSince(exerciseStartRef.current));
+  }
+
+  function handleRetryChart() {
+    setRetrying(true);
+    setResult(null);
+    setReveal(null);
+    setUserRegion(null);
+    setUserLevel(null);
+    setUserChoice(null);
   }
 
   async function retryGrade() {
@@ -725,6 +728,7 @@ export default function PracticePage() {
     setGradeError(null);
     setPendingAnswer(null);
     setFlowGraded(false);
+    setRetrying(false);
     // Best-effort, off the critical path — a failure here shouldn't block
     // showing the session summary (matching how ensureProfile is called).
     if (completed && user) {
@@ -732,12 +736,40 @@ export default function PracticePage() {
     }
   }
 
+  const nextLabel = isLastExercise ? "See Results" : exercise.answer_type === "free" ? "Next Scenario" : "Next Exercise";
+  const report = (
+    <ReportQuestion
+      key={`${session.session_id}:${exercise.exercise_id}`}
+      exerciseId={exercise.exercise_id}
+      stage={result !== null || flowGraded ? "feedback" : "exercise"}
+      sessionId={session.session_id}
+    />
+  );
+  const footer = (
+    <>
+      {gradeError && exercise.answer_type !== "zone" && exercise.answer_type !== "level" && exercise.answer_type !== "choice" && (
+        <p className="mt-3 text-sm text-danger" role="alert">
+          {gradeError}
+        </p>
+      )}
+      <SaveStatus saving={saving} error={saveError} onRetry={retrySave} />
+      {report}
+    </>
+  );
+  const prompt = (
+    <div>
+      <p className="text-lg leading-snug text-foreground sm:text-xl">{exercise.prompt}</p>
+      <p className="mt-1.5 text-xs text-muted tabular-nums">
+        Score {session.correct_count}/{attemptedCount} · {DIFFICULTY_LABELS[exercise.difficulty]} · {conceptShortName(exercise.concept)}
+      </p>
+    </div>
+  );
+
   return (
     <div className="flex flex-1 flex-col">
-      <div className="page">
+      <div className="page max-w-7xl pt-6 sm:pt-8">
         {/* Everything above the chart is quiet: where you are (eyebrow +
-            thin progress line), then the prompt, then the score as a
-            footnote. The chart is the focus. */}
+            thin progress line). The chart is the focus. */}
         <div className="flex items-baseline justify-between gap-4">
           <h1 className="eyebrow">
             {conceptMeta.title}
@@ -754,7 +786,7 @@ export default function PracticePage() {
           </div>
         </div>
         <div
-          className="mt-3 h-0.5 overflow-hidden rounded-full bg-line"
+          className="mt-3 mb-6 h-0.5 overflow-hidden rounded-full bg-line"
           role="progressbar"
           aria-label="Session progress"
           aria-valuemin={0}
@@ -766,143 +798,67 @@ export default function PracticePage() {
             style={{ width: `${(session.current_index / session.exercise_order.length) * 100}%` }}
           />
         </div>
-        <p className="mt-6 text-lg leading-snug text-foreground sm:text-xl">{exercise.prompt}</p>
-        <p className="mt-1.5 text-xs text-muted tabular-nums">
-          Score {session.correct_count}/{attemptedCount} · Difficulty {exercise.difficulty} of 3
-        </p>
 
         {exercise.answer_type === "free" ? (
-          <div className="mt-6">
-            {restored?.key === progressKey && (
+          restored?.key === progressKey && (
             <FreeTradeExercise
               key={exercise.exercise_id}
               exercise={exercise}
+              prompt={prompt}
+              footer={footer}
               initialDraft={restored.draft}
               initialGraded={restored.graded}
               onDraftChange={(draft) => persistProgress({ draft })}
               onGrade={gradeFreeTradeAttempt}
               onNext={handleNext}
-              nextLabel={isLastExercise ? "See Results" : "Next Scenario"}
+              nextLabel={nextLabel}
             />
-            )}
-            {gradeError && <p className="mt-3 text-sm text-danger" role="alert">{gradeError}</p>}
-            <SaveStatus saving={saving} error={saveError} onRetry={retrySave} />
-          </div>
+          )
         ) : exercise.answer_type === "guided" ? (
-          <div className="mt-6">
-            {restored?.key === progressKey && (
+          restored?.key === progressKey && (
             <GuidedExercise
               key={exercise.exercise_id}
               exercise={exercise}
+              prompt={prompt}
+              footer={footer}
               initialDraft={restored.draft}
               initialGraded={restored.graded}
               onDraftChange={(draft) => persistProgress({ draft })}
               onGrade={gradeGuidedAnswer}
               onNext={handleNext}
-              nextLabel={isLastExercise ? "See Results" : "Next Exercise"}
+              nextLabel={nextLabel}
             />
-            )}
-            {gradeError && <p className="mt-3 text-sm text-danger" role="alert">{gradeError}</p>}
-            <SaveStatus saving={saving} error={saveError} onRetry={retrySave} />
-          </div>
+          )
         ) : (
-          <>
-            <div className="mt-6 overflow-hidden rounded-lg border border-line bg-surface p-2 sm:p-3">
-              {exercise.answer_type === "zone" ? (
-                <CandlestickChart
-                  answerType="zone"
-                  candles={exercise.candles}
-                  interactive={result === null && !grading}
-                  userRegion={userRegion}
-                  onUserRegionChange={setUserRegion}
-                  correctZone={reveal?.zone ?? null}
-                />
-              ) : exercise.answer_type === "level" ? (
-                <CandlestickChart
-                  answerType="level"
-                  candles={exercise.candles}
-                  interactive={result === null && !grading}
-                  userLevel={userLevel}
-                  onUserLevelChange={setUserLevel}
-                  correctLevel={reveal?.level ?? null}
-                />
-              ) : (
-                <CandlestickChart
-                  answerType="choice"
-                  candles={exercise.candles}
-                  interactive={false}
-                  fvgZone={exercise.fvg_zone ?? undefined}
-                  dealingRange={exercise.dealing_range ?? undefined}
-                  showEquilibrium={result !== null}
-                />
-              )}
-            </div>
-
-            <SaveStatus saving={saving} error={saveError} onRetry={retrySave} />
-
-            <div className="mt-5">
-              {gradeError ? (
-                <div role="alert">
-                  <p className="text-sm text-danger">{gradeError}</p>
-                  <div className="mt-3 flex flex-wrap gap-3">
-                    {pendingAnswer && (
-                      <button type="button" onClick={retryGrade} className="btn-primary">
-                        Try again
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={handleNext}
-                      className={pendingAnswer ? "btn-secondary" : "btn-primary"}
-                    >
-                      Skip this exercise
-                    </button>
-                  </div>
-                </div>
-              ) : grading ? (
-                <p className="text-sm text-muted" role="status">
-                  Grading…
-                </p>
-              ) : result ? (
-                <FeedbackPanel
-                  result={result}
-                  onNext={handleNext}
-                  nextLabel={isLastExercise ? "See Results" : "Next Exercise"}
-                />
-              ) : exercise.answer_type === "choice" ? (
-                <ChoiceControls
-                  options={exercise.options}
-                  selected={userChoice}
-                  onSelect={setUserChoice}
-                  onSubmit={handleSubmit}
-                  canSubmit={canSubmit}
-                />
-              ) : (
-                <ExerciseControls
-                  hint={
-                    exercise.answer_type === "zone"
-                      ? "Drag on the chart to draw a box around your answer."
-                      : "Click the chart to place a line. Drag to adjust it."
-                  }
-                  canSubmit={canSubmit}
-                  onSubmit={handleSubmit}
-                  onNoAnswer={handleNoAnswer}
-                  noAnswerLabel={exercise.noAnswerLabel}
-                />
-              )}
-            </div>
-          </>
+          <RecognitionExercise
+            exercise={exercise}
+            prompt={prompt}
+            userRegion={userRegion}
+            onUserRegionChange={setUserRegion}
+            userLevel={userLevel}
+            onUserLevelChange={setUserLevel}
+            userChoice={userChoice}
+            onUserChoiceChange={setUserChoice}
+            result={result}
+            reveal={reveal}
+            isRetry={retrying}
+            grading={grading}
+            gradeError={gradeError}
+            canRetryGrade={pendingAnswer !== null}
+            onRetryGrade={retryGrade}
+            onSkip={handleNext}
+            onSubmit={handleSubmit}
+            onNoAnswer={handleNoAnswer}
+            onNext={handleNext}
+            nextLabel={nextLabel}
+            onRetryChart={handleRetryChart}
+            footer={footer}
+          />
         )}
 
-        {/* Unanswered = unfinished; once graded there's nothing to lose. */}
-        <NavigationGuard active={result === null && !flowGraded} />
-
-        <ReportQuestion
-          key={`${session.session_id}:${exercise.exercise_id}`}
-          exerciseId={exercise.exercise_id}
-          stage={result !== null || flowGraded ? "feedback" : "exercise"}
-          sessionId={session.session_id}
-        />
+        {/* Unanswered = unfinished; once graded there's nothing to lose. A
+            retry is never recorded, so it has nothing to lose either. */}
+        <NavigationGuard active={result === null && !flowGraded && !retrying} />
       </div>
 
       <DisclaimerFooter />

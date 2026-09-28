@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { CandlestickChart } from "@/components/practice/candlestick-chart";
+import { ChartFrame, ExerciseLayout } from "@/components/practice/exercise-layout";
 import { GuidedBiasControls } from "@/components/practice/guided-bias-controls";
 import { GuidedFeedback } from "@/components/practice/guided-feedback";
 import { GuidedLevelControls } from "@/components/practice/guided-level-controls";
@@ -52,8 +53,13 @@ export function GuidedExercise({
   initialDraft,
   initialGraded,
   onDraftChange,
+  prompt,
+  footer,
 }: {
   exercise: PublicGuidedExercise;
+  prompt?: ReactNode;
+  /** Save status and the report link, under the controls. */
+  footer?: ReactNode;
   /** Called the instant the attempt is finalized (Submit Setup or No Trade
    * at any step). The parent grades it on the server and records it; null
    * means grading failed and the parent is showing why. */
@@ -127,9 +133,8 @@ export function GuidedExercise({
   const interactive = step !== "done" && !grading && pending === null;
   const activeField = step === "entry" || step === "stop" || step === "target" ? step : null;
 
-  return (
-    <div>
-      <div className="overflow-hidden rounded-lg border border-line bg-surface p-2 sm:p-3">
+  const chart = (
+      <ChartFrame>
         <CandlestickChart
           answerType="guided"
           candles={exercise.candles}
@@ -147,9 +152,15 @@ export function GuidedExercise({
           correctStop={graded?.reveal.stop ?? null}
           correctTarget={graded?.reveal.target ?? null}
         />
-      </div>
+      </ChartFrame>
+  );
 
-      <div className="mt-5">
+  return (
+    <ExerciseLayout
+      prompt={prompt}
+      chart={chart}
+      controls={
+      <div>
         {(grading || pending) && step !== "done" ? (
           grading ? (
             <p className="text-sm text-muted" role="status">Grading…</p>
@@ -200,7 +211,9 @@ export function GuidedExercise({
         {step === "done" && result && (
           <GuidedFeedback result={result} onNext={onNext} nextLabel={nextLabel} />
         )}
+        {footer}
       </div>
-    </div>
+      }
+    />
   );
 }

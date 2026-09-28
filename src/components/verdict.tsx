@@ -1,7 +1,7 @@
 // Correct / incorrect, shown so it reads without color: an icon shape
 // (check vs cross) plus a word, with color only reinforcing it.
 
-type Status = "pass" | "fail";
+type Status = "pass" | "fail" | "info";
 
 function Icon({ status, size }: { status: Status; size: number }) {
   return (
@@ -9,8 +9,10 @@ function Icon({ status, size }: { status: Status; size: number }) {
       <circle cx="8" cy="8" r="7.25" fill="none" stroke="currentColor" strokeWidth="1.5" />
       {status === "pass" ? (
         <path d="M4.75 8.25 7 10.5l4.25-4.75" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-      ) : (
+      ) : status === "fail" ? (
         <path d="M5.5 5.5l5 5m0-5-5 5" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      ) : (
+        <path d="M5 8h6" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
       )}
     </svg>
   );
@@ -26,16 +28,19 @@ export function Verdict({ correct, label }: { correct: boolean; label?: string }
   );
 }
 
-/** One line in a list of graded steps or checks. */
-export function CheckRow({ passed, label, children }: { passed: boolean; label: string; children?: React.ReactNode }) {
+/** One line in a list of graded steps or checks. `passed: null` is a
+ * measurement shown for information, with a neutral dash and no verdict. */
+export function CheckRow({ passed, label, children }: { passed: boolean | null; label: string; children?: React.ReactNode }) {
+  const status: Status = passed === null ? "info" : passed ? "pass" : "fail";
+  const tone = passed === null ? "text-muted" : passed ? "text-accent" : "text-danger";
   return (
     <li className="flex gap-3">
-      <span className={`mt-0.5 ${passed ? "text-accent" : "text-danger"}`}>
-        <Icon status={passed ? "pass" : "fail"} size={16} />
+      <span className={`mt-0.5 ${tone}`}>
+        <Icon status={status} size={16} />
       </span>
       <div>
         <p className="text-sm font-medium text-foreground">
-          {label} <span className={passed ? "text-accent" : "text-danger"}>· {passed ? "correct" : "incorrect"}</span>
+          {label} {passed !== null && <span className={tone}>· {passed ? "correct" : "incorrect"}</span>}
         </p>
         {children && <p className="mt-0.5 text-sm text-muted">{children}</p>}
       </div>

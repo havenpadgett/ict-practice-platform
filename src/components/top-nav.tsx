@@ -125,7 +125,7 @@ export function TopNav() {
   return (
     <>
       <header className="sticky top-0 z-20 border-b border-line bg-background/95 backdrop-blur">
-        <div className="mx-auto flex h-12 max-w-6xl items-center justify-between gap-4 px-4 sm:h-14 sm:px-6">
+        <div className="mx-auto flex h-12 max-w-7xl items-center justify-between gap-4 px-4 sm:h-14 sm:px-6">
           <Link
             href={signedIn ? "/dashboard" : "/"}
             className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold tracking-tight text-foreground sm:text-base"

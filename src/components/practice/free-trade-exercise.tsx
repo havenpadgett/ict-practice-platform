@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
 import { CandlestickChart } from "@/components/practice/candlestick-chart";
+import { ChartFrame, ExerciseLayout } from "@/components/practice/exercise-layout";
 import { FreeTradeFeedback } from "@/components/practice/free-trade-feedback";
 import type { FreeTradeAnswer, FreeTradeDirection } from "@/data/exercises";
 import type { PublicFreeTradeExercise as FreeTradeExerciseData } from "@/lib/public-exercise";
@@ -217,8 +218,13 @@ export function FreeTradeExercise({
   initialDraft,
   initialGraded,
   onDraftChange,
+  prompt,
+  footer,
 }: {
   exercise: FreeTradeExerciseData;
+  prompt?: ReactNode;
+  /** Save status and the report link, under the controls. */
+  footer?: ReactNode;
   /** Called once the scenario ends (trade closed, End Session, or playback
    * ran out). The parent grades it on the server and records it; null means
    * grading failed and the parent is showing why. */
@@ -306,11 +312,10 @@ export function FreeTradeExercise({
 
   const key = graded?.key ?? null;
 
-  return (
+  const chart = (
     <div>
-      <p className="eyebrow">{exercise.title}</p>
-
-      <div className="mt-2 overflow-hidden rounded-lg border border-line bg-surface p-2 sm:p-3">
+      <p className="eyebrow mb-2">{exercise.title}</p>
+      <ChartFrame>
         <CandlestickChart
           answerType="free"
           candles={candles}
@@ -332,15 +337,21 @@ export function FreeTradeExercise({
           idealStopZone={key?.stop_zone ?? null}
           idealTarget={key?.target ?? null}
         />
-      </div>
-
+      </ChartFrame>
       {!done && (
         <p className="mt-2 text-xs text-muted">
           Playback {state.revealed} / {hiddenCount}
         </p>
       )}
+    </div>
+  );
 
-      <div className="mt-4">
+  return (
+    <ExerciseLayout
+      prompt={prompt}
+      chart={chart}
+      controls={
+      <div>
         {done ? (
           graded ? (
             <FreeTradeFeedback
@@ -478,7 +489,9 @@ export function FreeTradeExercise({
             )}
           </div>
         )}
+        {footer}
       </div>
-    </div>
+      }
+    />
   );
 }
