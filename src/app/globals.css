@@ -91,6 +91,27 @@ h4 {
   border-radius: 6px;
 }
 
+/* Phones: room at the bottom of the page for the fixed tab bar
+ * (src/components/top-nav.tsx), so nothing ends up underneath it. */
+@media (max-width: 639px) {
+  body:has(.bottom-nav) {
+    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* Respect a reduced-motion preference: no pulsing skeletons, no animated
+ * transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Loading placeholders appear only if loading takes a moment, so a fast
  * load never flashes them. */
 @keyframes appear {

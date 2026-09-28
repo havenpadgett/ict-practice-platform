@@ -152,6 +152,10 @@ export async function nextAttemptNumber(
   return (count ?? 0) + 1;
 }
 
+/** Fired on window after an attempt is saved, so anything showing derived
+ * counts (the nav's open-mistakes badge) can refresh. */
+export const ATTEMPTS_CHANGED_EVENT = "ict:attempts-changed";
+
 export async function insertAttempt(
   userId: string,
   attempt: NewAttempt,
@@ -161,6 +165,7 @@ export async function insertAttempt(
     .from("attempts")
     .insert({ ...attempt, user_id: userId });
   if (error) throw error;
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(ATTEMPTS_CHANGED_EVENT));
 }
 
 /** Migrates attempts recorded before sign-in (in localStorage) to the
