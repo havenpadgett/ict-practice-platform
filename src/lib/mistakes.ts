@@ -5,9 +5,11 @@
 // answers themselves come from the server (src/app/mistakes/actions.ts).
 
 /** An exercise with at least one incorrect attempt is a mistake. It's
- * mastered once the user's most recent attempt at it is correct, and open
- * again if they miss it after that. */
-export type MistakeStatus = "open" | "mastered";
+ * cleared once the user's most recent attempt at it is correct, and open
+ * again if they miss it after that. "Cleared", not "mastered": one correct
+ * retry isn't mastery. Mastery would need correct answers across separate
+ * sessions (spaced repetition, docs/APP_PERFECTION_PLAN.md → Later). */
+export type MistakeStatus = "open" | "cleared";
 
 export type MistakeSummary = {
   exercise_id: string;
@@ -17,7 +19,7 @@ export type MistakeSummary = {
   /** The most recent incorrect attempt. */
   lastMissedAt: string;
   /** When the latest (correct) attempt was made; null while open. */
-  masteredAt: string | null;
+  clearedAt: string | null;
 };
 
 type AttemptLike = { exercise_id: string; is_correct: boolean; created_at: string };
@@ -39,10 +41,10 @@ export function summarizeMistakes(attempts: AttemptLike[]): MistakeSummary[] {
     const latest = sorted[sorted.length - 1];
     out.push({
       exercise_id,
-      status: latest.is_correct ? "mastered" : "open",
+      status: latest.is_correct ? "cleared" : "open",
       missed: misses.length,
       lastMissedAt: misses[misses.length - 1].created_at,
-      masteredAt: latest.is_correct ? latest.created_at : null,
+      clearedAt: latest.is_correct ? latest.created_at : null,
     });
   }
   return out.sort((a, b) =>
@@ -50,11 +52,11 @@ export function summarizeMistakes(attempts: AttemptLike[]): MistakeSummary[] {
   );
 }
 
-export function mistakeCounts(attempts: AttemptLike[]): { open: number; mastered: number } {
+export function mistakeCounts(attempts: AttemptLike[]): { open: number; cleared: number } {
   const all = summarizeMistakes(attempts);
   return {
     open: all.filter((m) => m.status === "open").length,
-    mastered: all.filter((m) => m.status === "mastered").length,
+    cleared: all.filter((m) => m.status === "cleared").length,
   };
 }
 

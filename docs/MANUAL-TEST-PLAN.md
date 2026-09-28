@@ -69,9 +69,9 @@
 - [ ] 37. Answer an exercise, then refresh before pressing Next. **Expect:** the feedback is still shown, and the score doesn't go up a second time. SQL editor: only one new `attempts` row for it.
 - [ ] 38. Place a Guided Entry bias and entry, or play a few Free Trade candles, then refresh. **Expect:** the flow resumes where you left it, with playback paused.
 - [ ] 39. With an unanswered exercise on screen, click **Dashboard** in the nav. **Expect:** a "Leave this exercise?" prompt. Cancel stays put. Closing or reloading the tab shows the browser's own prompt. Once answered, there's no prompt.
-- [ ] 40. Get at least one exercise wrong, then open `/dashboard`. **Expect:** a **Review mistakes** card with "N to review · M mastered".
+- [ ] 40. Get at least one exercise wrong, then open `/dashboard`. **Expect:** a **Review mistakes** card with "N to review · M cleared".
 - [ ] 41. **See all** → `/mistakes`. **Expect:** each missed exercise with your answer, the correct answer and the explanation.
-- [ ] 42. **Retry** one and answer it correctly. **Expect:** back on `/mistakes` it's under **Mastered**, and the dashboard's mastered count is up by one.
+- [ ] 42. **Retry** one and answer it correctly. **Expect:** back on `/mistakes` it's under **Cleared**, and the dashboard's cleared count is up by one.
 - [ ] 43. `/practice` → **Review mistakes** (or **Practice mistakes** on the dashboard). **Expect:** a "Review Mistakes" session of only the exercises you last got wrong. `practice_events`: `mode = mistakes`, `source = mistakes`. This needs migration `20260927140000`.
 - [ ] 44. On any exercise, click **Report a problem**, pick **Something else** and try to send without a note. **Expect:** Send stays disabled until you type a note. Send it. **Expect:** "Thanks, your report was sent." SQL editor: a `question_reports` row with the exercise id, `stage = exercise` and your session id. This needs migration `20260927150000`.
 - [ ] 45. Report the same exercise from its feedback, signed in as the second account. **Expect:** a row with `stage = feedback`. As admin on `/admin`, **Question reports** shows 2 open reports for it, and **Flagged for re-review** lists it under "Reports". **Mark re-reviewed** removes it from the flagged list.

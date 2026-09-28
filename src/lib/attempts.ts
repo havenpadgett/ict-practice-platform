@@ -107,6 +107,7 @@ export const NULL_FREE_TRADE_FIELDS = {
 export const DASHBOARD_COLUMNS = [
   "id",
   "exercise_id",
+  "session_id",
   "concept",
   "difficulty",
   "answer_type",

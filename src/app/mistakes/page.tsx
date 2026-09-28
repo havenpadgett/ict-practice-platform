@@ -23,9 +23,9 @@ function MistakeCard({ item }: { item: MistakeItem }) {
         <p className="eyebrow">
           {item.conceptLabel} · {DIFFICULTY_LABELS[item.difficulty]}
         </p>
-        <p className={`eyebrow ${item.status === "mastered" ? "text-accent" : ""}`}>
-          {item.status === "mastered"
-            ? `Mastered ${item.masteredAt ? formatDate(item.masteredAt) : ""}`
+        <p className={`eyebrow ${item.status === "cleared" ? "text-accent" : ""}`}>
+          {item.status === "cleared"
+            ? `Cleared ${item.clearedAt ? formatDate(item.clearedAt) : ""}`
             : `Missed ${item.missed === 1 ? "once" : `${item.missed} times`} · last ${formatDate(item.lastMissedAt)}`}
         </p>
       </div>
@@ -40,7 +40,7 @@ function MistakeCard({ item }: { item: MistakeItem }) {
       <div className="mt-4">
         {item.retryable ? (
           <Link href={`/practice?retry=${encodeURIComponent(item.exercise_id)}`} className="btn-secondary">
-            {item.status === "mastered" ? "Practice again" : "Retry"}
+            {item.status === "cleared" ? "Practice again" : "Retry"}
           </Link>
         ) : (
           <p className="text-xs text-muted">This exercise has been withdrawn, so it can&apos;t be retried.</p>
@@ -74,7 +74,7 @@ export default function MistakesPage() {
   }, [user]);
 
   const open = items?.filter((i) => i.status === "open") ?? [];
-  const mastered = items?.filter((i) => i.status === "mastered") ?? [];
+  const cleared = items?.filter((i) => i.status === "cleared") ?? [];
   const retryableOpen = open.filter((i) => i.retryable).length;
 
   return (
@@ -106,7 +106,7 @@ export default function MistakesPage() {
         <>
           <div className="mt-8 grid grid-cols-2 gap-4">
             <StatCard label="To review" value={String(open.length)} />
-            <StatCard label="Mastered" value={String(mastered.length)} />
+            <StatCard label="Cleared" value={String(cleared.length)} />
           </div>
           {retryableOpen > 0 && (
             <Link href="/practice?mode=mistakes" className="mt-6 btn-primary">
@@ -124,12 +124,12 @@ export default function MistakesPage() {
               </ul>
             </section>
           )}
-          {mastered.length > 0 && (
+          {cleared.length > 0 && (
             <section className="mt-10">
-              <h2 className="eyebrow">Mastered</h2>
+              <h2 className="eyebrow">Cleared</h2>
               <p className="mt-1 text-sm text-muted">Missed before, answered correctly since.</p>
               <ul className="mt-3 space-y-4">
-                {mastered.map((item) => (
+                {cleared.map((item) => (
                   <MistakeCard key={item.exercise_id} item={item} />
                 ))}
               </ul>

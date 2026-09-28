@@ -1,5 +1,5 @@
 // Review Mistakes (src/lib/mistakes.ts, src/app/mistakes/). A mistake is an
-// exercise with an incorrect attempt; it's mastered while the latest
+// exercise with an incorrect attempt; it's cleared while the latest
 // attempt is correct. Keys and explanations come back only for exercises
 // the user has actually missed.
 
@@ -19,25 +19,25 @@ describe("summarizeMistakes", () => {
     const rows = [
       at("a", false, 1), // missed, never retried: open
       at("b", false, 2),
-      at("b", true, 3), // missed then right: mastered
+      at("b", true, 3), // missed then right: cleared
       at("c", true, 4), // never missed: not a mistake
       at("d", false, 5),
       at("d", true, 6),
-      at("d", false, 7), // mastered then missed again: open
+      at("d", false, 7), // cleared then missed again: open
     ];
     const s = summarizeMistakes(rows);
     expect(s.map((m) => [m.exercise_id, m.status, m.missed])).toEqual([
       ["d", "open", 2],
       ["a", "open", 1],
-      ["b", "mastered", 1],
+      ["b", "cleared", 1],
     ]);
-    expect(s.find((m) => m.exercise_id === "b")!.masteredAt).toBe(rows[2].created_at);
-    expect(mistakeCounts(rows)).toEqual({ open: 2, mastered: 1 });
+    expect(s.find((m) => m.exercise_id === "b")!.clearedAt).toBe(rows[2].created_at);
+    expect(mistakeCounts(rows)).toEqual({ open: 2, cleared: 1 });
   });
 
   it("doesn't depend on the order rows arrive in", () => {
     const rows = [at("b", true, 3), at("b", false, 2)];
-    expect(summarizeMistakes(rows)[0].status).toBe("mastered");
+    expect(summarizeMistakes(rows)[0].status).toBe("cleared");
   });
 
   it("builds a mistakes session from open, available mistakes only, capped", () => {
@@ -149,7 +149,7 @@ describe("loadMistakes", () => {
     expect(res.items.map((i) => [i.exercise_id, i.status, i.retryable])).toEqual([
       [unready.exercise_id, "open", false],
       [missed.exercise_id, "open", true],
-      [retired.exercise_id, "mastered", true],
+      [retired.exercise_id, "cleared", true],
     ]);
     expect(res.items.some((i) => i.exercise_id === right.exercise_id)).toBe(false);
     expect(JSON.stringify(res.items)).not.toContain(describeCorrect(right).correctAnswer);

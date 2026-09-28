@@ -6,24 +6,19 @@ import { MigrationPrompt } from "@/components/auth/migration-prompt";
 import { ErrorBanner } from "@/components/error-banner";
 import { LoadingState } from "@/components/loading-state";
 import { RecommendedSession } from "@/components/recommended-session";
-import { StatCard } from "@/components/stat-card";
+import { MetricStrip } from "@/components/metric-strip";
+import { SkillRows, type SkillRow } from "@/components/skill-rows";
 import { useRequireAuth } from "@/hooks/use-require-auth";
-import {
-  DASHBOARD_COLUMNS,
-  fetchAttempts,
-  getAccuracyByConcept,
-  getExercisesCompletedCount,
-  getOverallAccuracy,
-  migrateLocalAttempts,
-  type DbAttempt,
-} from "@/lib/attempts";
-import { CONCEPTS, type Concept } from "@/lib/concepts";
+import { DASHBOARD_COLUMNS, fetchAttempts, migrateLocalAttempts, type DbAttempt } from "@/lib/attempts";
+import { conceptDisplayName, conceptShortName } from "@/lib/concepts";
 import { fetchProfile } from "@/lib/profiles";
 import { describeError } from "@/lib/errors";
 import { trackRecommendationShown } from "@/lib/events";
 import { mistakeCounts } from "@/lib/mistakes";
-import { recommendSession } from "@/lib/recommendations";
-import { clearLocalAttempts, getSessionScoreLabel, loadAttempts, loadSession } from "@/lib/storage";
+import { LIQUIDITY_VARIANT, MIN_ATTEMPTS_FOR_ACCURACY, RECOGNITION_CONCEPTS, TRADE_CONCEPTS } from "@/lib/practice-modes";
+import { attemptsSince, conceptTrend, recentSessions } from "@/lib/progress";
+import { recommendSession, scoreConcepts } from "@/lib/recommendations";
+import { clearLocalAttempts, loadAttempts } from "@/lib/storage";
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useRequireAuth();
@@ -111,8 +106,7 @@ export default function DashboardPage() {
     // Same shell as the loaded page, so nothing moves when data arrives.
     return (
       <div className="page">
-        <h1 className="page-title">Dashboard</h1>
-        <p className="page-lede">Your practice progress at a glance.</p>
+        <DashboardHeader streak={null} weekCount={null} />
         <div className="mt-8">
           <LoadingState label="Loading your stats…" variant="stats" />
         </div>
@@ -122,28 +116,9 @@ export default function DashboardPage() {
 
   const showMigrationPrompt = localCount > 0 && !migrationDismissed;
 
-  const accuracy = attempts ? getOverallAccuracy(attempts) : null;
-  const byConcept = attempts ? getAccuracyByConcept(attempts) : {};
-
-  const STATS = [
-    { label: "Overall Accuracy", value: accuracy === null ? "—" : `${accuracy}%` },
-    { label: "Exercises Completed", value: attempts ? String(getExercisesCompletedCount(attempts)) : "—" },
-    { label: "Session Score", value: getSessionScoreLabel(loadSession()) },
-    { label: "Practice Streak", value: streak === null ? "—" : `${streak} day${streak === 1 ? "" : "s"}` },
-  ];
-
-  const conceptStats = (Object.keys(CONCEPTS) as Concept[]).map((concept) => ({
-    concept,
-    label: CONCEPTS[concept].pickerLabel,
-    value: byConcept[concept],
-  }));
-
   return (
     <div className="page">
-      <h1 className="page-title">
-        Dashboard
-      </h1>
-      <p className="page-lede">Your practice progress at a glance.</p>
+      <DashboardHeader streak={streak} weekCount={attempts ? attemptsSince(attempts, 7).length : null} />
 
       {showMigrationPrompt && (
         <div className="mt-6">
@@ -168,83 +143,156 @@ export default function DashboardPage() {
       ) : attempts && attempts.length === 0 ? (
         // A brand-new account: no empty stat tiles, just where to begin.
         <div className="mt-8 space-y-6">
-          <div className="card">
-            <p className="eyebrow">Getting started</p>
-            <h2 className="mt-2 text-xl">Your stats start with your first session</h2>
-            <p className="mt-2 text-sm text-muted">
-              Accuracy, streaks and per-concept breakdowns appear here once you&apos;ve answered a few exercises. Each
-              one takes under a minute, and every answer comes with an explanation.
-            </p>
-          </div>
           <RecommendedSession recommendation={recommendSession(attempts)} />
+          <p className="text-sm text-muted">
+            Accuracy, streaks and per-concept progress appear here after your first session. Each exercise takes about a
+            minute, and every answer comes with an explanation.
+          </p>
         </div>
-      ) : (
-        <>
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {STATS.map((stat) => (
-              <StatCard key={stat.label} label={stat.label} value={stat.value} />
-            ))}
-          </div>
-
-          <div className="mt-8">
-            <p className="eyebrow">
-              Accuracy by Concept
-            </p>
-            <div className="mt-3 grid grid-cols-2 gap-4">
-              {conceptStats.map((stat) => (
-                <StatCard
-                  key={stat.concept}
-                  label={stat.label}
-                  value={stat.value === undefined ? "—" : `${stat.value}%`}
-                />
-              ))}
-            </div>
-          </div>
-
-          {attempts && (
-            <div className="mt-8">
-              <RecommendedSession recommendation={recommendSession(attempts)} />
-            </div>
-          )}
-
-          {attempts && <MistakesCard counts={mistakeCounts(attempts)} />}
-        </>
-      )}
-
-      <div className="mt-10">
-        <Link href="/practice" className="btn-secondary">
-          Browse all concepts
-        </Link>
-      </div>
+      ) : attempts ? (
+        <DashboardContent attempts={attempts} streak={streak} />
+      ) : null}
     </div>
   );
 }
 
-/** Open mistakes and how many have been mastered (src/lib/mistakes.ts). */
-function MistakesCard({ counts }: { counts: { open: number; mastered: number } }) {
-  if (counts.open === 0 && counts.mastered === 0) return null;
+function DashboardHeader({ streak, weekCount }: { streak: number | null; weekCount: number | null }) {
+  const parts = [
+    streak ? `${streak}-day streak` : null,
+    weekCount !== null ? `${weekCount} exercise${weekCount === 1 ? "" : "s"} this week` : null,
+  ].filter(Boolean);
   return (
-    <div className="card mt-8">
-      <p className="eyebrow">Review mistakes</p>
-      <p className="mt-2 text-base font-semibold text-foreground">
-        {counts.open === 0 ? "All caught up" : `${counts.open} to review`}
-        <span className="font-normal text-muted"> · {counts.mastered} mastered</span>
-      </p>
-      <p className="mt-1 text-sm text-muted">
-        {counts.open === 0
-          ? "Every exercise you've missed, you've since answered correctly."
-          : "Exercises you last answered incorrectly. Get one right and it counts as mastered."}
-      </p>
-      <div className="mt-4 flex flex-wrap gap-3">
-        {counts.open > 0 && (
-          <Link href="/practice?mode=mistakes" className="btn-primary">
-            Practice mistakes
-          </Link>
+    <>
+      <h1 className="page-title">Dashboard</h1>
+      <p className="page-lede">{parts.length > 0 ? parts.join(" · ") : "Your practice at a glance."}</p>
+    </>
+  );
+}
+
+function DashboardContent({ attempts, streak }: { attempts: DbAttempt[]; streak: number | null }) {
+  const recommendation = recommendSession(attempts);
+  const mistakes = mistakeCounts(attempts);
+  const { concepts } = scoreConcepts(attempts);
+  const byConcept = new Map(concepts.map((c) => [c.concept, c]));
+  const correct = attempts.filter((a) => a.is_correct).length;
+  const week = attemptsSince(attempts, 7);
+  const weekCorrect = week.filter((a) => a.is_correct).length;
+
+  const skillRows: SkillRow[] = [...RECOGNITION_CONCEPTS, LIQUIDITY_VARIANT, ...TRADE_CONCEPTS].map((concept) => {
+    const score = byConcept.get(concept);
+    return {
+      key: concept,
+      label: conceptDisplayName(concept),
+      shortLabel: conceptShortName(concept),
+      attempts: score?.attempts ?? 0,
+      accuracy: score?.accuracy ?? 0,
+      trend: conceptTrend(attempts.filter((a) => a.concept === concept)),
+    };
+  });
+  // Practiced concepts first (in teaching order), then the ones not tried.
+  skillRows.sort((a, b) => Number(b.attempts > 0) - Number(a.attempts > 0));
+
+  const sessions = recentSessions(attempts, 4);
+
+  return (
+    <div className="mt-8 space-y-section">
+      <div className="space-y-4">
+        <RecommendedSession recommendation={recommendation} />
+        {mistakes.open > 0 && (
+          <div className="flex flex-col gap-3 rounded-lg border border-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                {mistakes.open} mistake{mistakes.open === 1 ? "" : "s"} to review
+              </p>
+              <p className="mt-0.5 text-sm text-muted">
+                Charts you last answered incorrectly. {mistakes.cleared} cleared so far.
+              </p>
+            </div>
+            <div className="flex shrink-0 flex-wrap gap-3">
+              <Link href="/practice?mode=mistakes" className="btn-secondary">
+                Review {mistakes.open} mistake{mistakes.open === 1 ? "" : "s"}
+              </Link>
+              <Link href="/mistakes" className="btn-link">
+                See all
+              </Link>
+            </div>
+          </div>
         )}
-        <Link href="/mistakes" className="btn-secondary">
-          See all
-        </Link>
       </div>
+
+      <section aria-labelledby="dash-summary">
+        <h2 id="dash-summary" className="sr-only">
+          Summary
+        </h2>
+        <MetricStrip
+          metrics={[
+            {
+              label: "Accuracy",
+              value: attempts.length >= MIN_ATTEMPTS_FOR_ACCURACY ? `${Math.round((correct / attempts.length) * 100)}%` : "—",
+              detail: `${attempts.length} attempt${attempts.length === 1 ? "" : "s"} all time`,
+            },
+            {
+              label: "This week",
+              value: String(week.length),
+              detail:
+                week.length >= MIN_ATTEMPTS_FOR_ACCURACY ? `${Math.round((weekCorrect / week.length) * 100)}% correct` : "exercises answered",
+            },
+            { label: "Streak", value: streak === null ? "—" : `${streak} day${streak === 1 ? "" : "s"}`, detail: "days practiced in a row" },
+            { label: "Mistakes cleared", value: String(mistakes.cleared), detail: `${mistakes.open} still open` },
+          ]}
+        />
+      </section>
+
+      <section aria-labelledby="dash-concepts">
+        <div className="flex items-baseline justify-between gap-4">
+          <h2 id="dash-concepts" className="text-lg">
+            Concept progress
+          </h2>
+          <Link href="/analytics" className="btn-link">
+            Analytics
+          </Link>
+        </div>
+        <p className="mt-1 text-sm text-muted">
+          Accuracy shows once a concept has {MIN_ATTEMPTS_FOR_ACCURACY} attempts. Trend compares your last 5 with the 5
+          before.
+        </p>
+        <div className="mt-3">
+          <SkillRows rows={skillRows} />
+        </div>
+      </section>
+
+      {sessions.length > 0 && (
+        <section aria-labelledby="dash-recent">
+          <h2 id="dash-recent" className="text-lg">
+            Recent sessions
+          </h2>
+          <ul className="mt-3 divide-y divide-line">
+            {sessions.map((s) => (
+              <li key={s.sessionId} className="flex items-baseline justify-between gap-4 py-3 text-sm">
+                <span className="min-w-0 truncate text-foreground">
+                  {s.concepts.length > 2 ? "Mixed session" : s.concepts.map(conceptShortName).join(" + ")}
+                  <span className="ml-2 text-xs text-muted">{formatDay(s.endedAt)}</span>
+                </span>
+                <span className="shrink-0 tabular-nums text-muted">
+                  <span className="text-foreground">
+                    {s.correct}/{s.total}
+                  </span>{" "}
+                  correct
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
+}
+
+function formatDay(iso: string): string {
+  const d = new Date(iso);
+  const today = new Date();
+  const yesterday = new Date(Date.now() - 86_400_000);
+  if (d.toDateString() === today.toDateString()) return "Today";
+  if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }

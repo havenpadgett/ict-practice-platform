@@ -20,7 +20,7 @@ export type MistakeItem = {
   status: MistakeStatus;
   missed: number;
   lastMissedAt: string;
-  masteredAt: string | null;
+  clearedAt: string | null;
   /** What the user answered on their most recent miss. */
   yourAnswer: string;
   correctAnswer: string;
@@ -78,7 +78,7 @@ export async function loadMistakes(): Promise<{ ok: true; items: MistakeItem[] }
       status: m.status,
       missed: m.missed,
       lastMissedAt: m.lastMissedAt,
-      masteredAt: m.masteredAt,
+      clearedAt: m.clearedAt,
       yourAnswer: describeAnswer(e, lastMiss),
       ...describeCorrect(e),
       retryable: isPracticeReady(e),
