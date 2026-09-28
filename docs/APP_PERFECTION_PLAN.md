@@ -99,6 +99,7 @@ These are launch blockers. None of them is worked around or quietly softened.
 - [ ] **P3-2 `usePracticeSession()` hook.** Not done. The page still owns session orchestration, persistence and save/retry. It's a larger refactor that should be done properly on its own, with the session-recovery tests extended first.
 - [ ] **P3-3 E2E tests (Phase 25).** Not done: there's no browser test runner in the repo (Playwright would be a new dependency). Unit tests cover grading, the engine, recovery, errors and the demo gate. Flows were walked by hand in the browser pane each batch.
 - [x] **P3-5 Reporting (Phase 26).** After feedback the link reads "Think this answer is wrong? Report it". New reason "The explanation is unclear", and the app version (package version + Vercel commit) is stored with each report (migration `20260928120000`, PGlite-tested). Until that migration runs, the action falls back to the old columns and files unclear-explanation reports as "other" with a note. The user's answer, concept and difficulty aren't copied: `session_id` + `exercise_id` join to the attempt row, and the expected answer is the key in the repo.
+- [x] **P3-6 Portfolio page (Phase 30).** `/about` ("How it works", linked from every footer): the problem, the solution, how a drawn answer is graded, what's built, and an honest status line. For someone who knows software but not ICT.
 - [ ] **P3-4 Scenario metadata tracking (Phase 14/26).** Report count and miss rate per exercise already exist on `/admin` (once B4's migrations run). Abandonment per exercise isn't tracked.
 
 ---
