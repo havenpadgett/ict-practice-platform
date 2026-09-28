@@ -122,6 +122,18 @@ export function loadAttempts(): StoredAttempt[] {
   }
 }
 
+/** Keeps an attempt made without an account ("Try a sample") on this
+ * device, so the dashboard can offer to save it once the user signs up
+ * (the same migration as the original pre-account attempts). */
+export function appendLocalAttempt(attempt: StoredAttempt): void {
+  if (!isBrowser()) return;
+  try {
+    window.localStorage.setItem(ATTEMPTS_KEY, JSON.stringify([...loadAttempts(), attempt]));
+  } catch {
+    // Storage full or blocked: the sample still works, it just isn't kept.
+  }
+}
+
 /** Clears attempts recorded before sign-in, once they've been migrated to
  * the user's Supabase account (see src/lib/attempts.ts). */
 export function clearLocalAttempts(): void {

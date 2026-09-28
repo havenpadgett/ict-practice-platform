@@ -10,7 +10,8 @@ import { createClient } from "@/lib/supabase/client";
 type Mode = "sign_in" | "sign_up";
 
 export function AuthForm() {
-  const [mode, setMode] = useState<Mode>("sign_in");
+  const searchParamsForMode = useSearchParams();
+  const [mode, setMode] = useState<Mode>(searchParamsForMode.get("mode") === "signup" ? "sign_up" : "sign_in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);

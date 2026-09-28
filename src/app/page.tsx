@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { PrimaryButton } from "@/components/primary-button";
+import { ProductPreview } from "@/components/product-preview";
 
 // Every claim here describes something that exists in the app today
 // (README.md "What's built"). No statistics, testimonials or performance
@@ -54,6 +55,13 @@ const MODES = [
   },
 ];
 
+const LOOP = [
+  { step: "1", name: "Draw", detail: "Mark the setup on the chart: a box, a line, or \u201cthere isn\u2019t one\u201d." },
+  { step: "2", name: "Submit", detail: "Graded against a written rule with fixed tolerances, never by eye." },
+  { step: "3", name: "Compare", detail: "Your answer stays solid; the correct one appears dashed beside it." },
+  { step: "4", name: "Understand", detail: "Each test is measured: coverage, size, candles, distance, with the rule behind it." },
+];
+
 const HOW = [
   {
     name: "Hand-built practice charts",
@@ -75,27 +83,46 @@ const HOW = [
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col">
-      <div className="mx-auto w-full max-w-4xl flex-1 px-4 pt-16 pb-20 sm:px-6 sm:pt-24">
+      <div className="mx-auto w-full max-w-6xl flex-1 px-4 pt-12 pb-20 sm:px-6 sm:pt-20">
         {/* Hero */}
-        <section className="max-w-2xl">
-          <p className="eyebrow">ICT concepts · NQ-style charts · Practice</p>
-          <h1 className="mt-4 text-4xl leading-[1.05] sm:text-6xl">
-            Stop watching setups. Start spotting them.
-          </h1>
-          <p className="mt-6 text-base sm:text-lg">
-            Graded practice for reading ICT concepts on NQ-style price charts. Mark your answer on the chart and get immediate
-            feedback that explains the rule, whether you were right or wrong.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <PrimaryButton href="/dashboard">Start practicing</PrimaryButton>
-            <Link href="/login" className="btn-secondary">
-              Log in
-            </Link>
+        <section className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+          <div className="max-w-xl">
+            <p className="eyebrow">ICT concepts · NQ-style charts · Practice</p>
+            <h1 className="mt-4 text-4xl leading-[1.05] sm:text-6xl">
+              Stop watching setups. Start spotting them.
+            </h1>
+            <p className="mt-6 text-base sm:text-lg">
+              Graded practice for reading ICT concepts on NQ-style price charts. Mark your answer on the chart and get
+              immediate feedback that explains the rule, whether you were right or wrong.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <PrimaryButton href="/try">Try 3 charts, no account</PrimaryButton>
+              <Link href="/login?mode=signup" className="btn-secondary">
+                Create an account
+              </Link>
+            </div>
+            <p className="mt-6 text-xs">
+              For educational purposes only. Not financial advice, and not a trading system: this trains chart
+              reading and makes no claim about trading results.
+            </p>
           </div>
-          <p className="mt-6 text-xs">
-            For educational purposes only. Not financial advice, and not a trading system: this trains chart
-            reading and makes no claim about trading results.
-          </p>
+          <ProductPreview />
+        </section>
+
+        {/* The loop */}
+        <section className="mt-24" aria-labelledby="loop-heading">
+          <h2 id="loop-heading" className="sr-only">
+            How practice works
+          </h2>
+          <ol className="grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+            {LOOP.map((l) => (
+              <li key={l.name} className="bg-background p-5 sm:p-6">
+                <p className="eyebrow">Step {l.step}</p>
+                <h3 className="mt-2 text-base">{l.name}</h3>
+                <p className="mt-1.5 text-sm">{l.detail}</p>
+              </li>
+            ))}
+          </ol>
         </section>
 
         {/* Concepts */}
@@ -148,10 +175,10 @@ export default function Home() {
         {/* Closing CTA */}
         <section className="card mt-24 flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-xl">Start with a short session.</h2>
-            <p className="mt-1 text-sm">Sign up with an email and password. Your attempts are visible only to you.</p>
+            <h2 className="text-xl">Start with three charts.</h2>
+            <p className="mt-1 text-sm">No account needed to try it. Sign up to save your answers; they&apos;re visible only to you.</p>
           </div>
-          <PrimaryButton href="/dashboard">Start practicing</PrimaryButton>
+          <PrimaryButton href="/try">Try 3 charts, no account</PrimaryButton>
         </section>
       </div>
 
