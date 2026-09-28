@@ -54,28 +54,6 @@ export function getOverallStats(attempts: DbAttempt[]): OverallStats {
   };
 }
 
-export type ConceptHighlight = { concept: string; accuracy: number };
-
-/** Named plainly per the strongest/weakest concept, from the same
- * accuracy-by-concept map the dashboard already computes (getAccuracyByConcept
- * in attempts.ts). Returns null only when no concept has any attempts yet. */
-export function getStrongestAndWeakestConcept(
-  byConcept: Record<string, number>,
-): { strongest: ConceptHighlight; weakest: ConceptHighlight } | null {
-  const entries = Object.entries(byConcept);
-  if (entries.length === 0) return null;
-  let strongest = entries[0];
-  let weakest = entries[0];
-  for (const entry of entries) {
-    if (entry[1] > strongest[1]) strongest = entry;
-    if (entry[1] < weakest[1]) weakest = entry;
-  }
-  return {
-    strongest: { concept: strongest[0], accuracy: strongest[1] },
-    weakest: { concept: weakest[0], accuracy: weakest[1] },
-  };
-}
-
 export type ExerciseAccuracy = {
   exerciseId: string;
   /** answerLabel of the exercise (e.g. "Fair Value Gap"), falling back to

@@ -14,7 +14,7 @@ export function GuidedStepAccuracyBars({ steps }: { steps: GuidedStepAccuracy[] 
   return (
     <div className="space-y-4">
       {steps.map((step) => (
-        <AccuracyBar key={step.step} label={STEP_LABELS[step.step]} accuracy={step.accuracy} />
+        <AccuracyBar key={step.step} label={STEP_LABELS[step.step]} accuracy={step.accuracy} sublabel={`${step.count} reached`} />
       ))}
     </div>
   );

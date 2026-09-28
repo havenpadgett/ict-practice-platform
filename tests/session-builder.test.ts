@@ -63,3 +63,32 @@ describe("session insight", () => {
     expect(sessionInsight([], conceptOf)).toBe("");
   });
 });
+
+import { analyticsInsight } from "@/lib/analytics-insight";
+import { filterAttempts } from "@/lib/progress";
+import type { DbAttempt } from "@/lib/attempts";
+
+describe("analytics insight and filters", () => {
+  const at = (concept: string, is_correct: boolean, daysAgo: number) =>
+    ({ concept, is_correct, created_at: new Date(Date.now() - daysAgo * 86_400_000).toISOString(), exercise_id: "x" }) as DbAttempt;
+
+  it("won't name a strongest or weakest concept from tiny samples", () => {
+    const rows = [at("FVG", true, 1), at("Liquidity", false, 1), ...Array.from({ length: 6 }, () => at("MSS", true, 1))];
+    expect(analyticsInsight(rows, "all time")).toMatch(/Practice at least two concepts/);
+  });
+
+  it("names strongest and weakest once two concepts have enough attempts", () => {
+    const rows = [...Array.from({ length: 6 }, () => at("FVG", true, 1)), ...Array.from({ length: 6 }, (_, i) => at("MSS", i < 2, 1))];
+    const text = analyticsInsight(rows, "all time");
+    expect(text).toMatch(/Strongest: FVG \(100% of 6\)/);
+    expect(text).toMatch(/most work: MSS \(33% of 6\)/);
+  });
+
+  it("filters by period, mode and concept", () => {
+    const rows = [at("FVG", true, 2), at("FVG", true, 20), at("GuidedEntry", false, 2), at("FreeTrade", true, 40)];
+    expect(filterAttempts(rows, { days: 7, mode: "all", concept: "all" })).toHaveLength(2);
+    expect(filterAttempts(rows, { days: null, mode: "recognition", concept: "all" })).toHaveLength(2);
+    expect(filterAttempts(rows, { days: 30, mode: "guided", concept: "all" })).toHaveLength(1);
+    expect(filterAttempts(rows, { days: null, mode: "all", concept: "FreeTrade" })).toHaveLength(1);
+  });
+});

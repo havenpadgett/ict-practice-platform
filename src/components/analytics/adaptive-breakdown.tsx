@@ -1,10 +1,8 @@
-import { RecommendedSession } from "@/components/recommended-session";
 import type { DbAttempt } from "@/lib/attempts";
 import { CONCEPTS } from "@/lib/concepts";
 import {
   getSubSkill,
   isWeak,
-  recommendSession,
   RECENT_WINDOW,
   MIN_ATTEMPTS_FOR_WEAK,
   scoreConcepts,
@@ -16,12 +14,11 @@ function pct(x: number): string {
 }
 
 /** The engine's full reasoning: every practiced concept's score, weakest
- * first, and the session it recommends. */
+ * first. (The recommendation itself is on the dashboard and picker.) */
 export function AdaptiveBreakdown({ attempts }: { attempts: DbAttempt[] }) {
   const { concepts } = scoreConcepts(attempts);
   return (
     <div className="space-y-4">
-      <RecommendedSession recommendation={recommendSession(attempts)} />
       <div className="overflow-x-auto">
         <table className="w-full min-w-[480px] text-left text-sm">
           <thead className="text-xs text-muted">

@@ -205,7 +205,7 @@ function ConceptRow({
   onPick: (concept: Concept) => void;
 }) {
   const ready = getPracticeCatalog(concept).length > 0;
-  const title = variantOf ? "Time-based levels" : conceptDisplayName(concept);
+  const title = conceptDisplayName(concept);
   return (
     <button
       type="button"

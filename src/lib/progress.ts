@@ -50,3 +50,31 @@ export function recentSessions(attempts: AttemptLike[], limit = 3): SessionSumma
   }
   return [...bySession.values()].sort((a, b) => b.endedAt.localeCompare(a.endedAt)).slice(0, limit);
 }
+
+export type ModeFilter = "all" | "recognition" | "guided" | "free";
+
+/** Attempts in a period, practice mode and concept (all optional). */
+export function filterAttempts<T extends { created_at: string; concept: string }>(
+  attempts: T[],
+  opts: { days: number | null; mode: ModeFilter; concept: string },
+  now = Date.now(),
+): T[] {
+  const inPeriod = opts.days === null ? attempts : attemptsSince(attempts, opts.days, now);
+  return inPeriod.filter((a) => {
+    if (opts.concept !== "all" && a.concept !== opts.concept) return false;
+    if (opts.mode === "guided") return a.concept === "GuidedEntry";
+    if (opts.mode === "free") return a.concept === "FreeTrade";
+    if (opts.mode === "recognition") return a.concept !== "GuidedEntry" && a.concept !== "FreeTrade";
+    return true;
+  });
+}
+
+/** Accuracy and count per difficulty level, levels with attempts only. */
+export function rateByDifficulty(attempts: { difficulty: 1 | 2 | 3 | null; is_correct: boolean }[]): { level: 1 | 2 | 3; attempts: number; accuracy: number }[] {
+  return ([1, 2, 3] as const)
+    .map((level) => {
+      const at = attempts.filter((a) => a.difficulty === level);
+      return { level, attempts: at.length, accuracy: at.length ? at.filter((a) => a.is_correct).length / at.length : 0 };
+    })
+    .filter((r) => r.attempts > 0);
+}

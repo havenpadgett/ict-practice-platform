@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { Menu, MENU_ITEM } from "@/components/menu";
 import { AnalyticsIcon, ChevronDownIcon, DashboardIcon, MistakesIcon, PracticeIcon } from "@/components/nav/nav-icons";
 import { useAuth } from "@/contexts/auth-context";
 import { useOpenMistakeCount } from "@/hooks/use-open-mistake-count";
@@ -43,57 +43,28 @@ function CountBadge({ count }: { count: number | null }) {
   );
 }
 
-/** Email, and Log out, behind one button. Escape or a click outside closes
- * it; Escape returns focus to the button. */
+/** Email, and Log out, behind one button (src/components/menu.tsx). */
 function AccountMenu({ email, onSignOut }: { email: string; onSignOut: () => void }) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        setOpen(false);
-        buttonRef.current?.focus();
-      }
-    }
-    function onPointer(e: PointerEvent) {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("keydown", onKey);
-    document.addEventListener("pointerdown", onPointer);
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.removeEventListener("pointerdown", onPointer);
-    };
-  }, [open]);
-
   const initial = email.charAt(0).toUpperCase() || "?";
   return (
-    <div ref={rootRef} className="relative">
-      <button
-        ref={buttonRef}
-        type="button"
-        aria-expanded={open}
-        aria-controls="account-menu"
-        aria-label="Account"
-        onClick={() => setOpen((o) => !o)}
-        className="inline-flex min-h-11 items-center gap-1 rounded-md px-1.5 text-muted transition-colors hover:text-foreground"
-      >
-        <span
-          aria-hidden
-          className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface text-xs font-semibold text-foreground ring-1 ring-control"
-        >
-          {initial}
-        </span>
-        <ChevronDownIcon className="h-4 w-4" />
-      </button>
-      {open && (
-        <div
-          id="account-menu"
-          className="absolute right-0 z-30 mt-1 w-64 rounded-lg border border-line bg-surface p-1.5 shadow-lg shadow-black/40"
-        >
+    <Menu
+      label="Account"
+      width="w-64"
+      triggerClassName="inline-flex min-h-11 items-center gap-1 rounded-md px-1.5 text-muted transition-colors hover:text-foreground"
+      trigger={
+        <>
+          <span
+            aria-hidden
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface text-xs font-semibold text-foreground ring-1 ring-control"
+          >
+            {initial}
+          </span>
+          <ChevronDownIcon className="h-4 w-4" />
+        </>
+      }
+    >
+      {(close) => (
+        <>
           <div className="px-3 pt-2 pb-2.5 text-xs">
             <p className="text-muted">Signed in as</p>
             <p className="mt-0.5 truncate text-sm text-foreground">{email}</p>
@@ -102,17 +73,17 @@ function AccountMenu({ email, onSignOut }: { email: string; onSignOut: () => voi
             <button
               type="button"
               onClick={() => {
-                setOpen(false);
+                close();
                 onSignOut();
               }}
-              className="flex min-h-11 w-full items-center rounded-md px-3 text-left text-sm text-foreground transition-colors hover:bg-background"
+              className={MENU_ITEM}
             >
               Log out
             </button>
           </div>
-        </div>
+        </>
       )}
-    </div>
+    </Menu>
   );
 }
 

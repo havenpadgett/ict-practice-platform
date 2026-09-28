@@ -4,7 +4,7 @@ export type Metric = { label: string; value: string; detail?: string };
  * separate cards. Two columns on a phone, one row from sm up. */
 export function MetricStrip({ metrics }: { metrics: Metric[] }) {
   return (
-    <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-flow-col sm:auto-cols-fr sm:grid-cols-none">
+    <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1 sm:grid-flow-col sm:auto-cols-fr sm:grid-cols-none">
       {metrics.map((m) => (
         <div key={m.label} className="bg-background px-4 py-4 sm:px-5">
           <dt className="eyebrow">{m.label}</dt>
