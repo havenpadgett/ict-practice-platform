@@ -1,19 +1,9 @@
 import Link from "next/link";
 import { getExerciseMeta } from "@/data/catalog";
 import { conceptDisplayName, DIFFICULTY_LABELS } from "@/lib/concepts";
+import { FAILURE_LABELS } from "@/lib/failure-labels";
 import { sessionInsight } from "@/lib/session-insight";
 import type { SessionState } from "@/lib/storage";
-
-const FAILURE_LABELS: Record<string, string> = {
-  coverage: "Box in the wrong place",
-  too_small: "Box too small",
-  precision: "Box too wide",
-  time: "Wrong candles",
-  off_level: "Line outside tolerance",
-  wrong_choice: "Wrong choice",
-  missed_answer: "Missed a setup that was there",
-  false_positive: "Marked a setup that wasn't there",
-};
 
 /** Plain words for a missed exercise; never its database id. */
 function describeMissed(id: string): { title: string; detail: string } {
