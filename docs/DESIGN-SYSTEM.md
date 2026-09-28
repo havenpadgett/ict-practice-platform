@@ -26,7 +26,7 @@ Tailwind classes follow the token names: `bg-background`, `bg-surface`, `border-
 
 **Accent discipline:** mint marks what matters now. That means the one primary button on a screen, a selected option, keyboard focus, a correct result, and the correct answer overlay. It never appears on secondary buttons, card borders, or as decoration.
 
-**Hex values live only in `globals.css`.** The two exceptions: `global-error.tsx`, which renders without the stylesheet and mirrors the tokens inline, and the Google logo's brand colors.
+**Hex values live only in `globals.css`.** The exceptions render without the stylesheet and mirror the tokens inline: `global-error.tsx`, `opengraph-image.tsx`, `icon.svg`. Plus the Google logo's brand colors.
 
 ### Contrast (WCAG AA)
 
@@ -50,7 +50,8 @@ Tailwind classes follow the token names: `bg-background`, `bg-surface`, `border-
 
 ## Spacing and layout
 
-- `.page`: the standard page column (`max-w-3xl`, `pt-10 sm:pt-14`, `pb-16`). Wider tools add `max-w-5xl`.
+- `.page`: the standard page column (`max-w-3xl`, `pt-10 sm:pt-14`, `pb-16`). Pages widen it by need, not by taste: `max-w-4xl` for the practice picker and analytics, `max-w-5xl` for mistakes, `max-w-7xl` (with `pt-6 sm:pt-8`) for anything with an exercise chart, where the chart takes the wide column (`ExerciseLayout`). The header spans `max-w-7xl`.
+- **Navigation:** from `sm` up, a top nav (Dashboard, Practice, Mistakes with a count, Analytics) with a mint underline on the current page; below `sm`, a one-row top bar and a fixed bottom tab bar (`.bottom-nav`; `body` gets matching bottom padding).
 - `--spacing-section` (3.5rem): the rhythm between major sections (`mt-section`, `space-y-section`).
 
 ## Components (classes in `globals.css`)
@@ -67,7 +68,26 @@ Tailwind classes follow the token names: `bg-background`, `bg-surface`, `border-
 
 All buttons are at least 44×44px. Option buttons (selection) and commit buttons are always separated by a divider (`border-t border-line pt-5`).
 
-`Verdict` / `CheckRow` (`src/components/verdict.tsx`) show correct/incorrect as an icon shape (check vs cross) plus a word, with color only reinforcing it.
+`Verdict` / `CheckRow` (`src/components/verdict.tsx`) show correct/incorrect as an icon shape (check vs cross) plus a word, with color only reinforcing it. `CheckRow` with `passed={null}` is a neutral measurement (dash icon, no verdict).
+
+### Shared React components (added 2026-09-28)
+
+| Component | Use |
+|---|---|
+| `MetricStrip` | A row of headline numbers divided by rules, not boxed as separate cards. Every value carries its detail line (e.g. attempts) |
+| `SkillRows` | Per-concept (or per-difficulty) rows: bar, `73% · 22 attempts`, optional trend. Below 5 attempts: a dashed empty track and "N of 5 attempts needed", never a percentage |
+| `RecommendedSession` | The engine's next session: what, why, difficulty, time, one CTA. `primary={false}` when another action on the screen is primary |
+| `ExerciseLayout` / `ChartFrame` | Every exercise mode: chart wide on the left from `lg`, prompt and controls in a 22rem column; stacked on a phone |
+| `Menu` / `MENU_ITEM` | Account and overflow menus: Escape closes and refocuses the trigger, outside click closes |
+| `PasswordField` | Password input with Show/Hide and a hint line |
+| `ChartThumbnail` | Small static chart of a reviewed answer (user solid, correct dashed), no axes |
+| `ManualEntry` | "Enter values manually" for chart answers (price, or candles and prices) |
+
+**Cards are for things you act on or read as a unit** (the recommendation, feedback, a form). Lists use divided rows (`divide-y divide-line`) inside one bordered container, or no container at all. Don't box every stat.
+
+**Sample-size rule:** no percentage from fewer than 5 attempts anywhere (`MIN_ATTEMPTS_FOR_ACCURACY` in `src/lib/practice-modes.ts`).
+
+**Motion:** 150ms color transitions only; no scale, float or scroll animations. `prefers-reduced-motion` turns animation and transitions off globally.
 
 Focus: one global `:focus-visible` style, a 2px mint ring offset by 2px.
 
@@ -92,4 +112,4 @@ This pass defined the token layer in `globals.css` and, per instruction, touched
 **Keyboard:**
 - **Working:** tab order follows reading order. Every button, link, option and field is reachable and operable, including concept cards, answer options, playback controls and the review forms. Option buttons expose `aria-pressed`.
 - **Added:** a "Skip to content" link, one visible focus ring (2px mint `:focus-visible`), and an accessible name on each chart (`role="img"`).
-- **Not fixed (needs a behaviour change, per this pass's no-functional-changes rule):** drawing a box (FVG, IFVG, order block), placing a line (liquidity, MSS, time-based levels), and placing entry/stop/target (Guided Entry, Free Trade) are pointer-only. A keyboard-only user cannot answer those exercises; choice exercises and every control around the chart do work. Suggested fix: when the chart has focus, arrow keys move a cursor over candles and price, Enter anchors, Shift+arrows resize, Enter again commits, and the chosen values are announced. Logged in `docs/POLISH-BACKLOG.md`.
+- **Fixed 2026-09-28 (partly):** recognition exercises now have "Enter values manually" under the chart: a price for a line, first/last candle and upper/lower price for a box. The chart redraws from what's typed. Guided Entry and Free Trade levels are still pointer-only (see the plan). **Originally not fixed (needed a behaviour change):** drawing a box (FVG, IFVG, order block), placing a line (liquidity, MSS, time-based levels), and placing entry/stop/target (Guided Entry, Free Trade) are pointer-only. A keyboard-only user cannot answer those exercises; choice exercises and every control around the chart do work. Suggested fix: when the chart has focus, arrow keys move a cursor over candles and price, Enter anchors, Shift+arrows resize, Enter again commits, and the chosen values are announced. Logged in `docs/POLISH-BACKLOG.md`.

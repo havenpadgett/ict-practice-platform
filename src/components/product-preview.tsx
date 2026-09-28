@@ -11,7 +11,7 @@ const noop = () => {};
  * produced. Built from a preview-only chart, never a practice exercise. */
 export function ProductPreview() {
   return (
-    <figure className="rounded-xl border border-line bg-surface p-3 sm:p-4">
+    <figure className="rounded-lg border border-line bg-surface p-3 sm:p-4">
       <div className="flex items-baseline justify-between gap-3 px-1">
         <p className="text-sm text-foreground">Identify the Fair Value Gap, if there is one.</p>
         <p className="eyebrow shrink-0">FVG · Easy</p>

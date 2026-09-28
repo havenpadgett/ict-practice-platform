@@ -5,7 +5,7 @@ const OUTCOME_LABELS: Record<FreeTradeOutcome, string> = {
   win: "Win — target hit",
   loss: "Loss — stop hit",
   open: "Still open at session end",
-  no_trade: "No trade",
+  no_trade: "No Trade",
 };
 
 function formatR(r: number): string {

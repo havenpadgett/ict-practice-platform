@@ -41,7 +41,7 @@ export function describeAnswer(e: Exercise, a: MistakeAttemptRow): string {
       return `${bias} bias: entry ${p(a.guided_entry_price)}, stop ${p(a.guided_stop_price)}, target ${p(a.guided_target_price)}`;
     }
     case "free": {
-      if (!a.free_direction || a.free_direction === "none") return "No trade";
+      if (!a.free_direction || a.free_direction === "none") return "No Trade";
       const exit =
         a.free_exit_reason === "session_end" ? "held to the end of the session" : a.free_exit_reason ? `exited at the ${a.free_exit_reason}` : "still open";
       return `${cap(a.free_direction)} at ${p(a.free_entry_price)}, stop ${p(a.free_stop_price)}, target ${p(a.free_target_price)}; ${exit}`;
@@ -72,7 +72,7 @@ export function describeCorrect(e: Exercise): { correctAnswer: string; explanati
       const correctAnswer =
         a.is_valid_setup && a.intended_bias !== "none" && a.entry_zone && a.stop_zone
           ? `${cap(a.intended_bias)}: enter ${p(a.entry_zone.price_low)}–${p(a.entry_zone.price_high)}, stop ${p(a.stop_zone.price_low)}–${p(a.stop_zone.price_high)}, target ${p(a.target)}`
-          : "No trade";
+          : "No Trade";
       return { correctAnswer, explanation: e.explanation };
     }
   }

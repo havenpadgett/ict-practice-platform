@@ -508,7 +508,7 @@ export function FreeTradeExercise({
                 </div>
                 <p className="mt-2 text-xs text-muted tabular-nums">
                   You enter at the close of the latest candle{lastClose !== null ? ` (${formatPrice(lastClose)})` : ""}, then place
-                  your stop and target. No trade by the end is a No Trade answer.
+                  your stop and target. Finishing without a trade is a No Trade answer.
                 </p>
               </div>
             )}

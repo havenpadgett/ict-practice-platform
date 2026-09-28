@@ -736,7 +736,7 @@ export default function PracticePage() {
     }
   }
 
-  const nextLabel = isLastExercise ? "See Results" : exercise.answer_type === "free" ? "Next Scenario" : "Next Exercise";
+  const nextLabel = isLastExercise ? "See results" : exercise.answer_type === "free" ? "Next scenario" : "Next exercise";
   const report = (
     <ReportQuestion
       key={`${session.session_id}:${exercise.exercise_id}`}

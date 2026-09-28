@@ -207,7 +207,7 @@ export default function MistakesPage() {
             When you miss an exercise it shows up here, drawn with your answer and the correct one, so you can retry it.
           </p>
           <Link href="/practice" className="mt-5 btn-primary">
-            Start practicing
+            Start your first session
           </Link>
         </div>
       ) : (

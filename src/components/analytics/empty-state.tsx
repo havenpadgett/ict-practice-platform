@@ -10,7 +10,7 @@ export function AnalyticsEmptyState() {
         and a recommendation for what to practice next.
       </p>
       <div className="mt-6">
-        <PrimaryButton href="/practice">Start practicing</PrimaryButton>
+        <PrimaryButton href="/practice?concept=FVG&difficulty=1&length=5&src=rec">Start FVG practice</PrimaryButton>
       </div>
     </div>
   );

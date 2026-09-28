@@ -12,7 +12,7 @@ export function LoadingState({
 }: {
   label?: string;
   /** page: a title and a content card. stats: the dashboard/analytics
-   * layout — a row of stat cards and two section blocks. */
+   * layout: a lead card, a metrics strip, then rows. */
   variant?: "page" | "stats";
 }) {
   return (
@@ -26,13 +26,13 @@ export function LoadingState({
           </>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              {[0, 1, 2, 3].map((i) => (
-                <Block key={i} className="h-[6.125rem] sm:h-[6.875rem]" />
+            <Block className="h-56" />
+            <Block className="mt-section h-28" />
+            <div className="mt-section space-y-3">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-8 animate-pulse rounded-md bg-surface" />
               ))}
             </div>
-            <Block className="mt-8 h-44" />
-            <Block className="mt-8 h-32" />
           </>
         )}
       </div>
