@@ -30,3 +30,36 @@ describe("accuracy labels", () => {
     expect(accuracyLabel({ attempts: 22, accuracy: 0.727 })).toBe("73% · 22 attempts");
   });
 });
+
+import { sessionInsight } from "@/lib/session-insight";
+
+describe("session insight", () => {
+  const conceptOf = (id: string) => (id.startsWith("fvg") ? "FVG" : id.startsWith("liq") ? "Liquidity" : "GuidedEntry");
+  it("names the clean concept and where the misses came from", () => {
+    const text = sessionInsight(
+      [
+        { exercise_id: "liq-1", correct: true, failure_reason: null },
+        { exercise_id: "liq-2", correct: true, failure_reason: null },
+        { exercise_id: "fvg-1", correct: false, failure_reason: "precision" },
+        { exercise_id: "fvg-2", correct: false, failure_reason: "precision" },
+      ],
+      conceptOf,
+    );
+    expect(text).toBe("You got every Liquidity chart right. Both misses were in FVG: box drawn too wide.");
+  });
+  it("lists mixed reasons within one concept, most common first", () => {
+    const text = sessionInsight(
+      [
+        { exercise_id: "fvg-1", correct: false, failure_reason: "time" },
+        { exercise_id: "fvg-2", correct: false, failure_reason: "precision" },
+        { exercise_id: "fvg-3", correct: false, failure_reason: "precision" },
+      ],
+      conceptOf,
+    );
+    expect(text).toBe("All three misses: box drawn too wide (2) and box over the wrong candles (1).");
+  });
+  it("says so when everything was right, and says nothing without outcomes", () => {
+    expect(sessionInsight([{ exercise_id: "fvg-1", correct: true, failure_reason: null }], conceptOf)).toBe("Every answer correct.");
+    expect(sessionInsight([], conceptOf)).toBe("");
+  });
+});

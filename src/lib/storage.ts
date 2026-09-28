@@ -17,6 +17,7 @@
 // callers only need to guard against hydration timing, not SSR crashing.
 
 import { CONCEPT_LIST } from "@/lib/concepts";
+import type { SessionOutcome } from "@/lib/session-insight";
 
 /** SessionState.concept for an adaptive session, which mixes concepts
  * (src/lib/recommendations.ts). */
@@ -76,6 +77,9 @@ export type SessionState = {
   correct_count: number;
   missed_exercise_ids: string[];
   completed: boolean;
+  /** Each graded answer in order, for the summary's insight. Optional:
+   * sessions saved before it existed simply have no insight. */
+  outcomes?: SessionOutcome[];
 };
 
 /** Runtime check that stored session data is actually usable — catches
@@ -244,6 +248,7 @@ export function createSession(concept: string, exerciseIds: string[]): SessionSt
     correct_count: 0,
     missed_exercise_ids: [],
     completed: false,
+    outcomes: [],
   };
 }
 

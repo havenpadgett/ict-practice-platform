@@ -458,12 +458,24 @@ export default function PracticePage() {
     return (
       <div className="flex flex-1 flex-col">
         <div className="page">
-          <h1 className="page-title">
-            {conceptMeta.title}
-          </h1>
-          <div className="mt-6">
-            <SessionSummary session={session} onPracticeAgain={handleBackToPicker} />
-          </div>
+          <SessionSummary
+            session={session}
+            title={conceptMeta.title}
+            onReviewMissed={() =>
+              beginSession(
+                MISTAKES_SESSION,
+                [...new Set(session.missed_exercise_ids)].filter((id) => getExerciseMeta(id)?.practice_ready === true),
+                "mistakes",
+              )
+            }
+            onPracticeAgain={() => {
+              if (session.concept === ADAPTIVE_SESSION) void handleStartAdaptive();
+              else if (session.concept === MIXED_SESSION) handleStartMixed();
+              else if (session.concept === MISTAKES_SESSION) void handleStartMistakes();
+              else handleStartSession(session.concept as Concept, session.exercise_order.length);
+            }}
+            onAdaptive={() => void handleStartAdaptive()}
+          />
         </div>
         <DisclaimerFooter />
       </div>
@@ -580,6 +592,7 @@ export default function PracticePage() {
       ...session,
       correct_count: session.correct_count + (isCorrect ? 1 : 0),
       missed_exercise_ids: isCorrect ? session.missed_exercise_ids : [...session.missed_exercise_ids, exerciseId],
+      outcomes: [...(session.outcomes ?? []), { exercise_id: exerciseId, correct: isCorrect, failure_reason: row.failure_reason }],
     };
     saveSession(updatedSession);
     setSession(updatedSession);
