@@ -7,12 +7,16 @@ import { REPORT_REASONS } from "@/lib/report-reasons";
 
 let signedIn = true;
 let insertError: { code: string } | null = null;
+/** Simulates 20260928120000 not being applied yet: rows with the new
+ * column or reason are refused the way PostgREST / Postgres refuse them. */
+let oldSchema = false;
 const inserted: Record<string, unknown>[] = [];
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     auth: { getUser: async () => ({ data: { user: signedIn ? { id: "u" } : null } }) },
     from: (table: string) => ({
       insert: async (row: Record<string, unknown>) => {
+        if (oldSchema && "app_version" in row) return { error: { code: "PGRST204" } };
         if (!insertError) inserted.push({ table, ...row });
         return { error: insertError };
       },
@@ -27,18 +31,42 @@ describe("reportQuestion", () => {
   beforeEach(() => {
     signedIn = true;
     insertError = null;
+    oldSchema = false;
     inserted.length = 0;
   });
 
   it("files a report against the exercise on screen", async () => {
     expect(await reportQuestion({ ...base, note: "  the gap is higher  " })).toEqual({ ok: true });
     expect(inserted).toEqual([
-      { table: "question_reports", exercise_id: "fvg-001", reason: "answer_wrong", note: "the gap is higher", stage: "feedback", session_id: "s1" },
+      {
+        table: "question_reports",
+        exercise_id: "fvg-001",
+        reason: "answer_wrong",
+        note: "the gap is higher",
+        stage: "feedback",
+        session_id: "s1",
+        app_version: expect.stringMatching(/^\d+\.\d+\.\d+/),
+      },
     ]);
   });
 
-  it("offers the five structured reasons the database accepts", () => {
-    expect(REPORT_REASONS.map((r) => r.value)).toEqual(["answer_wrong", "chart_unclear", "ambiguous", "technical", "other"]);
+  it("offers the six structured reasons the database accepts", () => {
+    expect(REPORT_REASONS.map((r) => r.value)).toEqual(["answer_wrong", "chart_unclear", "explanation_unclear", "ambiguous", "technical", "other"]);
+  });
+
+  it("falls back to the old columns and reasons until 20260928120000 is applied", async () => {
+    oldSchema = true;
+    expect(await reportQuestion({ ...base, reason: "explanation_unclear", note: "step 2 contradicts the chart" })).toEqual({ ok: true });
+    expect(inserted).toEqual([
+      {
+        table: "question_reports",
+        exercise_id: "fvg-001",
+        reason: "other",
+        note: "[Explanation unclear] step 2 contradicts the chart",
+        stage: "feedback",
+        session_id: "s1",
+      },
+    ]);
   });
 
   it("refuses signed-out callers, unknown exercises, bad reasons, and 'other' without a note", async () => {

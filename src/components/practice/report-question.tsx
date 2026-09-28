@@ -51,8 +51,8 @@ export function ReportQuestion({
   if (!open) {
     return (
       <div className="mt-2 flex justify-end">
-        <button type="button" onClick={() => setOpen(true)} className="btn-link">
-          Report a problem
+        <button type="button" onClick={() => setOpen(true)} className="btn-link text-right">
+          {stage === "feedback" ? "Think this answer is wrong? Report it" : "Report a problem"}
         </button>
       </div>
     );
@@ -68,6 +68,7 @@ export function ReportQuestion({
     >
       <fieldset>
         <legend className="text-sm font-semibold text-foreground">What&apos;s wrong with this exercise?</legend>
+        <p className="mt-1 text-xs text-muted">The chart, your answer and the app version are attached automatically.</p>
         <div className="mt-3 flex flex-wrap gap-2">
           {REPORT_REASONS.map((r) => (
             <button

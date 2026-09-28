@@ -1,10 +1,13 @@
 // Reasons a user can report an exercise for ("Report a problem",
 // src/components/practice/report-question.tsx). Values match the check
-// constraint in supabase/migrations/20260927150000_question_reports.sql.
+// constraint in supabase/migrations/20260927150000_question_reports.sql,
+// widened by 20260928120000_report_reasons_app_version.sql
+// (explanation_unclear).
 
 export const REPORT_REASONS = [
-  { value: "answer_wrong", label: "The answer looks wrong" },
+  { value: "answer_wrong", label: "The answer key seems wrong" },
   { value: "chart_unclear", label: "The chart is unclear" },
+  { value: "explanation_unclear", label: "The explanation is unclear" },
   { value: "ambiguous", label: "More than one answer could be right" },
   { value: "technical", label: "Something isn't working" },
   { value: "other", label: "Something else" },

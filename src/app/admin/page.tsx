@@ -61,6 +61,8 @@ type ExerciseReports = {
   reporters: number;
   answer_wrong: number;
   chart_unclear: number;
+  /** Null until 20260928120000 is applied. */
+  explanation_unclear?: number | null;
   ambiguous: number;
   technical: number;
   other: number;
@@ -437,6 +439,7 @@ function ReportSections({ state }: { state: ReportsState }) {
                   <th className="py-2 pr-3 font-medium">Users</th>
                   <th className="py-2 pr-3 font-medium">Answer wrong</th>
                   <th className="py-2 pr-3 font-medium">Chart unclear</th>
+                  <th className="py-2 pr-3 font-medium">Explanation unclear</th>
                   <th className="py-2 pr-3 font-medium">Ambiguous</th>
                   <th className="py-2 pr-3 font-medium">Technical</th>
                   <th className="py-2 font-medium">Other</th>
@@ -451,6 +454,7 @@ function ReportSections({ state }: { state: ReportsState }) {
                     <td className="py-2 pr-3 text-muted">{r.reporters}</td>
                     <td className="py-2 pr-3 text-muted">{r.answer_wrong}</td>
                     <td className="py-2 pr-3 text-muted">{r.chart_unclear}</td>
+                    <td className="py-2 pr-3 text-muted">{r.explanation_unclear ?? "—"}</td>
                     <td className="py-2 pr-3 text-muted">{r.ambiguous}</td>
                     <td className="py-2 pr-3 text-muted">{r.technical}</td>
                     <td className="py-2 text-muted">{r.other}</td>

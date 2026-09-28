@@ -1,4 +1,5 @@
-// "Report a question" (supabase/migrations/20260927150000_question_reports.sql):
+// "Report a question" (supabase/migrations/20260927150000_question_reports.sql,
+// widened by 20260928120000_report_reasons_app_version.sql):
 // users file reports as themselves under RLS; only admins see counts, flags
 // and notes, and only they can resolve reports.
 
@@ -86,5 +87,21 @@ describe("admin report functions", () => {
     const flags = await asUser(db, A, () => q(`select exercise_id from admin_review_flags()`));
     expect(flags).toEqual([{ exercise_id: "fvg-005" }]);
     expect((await asUser(db, B, () => q(`select status from question_reports`)))[0].status).toBe("resolved");
+  });
+});
+
+describe("report reasons and app version (20260928120000)", () => {
+  it("accepts an unclear-explanation report with the app version, and counts it for admins", async () => {
+    await asUser(db, B, () =>
+      q(`insert into question_reports (exercise_id, reason, stage, app_version) values ('fvg-002', 'explanation_unclear', 'feedback', '0.1.0+abc1234')`),
+    );
+    const rows = await asUser(db, A, () => q(`select explanation_unclear::int from admin_exercise_reports() where exercise_id = 'fvg-002'`));
+    expect(rows).toEqual([{ explanation_unclear: 1 }]);
+  });
+
+  it("still refuses an unknown reason", async () => {
+    await expect(asUser(db, B, () => q(`insert into question_reports (exercise_id, reason, stage) values ('fvg-002', 'nonsense', 'feedback')`))).rejects.toThrow(
+      /check constraint/,
+    );
   });
 });
