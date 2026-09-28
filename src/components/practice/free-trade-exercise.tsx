@@ -21,6 +21,26 @@ type Speed = "slow" | "normal" | "fast";
 const SPEED_MS: Record<Speed, number> = { slow: 1200, normal: 600, fast: 250 };
 const SPEED_LABELS: Record<Speed, string> = { slow: "Slow", normal: "Normal", fast: "Fast" };
 
+/** The last playback speed picked, remembered per browser. */
+const SPEED_KEY = "ict-practice:ft-speed";
+
+function loadSpeed(): Speed {
+  try {
+    const v = window.localStorage.getItem(SPEED_KEY);
+    return v === "slow" || v === "normal" || v === "fast" ? v : "normal";
+  } catch {
+    return "normal";
+  }
+}
+
+function saveSpeed(speed: Speed): void {
+  try {
+    window.localStorage.setItem(SPEED_KEY, speed);
+  } catch {
+    // Best-effort.
+  }
+}
+
 /** NQ's minimum price increment — placed stops/targets snap to it. */
 const TICK_SIZE = 0.25;
 
@@ -165,13 +185,6 @@ function reduce(exercise: FreeTradeExerciseData, state: State, action: Action): 
   }
 }
 
-const primaryClass =
-  "inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40";
-const secondaryClass =
-  "inline-flex min-h-11 items-center justify-center rounded-md border border-line px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40";
-const activeClass =
-  "inline-flex min-h-11 items-center justify-center rounded-md border border-accent bg-accent/10 px-4 py-2.5 text-sm font-medium text-accent";
-
 function formatPrice(price: number): string {
   return price.toLocaleString("en-US", { maximumFractionDigits: 2 });
 }
@@ -225,7 +238,7 @@ export function FreeTradeExercise({
   prompt?: ReactNode;
   /** Save status and the report link, under the controls. */
   footer?: ReactNode;
-  /** Called once the scenario ends (trade closed, End Session, or playback
+  /** Called once the scenario ends (trade closed, "Exit trade and finish" / "End as No Trade", or playback
    * ran out). The parent grades it on the server and records it; null means
    * grading failed and the parent is showing why. */
   onGrade: (attempt: FreeTradeAttempt) => Promise<FreeTradeGradeResponse | null>;
@@ -244,7 +257,7 @@ export function FreeTradeExercise({
     () => {
       const draft = readDraft(initialDraft, exercise.hidden_candles.length);
       if (restoredGrade) return { ...(draft ?? initialState), playing: false, phase: "done" as const };
-      return draft ?? initialState;
+      return draft ?? { ...initialState, speed: loadSpeed() };
     },
   );
   // Already graded before a refresh: never grade (and record) it again.
@@ -312,9 +325,46 @@ export function FreeTradeExercise({
 
   const key = graded?.key ?? null;
 
+  // Keyboard: Space play/pause, → next candle, L long, S short, Esc
+  // cancel placing, ? help. Ignored while typing, and Space is left alone
+  // on a focused control so it still presses that control.
+  const [showKeys, setShowKeys] = useState(false);
+  useEffect(() => {
+    if (done) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      const typing = t?.closest("input, textarea, select, [contenteditable=true]");
+      if (typing) return;
+      const onControl = t?.closest("button, a, summary");
+      if (e.key === " " && !onControl) {
+        e.preventDefault();
+        if (state.phase !== "placing") dispatch({ type: "toggle_play" });
+      } else if (e.key === "ArrowRight" && !onControl) {
+        e.preventDefault();
+        if (state.phase !== "placing" && !state.playing) dispatch({ type: "advance" });
+      } else if (e.key === "l" || e.key === "L") {
+        dispatch({ type: "open_trade", direction: "long" });
+      } else if (e.key === "s" || e.key === "S") {
+        dispatch({ type: "open_trade", direction: "short" });
+      } else if (e.key === "Escape") {
+        if (showKeys) setShowKeys(false);
+        else dispatch({ type: "cancel_trade" });
+      } else if (e.key === "?" || (e.key === "/" && e.shiftKey)) {
+        setShowKeys((v) => !v);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [done, state.phase, state.playing, showKeys]);
+
+  const lastClose = candles[candles.length - 1]?.close ?? null;
+  const progressPct = hiddenCount > 0 ? (state.revealed / hiddenCount) * 100 : 100;
+
   const chart = (
     <div>
-      <p className="eyebrow mb-2">{exercise.title}</p>
+      {/* The title names what happened, so it's shown only afterwards. */}
+      {done && <p className="eyebrow mb-2">{exercise.title}</p>}
       <ChartFrame>
         <CandlestickChart
           answerType="free"
@@ -339,9 +389,22 @@ export function FreeTradeExercise({
         />
       </ChartFrame>
       {!done && (
-        <p className="mt-2 text-xs text-muted">
-          Playback {state.revealed} / {hiddenCount}
-        </p>
+        <div className="mt-3">
+          <div
+            className="h-1 overflow-hidden rounded-full bg-line"
+            role="progressbar"
+            aria-label="Playback"
+            aria-valuemin={0}
+            aria-valuemax={hiddenCount}
+            aria-valuenow={state.revealed}
+          >
+            <div className="h-full bg-muted transition-[width]" style={{ width: `${progressPct}%` }} />
+          </div>
+          <p className="mt-1.5 text-xs text-muted tabular-nums">
+            Candle {state.revealed} of {hiddenCount} revealed
+            {state.playing && <span> · playing at {SPEED_LABELS[state.speed].toLowerCase()} speed</span>}
+          </p>
+        </div>
       )}
     </div>
   );
@@ -363,84 +426,107 @@ export function FreeTradeExercise({
           ) : grading ? (
             <p className="text-sm text-muted" role="status">Grading…</p>
           ) : (
-            <button type="button" onClick={() => void requestGrade()} className={primaryClass}>
+            <button type="button" onClick={() => void requestGrade()} className="btn-primary">
               Try grading again
             </button>
           )
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {/* Playback */}
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => dispatch({ type: "advance" })}
-                disabled={placing || state.playing}
-                className={placing ? secondaryClass : primaryClass}
-              >
-                Next Candle
-              </button>
-              <button
-                type="button"
-                onClick={() => dispatch({ type: "toggle_play" })}
-                disabled={placing}
-                className={secondaryClass}
-              >
-                {state.playing ? "Pause" : "Play"}
-              </button>
-              <div className="flex rounded-md border border-line" role="group" aria-label="Playback speed">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => dispatch({ type: "toggle_play" })}
+                  disabled={placing}
+                  className="btn-secondary"
+                  aria-keyshortcuts="Space"
+                >
+                  {state.playing ? "Pause" : "Play"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => dispatch({ type: "advance" })}
+                  disabled={placing || state.playing}
+                  className={placing || state.playing ? "btn-secondary" : "btn-primary"}
+                  aria-keyshortcuts="ArrowRight"
+                >
+                  Next candle
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowKeys((v) => !v)}
+                  aria-expanded={showKeys}
+                  aria-controls="ft-shortcuts"
+                  aria-label="Keyboard shortcuts"
+                  className="btn-link ml-auto hidden no-underline hover:underline sm:inline-flex"
+                >
+                  ?
+                </button>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2" role="group" aria-label="Playback speed">
+                <span className="text-xs text-muted">Speed</span>
                 {(Object.keys(SPEED_MS) as Speed[]).map((speed) => (
                   <button
                     key={speed}
                     type="button"
-                    onClick={() => dispatch({ type: "set_speed", speed })}
+                    onClick={() => {
+                      dispatch({ type: "set_speed", speed });
+                      saveSpeed(speed);
+                    }}
                     aria-pressed={state.speed === speed}
-                    className={`min-h-11 min-w-11 px-3 text-xs font-medium transition-colors ${
-                      state.speed === speed ? "bg-accent/10 text-accent" : "text-muted hover:text-foreground"
-                    }`}
+                    className="btn-option px-3 text-xs"
                   >
                     {SPEED_LABELS[speed]}
                   </button>
                 ))}
               </div>
-              <button
-                type="button"
-                onClick={() => dispatch({ type: "end" })}
-                className={`${secondaryClass} sm:ml-auto`}
-              >
-                End Session
-              </button>
+              {showKeys && (
+                <div id="ft-shortcuts" className="mt-3 rounded-lg border border-line p-3 text-xs text-muted">
+                  <p className="font-medium text-foreground">Keyboard shortcuts</p>
+                  <dl className="mt-2 grid grid-cols-[4.5rem_1fr] gap-y-1">
+                    <dt><kbd>Space</kbd></dt><dd>Play / pause</dd>
+                    <dt><kbd>→</kbd></dt><dd>Next candle</dd>
+                    <dt><kbd>L</kbd> / <kbd>S</kbd></dt><dd>Go long / short</dd>
+                    <dt><kbd>Esc</kbd></dt><dd>Cancel the trade you&apos;re placing</dd>
+                    <dt><kbd>?</kbd></dt><dd>Show or hide this list</dd>
+                  </dl>
+                </div>
+              )}
             </div>
 
             {/* Trade */}
             {state.phase === "watching" && (
-              <div>
+              <div className="border-t border-line pt-5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <button type="button" onClick={() => dispatch({ type: "open_trade", direction: "long" })} className={secondaryClass}>
+                  <button type="button" onClick={() => dispatch({ type: "open_trade", direction: "long" })} className="btn-secondary" aria-keyshortcuts="L">
                     Long
                   </button>
-                  <button type="button" onClick={() => dispatch({ type: "open_trade", direction: "short" })} className={secondaryClass}>
+                  <button type="button" onClick={() => dispatch({ type: "open_trade", direction: "short" })} className="btn-secondary" aria-keyshortcuts="S">
                     Short
                   </button>
                 </div>
-                <p className="mt-2 text-xs text-muted">
-                  Entry fills at the close of the latest candle. Ending the session without a trade counts as No Trade.
+                <p className="mt-2 text-xs text-muted tabular-nums">
+                  You enter at the close of the latest candle{lastClose !== null ? ` (${formatPrice(lastClose)})` : ""}, then place
+                  your stop and target. No trade by the end is a No Trade answer.
                 </p>
               </div>
             )}
 
             {placing && trade && (
               <div className="card">
-                <p className="text-sm text-foreground">
-                  {trade.direction === "long" ? "Long" : "Short"} at {formatPrice(trade.entry)} — place your stop and
-                  target on the chart.
+                <p className="text-sm text-foreground tabular-nums">
+                  {trade.direction === "long" ? "Long" : "Short"} at {formatPrice(trade.entry)}. Place your stop and target on
+                  the chart.
                 </p>
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Which line to place">
                   {(["stop", "target"] as LevelField[]).map((field) => (
                     <button
                       key={field}
                       type="button"
                       onClick={() => dispatch({ type: "set_active_field", field })}
-                      className={state.activeField === field ? activeClass : secondaryClass}
+                      aria-pressed={state.activeField === field}
+                      className="btn-option tabular-nums"
                     >
                       {field === "stop" ? "Stop" : "Target"}
                       {trade[field] !== null ? `: ${formatPrice(trade[field]!)}` : ""}
@@ -448,11 +534,8 @@ export function FreeTradeExercise({
                   ))}
                 </div>
                 {liveRR !== null && (
-                  <p className="mt-3 text-sm text-foreground">
-                    Live R:R:{" "}
-                    <span className={liveRR >= exercise.min_rr ? "font-medium text-accent" : "font-medium"}>
-                      {liveRR.toFixed(2)}:1
-                    </span>
+                  <p className="mt-3 text-sm text-foreground tabular-nums">
+                    R:R <span className="font-medium">{liveRR.toFixed(2)}:1</span>
                     <span className="text-muted">
                       {" "}
                       · {liveRR >= exercise.min_rr ? "meets" : "below"} the {exercise.min_rr}:1 minimum
@@ -460,7 +543,7 @@ export function FreeTradeExercise({
                   </p>
                 )}
                 {(stopError || targetError) && (
-                  <p className="mt-2 text-sm text-danger">
+                  <p className="text-error mt-2" role="alert">
                     {stopError ?? targetError}
                   </p>
                 )}
@@ -469,11 +552,11 @@ export function FreeTradeExercise({
                     type="button"
                     onClick={() => dispatch({ type: "confirm_trade" })}
                     disabled={!isPlacementValid(trade)}
-                    className={primaryClass}
+                    className="btn-primary"
                   >
-                    Confirm Trade
+                    Confirm trade
                   </button>
-                  <button type="button" onClick={() => dispatch({ type: "cancel_trade" })} className={secondaryClass}>
+                  <button type="button" onClick={() => dispatch({ type: "cancel_trade" })} className="btn-secondary" aria-keyshortcuts="Escape">
                     Cancel
                   </button>
                 </div>
@@ -481,11 +564,24 @@ export function FreeTradeExercise({
             )}
 
             {state.phase === "in_trade" && trade && trade.stop !== null && trade.target !== null && (
-              <p className="text-sm text-foreground">
-                {trade.direction === "long" ? "Long" : "Short"} from {formatPrice(trade.entry)} · Stop{" "}
-                {formatPrice(trade.stop)} · Target {formatPrice(trade.target)}
-                {liveRR !== null && <span className="text-muted"> · R:R {liveRR.toFixed(2)}:1</span>}
+              <p className="border-t border-line pt-5 text-sm text-foreground tabular-nums">
+                In a {trade.direction === "long" ? "long" : "short"} from {formatPrice(trade.entry)} · stop {formatPrice(trade.stop)} ·
+                target {formatPrice(trade.target)}
+                {liveRR !== null && <span className="text-muted"> · {liveRR.toFixed(2)}R planned</span>}
               </p>
+            )}
+
+            {state.phase !== "placing" && (
+              <div className="border-t border-line pt-5">
+                <button type="button" onClick={() => dispatch({ type: "end" })} className="btn-secondary">
+                  {state.phase === "in_trade" ? "Exit trade and finish" : "End as No Trade"}
+                </button>
+                <p className="mt-2 text-xs text-muted">
+                  {state.phase === "in_trade"
+                    ? "Closes your trade at the latest candle's close and ends this scenario."
+                    : "Ends this scenario without a trade. The rest of the chart is shown afterwards."}
+                </p>
+              </div>
             )}
           </div>
         )}

@@ -679,7 +679,7 @@ export default function PracticePage() {
   }
 
   // Free Trade's playback runner calls this once when the scenario ends
-  // (trade closed, End Session, or playback ran out). is_correct is the
+  // (trade closed, "Exit trade and finish" / "End as No Trade", or playback ran out). is_correct is the
   // process verdict, never the win/loss outcome.
   async function gradeFreeTradeAttempt(attempt: FreeTradeAttempt): Promise<FreeTradeGradeResponse | null> {
     if (!session) return null;
