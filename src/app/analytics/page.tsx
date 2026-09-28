@@ -167,6 +167,8 @@ function AnalyticsContent({ attempts, aggregates }: { attempts: DbAttempt[]; agg
         </section>
       )}
 
+      {/* Only meaningful once real scenarios are live and attempted. */}
+      {realVsConstructed.real && (
       <section>
         <p className="eyebrow">Real Market Data vs Constructed</p>
         <p className="mt-1 text-xs text-muted">Is real data measurably harder than the hand-built exercises?</p>
@@ -174,6 +176,7 @@ function AnalyticsContent({ attempts, aggregates }: { attempts: DbAttempt[]; agg
           <RealVsConstructedView data={realVsConstructed} />
         </div>
       </section>
+      )}
 
       {guidedSteps.length > 0 && (
         <section>

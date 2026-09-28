@@ -92,7 +92,7 @@ export function AuthForm() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1.5 w-full btn-secondary"
+            className="field"
           />
         </div>
 
@@ -108,7 +108,7 @@ export function AuthForm() {
             autoComplete={mode === "sign_in" ? "current-password" : "new-password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1.5 w-full btn-secondary"
+            className="field"
           />
         </div>
 

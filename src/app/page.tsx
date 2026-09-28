@@ -56,9 +56,9 @@ const MODES = [
 
 const HOW = [
   {
-    name: "Real historical NQ scenarios",
+    name: "Hand-built practice charts",
     detail:
-      "Scenarios cut from historical NQ futures data, with answer keys derived from the curriculum's rules by code. None reaches practice until a person has checked it.",
+      "Every chart is constructed around one written definition, with deliberate near-misses, and graded by the same explicit rule every time. Real historical scenarios are still being reviewed and aren't part of practice yet.",
   },
   {
     name: "Adaptive practice",
@@ -78,12 +78,12 @@ export default function Home() {
       <div className="mx-auto w-full max-w-4xl flex-1 px-4 pt-16 pb-20 sm:px-6 sm:pt-24">
         {/* Hero */}
         <section className="max-w-2xl">
-          <p className="eyebrow">ICT concepts · NQ futures · Practice</p>
+          <p className="eyebrow">ICT concepts · NQ-style charts · Practice</p>
           <h1 className="mt-4 text-4xl leading-[1.05] sm:text-6xl">
             Stop watching setups. Start spotting them.
           </h1>
           <p className="mt-6 text-base sm:text-lg">
-            Graded practice for reading ICT concepts on NQ charts. Mark your answer on the chart and get immediate
+            Graded practice for reading ICT concepts on NQ-style price charts. Mark your answer on the chart and get immediate
             feedback that explains the rule, whether you were right or wrong.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
