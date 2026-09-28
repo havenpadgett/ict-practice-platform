@@ -1,28 +1,44 @@
 import Link from "next/link";
-import { CONCEPTS } from "@/lib/concepts";
+import { getPracticeCatalog } from "@/data/catalog";
+import { conceptDisplayName, conceptShortName, DIFFICULTY_LABELS } from "@/lib/concepts";
+import { estimateConceptMinutes } from "@/lib/practice-modes";
 import type { Recommendation } from "@/lib/recommendations";
 
-const DIFFICULTY_LABELS = { 1: "Easy", 2: "Medium", 3: "Hard" } as const;
-
-/** One-click start for the engine's recommended next session. */
-export function RecommendedSession({ recommendation }: { recommendation: Recommendation }) {
+/** The engine's recommended next session: what, why, how long, one click
+ * to start. Used on the dashboard and at the top of the practice picker. */
+export function RecommendedSession({
+  recommendation,
+  headingLevel = 2,
+  primary = true,
+}: {
+  recommendation: Recommendation;
+  headingLevel?: 2 | 3;
+  /** False when something else on the screen is the one primary action
+   * (e.g. Continue session). */
+  primary?: boolean;
+}) {
   const { concept, difficulty, length, reason, href } = recommendation;
-  const label = CONCEPTS[concept].pickerLabel;
+  const count = length === "all" ? getPracticeCatalog(concept).length : length;
+  const minutes = estimateConceptMinutes(concept, count);
+  const Heading = headingLevel === 2 ? "h2" : "h3";
   return (
-    <div className="card">
-      <p className="eyebrow">Recommended next session</p>
-      <p className="mt-2 text-base font-semibold text-foreground">
-        {label} · {DIFFICULTY_LABELS[difficulty]} · {length === "all" ? "all exercises" : `${length} exercises`}
+    <section className="card" aria-labelledby="recommended-heading">
+      <p className="eyebrow">Recommended next</p>
+      <Heading id="recommended-heading" className="mt-2 text-xl">
+        {conceptDisplayName(concept)}
+      </Heading>
+      <p className="mt-1 text-sm text-foreground tabular-nums">
+        {DIFFICULTY_LABELS[difficulty]} · {count} exercise{count === 1 ? "" : "s"} · about {minutes} min
       </p>
-      <p className="mt-1 text-sm text-muted">{reason}</p>
+      <p className="mt-3 max-w-2xl text-sm text-muted">{reason}</p>
       <Link
         // src=rec marks the session as started from the recommendation
         // (practice_events.source), so follow-through can be measured.
         href={`${href}&src=rec`}
-        className="mt-4 btn-primary"
+        className={`mt-5 ${primary ? "btn-primary" : "btn-secondary"}`}
       >
-        Start this session
+        Start {conceptShortName(concept)} practice
       </Link>
-    </div>
+    </section>
   );
 }

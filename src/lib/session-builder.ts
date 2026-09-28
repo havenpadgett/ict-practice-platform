@@ -7,6 +7,7 @@
 
 import { getPracticeCatalog } from "@/data/catalog";
 import type { Concept } from "@/lib/concepts";
+import { LIQUIDITY_VARIANT, RECOGNITION_CONCEPTS } from "@/lib/practice-modes";
 
 /** Fixed session-length caps offered in the UI, in addition to "all". */
 const SESSION_LENGTH_CAPS = [5, 10] as const;
@@ -52,4 +53,26 @@ export function buildSessionExerciseIds(concept: Concept, length: SessionLength,
   const ordered = shuffle(pool).sort((a, b) => Math.abs(a.difficulty - difficulty) - Math.abs(b.difficulty - difficulty));
   const ids = ordered.map((e) => e.exercise_id);
   return shuffle(length === "all" ? ids : ids.slice(0, Math.min(length, ids.length)));
+}
+
+/** A mixed-concepts session: recognition exercises drawn evenly across the
+ * concepts, unweighted (the adaptive mix is the weighted one). Each slot
+ * picks a concept at random from those with exercises left, then an
+ * exercise from it, so no concept dominates. `random` is injectable for
+ * tests. */
+export function buildMixedSessionIds(length = 10, random: () => number = Math.random): string[] {
+  const pools = new Map<Concept, string[]>(
+    [...RECOGNITION_CONCEPTS, LIQUIDITY_VARIANT].map((c) => [c, getPracticeCatalog(c).map((e) => e.exercise_id)]),
+  );
+  const picked: string[] = [];
+  while (picked.length < length) {
+    const live = [...pools.keys()].filter((c) => (pools.get(c) ?? []).length > 0);
+    if (live.length === 0) break;
+    const concept = live[Math.floor(random() * live.length)];
+    const pool = pools.get(concept)!;
+    const i = Math.floor(random() * pool.length);
+    picked.push(pool[i]);
+    pools.set(concept, pool.filter((_, j) => j !== i));
+  }
+  return picked;
 }

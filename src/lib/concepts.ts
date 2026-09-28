@@ -33,6 +33,8 @@ type ConceptMeta = {
   pickerLabel: string;
   /** One-line description shown on the concept picker. */
   pickerDescription: string;
+  /** Standard abbreviation, where traders use one (FVG, IFVG, MSS). */
+  abbr?: string;
 };
 
 export const CONCEPTS: Record<Concept, ConceptMeta> = {
@@ -40,6 +42,7 @@ export const CONCEPTS: Record<Concept, ConceptMeta> = {
     title: "FVG Practice",
     pickerLabel: "Fair Value Gap",
     pickerDescription: "Spot unfilled imbalances left by a strong expansion candle.",
+    abbr: "FVG",
   },
   Liquidity: {
     title: "Liquidity Practice",
@@ -50,11 +53,13 @@ export const CONCEPTS: Record<Concept, ConceptMeta> = {
     title: "MSS Practice",
     pickerLabel: "Market Structure Shift",
     pickerDescription: "Mark the swing level whose break confirmed a shift in trend.",
+    abbr: "MSS",
   },
   IFVG: {
     title: "IFVG Practice",
     pickerLabel: "Inverse Fair Value Gap",
     pickerDescription: "Spot a Fair Value Gap that failed and now acts as the opposite level.",
+    abbr: "IFVG",
   },
   OrderBlock: {
     title: "Order Block Practice",
@@ -64,7 +69,7 @@ export const CONCEPTS: Record<Concept, ConceptMeta> = {
   TimeLiquidity: {
     title: "Time-Based Liquidity Practice",
     pickerLabel: "Time-Based Liquidity",
-    pickerDescription: "Mark previous day, NY AM session, and weekly highs and lows.",
+    pickerDescription: "Mark previous-day, NY AM session and weekly highs and lows.",
   },
   PremiumDiscount: {
     title: "Premium & Discount Practice",
@@ -91,3 +96,17 @@ export const CONCEPTS: Record<Concept, ConceptMeta> = {
 export function getConceptMeta(concept: string): ConceptMeta {
   return CONCEPTS[concept as Concept] ?? CONCEPTS.FVG;
 }
+
+/** Full name with its abbreviation, for headings: "Fair Value Gap (FVG)". */
+export function conceptDisplayName(concept: string): string {
+  const meta = getConceptMeta(concept);
+  return meta.abbr ? `${meta.pickerLabel} (${meta.abbr})` : meta.pickerLabel;
+}
+
+/** The compact name, for buttons and tight labels: "FVG", "Order Block". */
+export function conceptShortName(concept: string): string {
+  const meta = getConceptMeta(concept);
+  return meta.abbr ?? meta.pickerLabel;
+}
+
+export const DIFFICULTY_LABELS = { 1: "Easy", 2: "Medium", 3: "Hard" } as const;

@@ -26,6 +26,10 @@ export const ADAPTIVE_SESSION = "Adaptive";
  * across concepts, or a single retried one (src/lib/mistakes.ts). */
 export const MISTAKES_SESSION = "Mistakes";
 
+/** SessionState.concept for a mixed-concepts session: recognition
+ * exercises drawn evenly across concepts (src/lib/session-builder.ts). */
+export const MIXED_SESSION = "Mixed";
+
 /** Bump this whenever SessionState's shape changes. loadSession() discards
  * anything saved under an older (or missing/mismatched) version instead of
  * trusting it — this is what caught the Phase 3 -> Phase 4 session shape
@@ -85,7 +89,7 @@ function isValidSessionState(value: unknown): value is SessionState {
     v.version === SESSION_SCHEMA_VERSION &&
     typeof v.session_id === "string" &&
     typeof v.concept === "string" &&
-    (CONCEPT_LIST.includes(v.concept as (typeof CONCEPT_LIST)[number]) || v.concept === ADAPTIVE_SESSION || v.concept === MISTAKES_SESSION) &&
+    (CONCEPT_LIST.includes(v.concept as (typeof CONCEPT_LIST)[number]) || v.concept === ADAPTIVE_SESSION || v.concept === MISTAKES_SESSION || v.concept === MIXED_SESSION) &&
     Array.isArray(v.exercise_order) &&
     v.exercise_order.every((id) => typeof id === "string") &&
     typeof v.current_index === "number" &&

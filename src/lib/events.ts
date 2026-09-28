@@ -17,7 +17,9 @@ export type PracticeEvent =
 
 /** The mode a session's `concept` (SessionState.concept) belongs to. */
 export function modeFor(concept: string): EventMode {
-  if (concept === "Adaptive") return "adaptive";
+  // A mixed-concepts session is a mixed session too; the concept column
+  // ("Mixed") tells it apart from the weighted adaptive mix.
+  if (concept === "Adaptive" || concept === "Mixed") return "adaptive";
   if (concept === "Mistakes") return "mistakes";
   if (concept === "GuidedEntry") return "guided_entry";
   if (concept === "FreeTrade") return "free_trade";

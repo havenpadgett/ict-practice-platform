@@ -5,7 +5,7 @@ import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { LoadingState } from "@/components/loading-state";
 import { CandlestickChart } from "@/components/practice/candlestick-chart";
 import { ChoiceControls } from "@/components/practice/choice-controls";
-import { ConceptPicker } from "@/components/practice/concept-picker";
+import { ConceptPicker, type ActiveSessionInfo } from "@/components/practice/concept-picker";
 import { ExerciseControls } from "@/components/practice/exercise-controls";
 import { FeedbackPanel } from "@/components/practice/feedback-panel";
 import { FreeTradeExercise, type FreeTradeAttempt, type FreeTradeGradeResponse } from "@/components/practice/free-trade-exercise";
@@ -19,7 +19,7 @@ import { gradeFreeTradeScenario, gradeGuided, gradeRecognition, loadSessionExerc
 import { getExerciseMeta } from "@/data/catalog";
 import type { ZoneAnswer } from "@/data/exercises";
 import { useRequireAuth } from "@/hooks/use-require-auth";
-import { DASHBOARD_COLUMNS, fetchAttempts, insertAttempt, nextAttemptNumber, type NewAttempt } from "@/lib/attempts";
+import { DASHBOARD_COLUMNS, fetchAttempts, insertAttempt, nextAttemptNumber, type DbAttempt, type NewAttempt } from "@/lib/attempts";
 import { describeError, type FriendlyError } from "@/lib/errors";
 import { modeFor, track, type SessionSource } from "@/lib/events";
 import { CONCEPT_LIST, getConceptMeta, type Concept } from "@/lib/concepts";
@@ -27,12 +27,13 @@ import type { GradeResult, UserAnswer, UserRegion } from "@/lib/grading";
 import type { GuidedUserAnswer } from "@/lib/guided-grading";
 import { recordSessionCompletion } from "@/lib/profiles";
 import type { PublicExercise } from "@/lib/public-exercise";
-import { mistakeSessionIds } from "@/lib/mistakes";
-import { buildAdaptiveSession } from "@/lib/recommendations";
-import { buildSessionExerciseIds, type SessionLength } from "@/lib/session-builder";
+import { mistakeCounts, mistakeSessionIds } from "@/lib/mistakes";
+import { buildAdaptiveSession, recommendSession, scoreConcepts } from "@/lib/recommendations";
+import { buildMixedSessionIds, buildSessionExerciseIds, type SessionLength } from "@/lib/session-builder";
 import {
   ADAPTIVE_SESSION,
   MISTAKES_SESSION,
+  MIXED_SESSION,
   clearProgress,
   clearSession,
   createSession,
@@ -79,6 +80,9 @@ export default function PracticePage() {
   const [gradeError, setGradeError] = useState<string | null>(null);
   const [adaptiveError, setAdaptiveError] = useState<string | null>(null);
   const exerciseStartRef = useRef<number>(0);
+  /** The user's history for the picker's accuracy, recommendation and
+   * mistakes count; null until loaded. */
+  const [pickerAttempts, setPickerAttempts] = useState<DbAttempt[] | null>(null);
   /** A Review Mistakes deep link waiting for auth to resolve. */
   const pendingMistakesRef = useRef<{ retryId?: string } | null>(null);
 
@@ -200,6 +204,21 @@ export default function PracticePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSessionId, sessionIds, loadAttempt]);
 
+  // The picker's history: loaded whenever it's shown, so numbers are fresh
+  // after a session. A failure just leaves the numbers out.
+  useEffect(() => {
+    if (!showPicker || !user) return;
+    let cancelled = false;
+    fetchAttempts(user.id, DASHBOARD_COLUMNS)
+      .then((rows) => {
+        if (!cancelled) setPickerAttempts(rows);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [showPicker, user]);
+
   function handlePickConcept(concept: Concept) {
     setShowPicker(false);
     setLengthPickerConcept(concept);
@@ -227,6 +246,10 @@ export default function PracticePage() {
     } catch (err) {
       setAdaptiveError(describeError(err, "load your practice history to build the session").message);
     }
+  }
+
+  function handleStartMixed() {
+    beginSession(MIXED_SESSION, buildMixedSessionIds(), "picker");
   }
 
   /** Review Mistakes: every open mistake (most recent first, capped), or
@@ -265,7 +288,7 @@ export default function PracticePage() {
       setNotice(
         kind === MISTAKES_SESSION
           ? "No mistakes to review right now. Anything you miss shows up here to practice again."
-          : `There are no exercises ready for ${kind === ADAPTIVE_SESSION ? "an adaptive session" : getConceptMeta(kind).pickerLabel} yet. Pick another concept.`,
+          : `There are no exercises ready for ${kind === ADAPTIVE_SESSION ? "an adaptive session" : kind === MIXED_SESSION ? "a mixed session" : getConceptMeta(kind).pickerLabel} yet. Pick another concept.`,
       );
       setSession(null);
       setLengthPickerConcept(null);
@@ -330,12 +353,15 @@ export default function PracticePage() {
       );
       return;
     }
+    // An unfinished session resumes where it was. A finished one has
+    // already shown its summary, so coming back starts at the picker.
     const existing = loadSession();
-    if (existing) {
+    if (existing && !existing.completed) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSession(existing);
       return;
     }
+    if (existing) clearSession();
     setShowPicker(true);
     // Mount-only: reads the URL/localStorage once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -368,19 +394,29 @@ export default function PracticePage() {
   }
 
   if (showPicker) {
+    const activeSession: ActiveSessionInfo | null =
+      session && !session.completed
+        ? { title: sessionTitle(session.concept), position: session.current_index, total: session.exercise_order.length }
+        : null;
     return (
       <div className="flex flex-1 flex-col">
-        <div className="page">
+        <div className="page max-w-4xl">
           {notice && (
             <p className="mb-6 rounded-md border border-line bg-surface p-3 text-sm text-foreground" role="status">
               {notice}
             </p>
           )}
           <ConceptPicker
+            scores={pickerAttempts ? new Map(scoreConcepts(pickerAttempts).concepts.map((c) => [c.concept, c])) : null}
+            recommendation={pickerAttempts ? recommendSession(pickerAttempts) : null}
+            openMistakes={pickerAttempts ? mistakeCounts(pickerAttempts).open : 0}
+            activeSession={activeSession}
+            onContinue={() => setShowPicker(false)}
             onPick={handlePickConcept}
             onPickAdaptive={handleStartAdaptive}
             onPickMistakes={() => handleStartMistakes()}
-            adaptiveError={adaptiveError}
+            onPickMixed={handleStartMixed}
+            error={adaptiveError}
           />
         </div>
         <DisclaimerFooter />
@@ -415,13 +451,8 @@ export default function PracticePage() {
     );
   }
 
-  const isAdaptive = session.concept === ADAPTIVE_SESSION;
-  const isMistakes = session.concept === MISTAKES_SESSION;
-  const conceptMeta = isAdaptive
-    ? { title: "Adaptive Practice", pickerLabel: "Adaptive", pickerDescription: "" }
-    : isMistakes
-      ? { title: "Review Mistakes", pickerLabel: "Mistakes", pickerDescription: "" }
-      : getConceptMeta(session.concept);
+  const isMixedKind = session.concept === ADAPTIVE_SESSION || session.concept === MISTAKES_SESSION || session.concept === MIXED_SESSION;
+  const conceptMeta = { title: sessionTitle(session.concept) };
 
   if (session.completed) {
     return (
@@ -697,11 +728,17 @@ export default function PracticePage() {
         <div className="flex items-baseline justify-between gap-4">
           <h1 className="eyebrow">
             {conceptMeta.title}
-            {(isAdaptive || isMistakes) && <> · {getConceptMeta(exercise.concept).pickerLabel}</>}
+            {isMixedKind && <> · {getConceptMeta(exercise.concept).pickerLabel}</>}
           </h1>
-          <p className="eyebrow tabular-nums">
-            {session.current_index + 1} / {session.exercise_order.length}
-          </p>
+          <div className="flex items-baseline gap-4">
+            <p className="eyebrow tabular-nums">
+              {session.current_index + 1} / {session.exercise_order.length}
+            </p>
+            {/* Leaves the session saved: the picker offers Continue. */}
+            <button type="button" onClick={() => setShowPicker(true)} className="btn-link -my-3 justify-center text-xs no-underline hover:underline">
+              Exit
+            </button>
+          </div>
         </div>
         <div
           className="mt-3 h-0.5 overflow-hidden rounded-full bg-line"
@@ -858,4 +895,12 @@ export default function PracticePage() {
       <DisclaimerFooter />
     </div>
   );
+}
+
+/** Heading for a session of any kind. */
+function sessionTitle(kind: string): string {
+  if (kind === ADAPTIVE_SESSION) return "Adaptive Practice";
+  if (kind === MISTAKES_SESSION) return "Review Mistakes";
+  if (kind === MIXED_SESSION) return "Mixed Concepts";
+  return getConceptMeta(kind).title;
 }

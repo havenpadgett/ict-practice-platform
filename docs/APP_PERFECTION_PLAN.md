@@ -53,7 +53,7 @@ These are launch blockers. None of them is worked around or quietly softened.
 - [ ] **Analytics "Real Market Data vs Constructed"** is always shown, though 0 real scenarios are live.
 - [ ] **Free Trade reimplements button classes** (`primaryClass`/`secondaryClass`/`activeClass` strings) instead of the design-system classes, with a `border-line` (1.3:1) outline that fails the 3:1 control-boundary rule from DESIGN-SYSTEM.md.
 - [ ] **Free Trade "End Session"** only ends the current scenario.
-- [ ] **Session length picker buttons** use a one-off card style instead of `.btn-option`.
+- [x] **Session length picker buttons** use a one-off card style instead of `.btn-option`.
 - [ ] **Mistakes isn't in the nav**, and "Mastered" after one correct retry overstates it.
 
 ---
@@ -70,7 +70,7 @@ These are launch blockers. None of them is worked around or quietly softened.
 ## P1: core UX
 
 - [x] **P1-1 Navigation (Phase 1).** Primary nav: Dashboard, Practice, Mistakes (with open count), Analytics. Account menu (email, log out). Active-page state (`aria-current`). Mobile: a compact top bar plus a fixed bottom tab bar, not the wrapped desktop nav.
-- [ ] **P1-2 Practice picker (Phase 2).** Sections: Recommended (the engine's pick with its reason, Continue session, Review mistakes if pending), Recognition (FVG, IFVG, Liquidity incl. time-based, MSS, Order Block, Premium/Discount), Trade Practice (Guided Entry, Free Trade), Mixed/Review (Adaptive mix, Review mistakes). Each row: name, purpose, difficulty range, approximate length, accuracy with attempts (only at ≥ 5 attempts), recommended flag, CTA. Hierarchy instead of nine equal cards.
+- [x] **P1-2 Practice picker (Phase 2).** Sections: Recommended (the engine's pick with its reason, Continue session, Review mistakes if pending). An in-progress session now has an Exit link back to the picker (before, the only way out was finishing), and a finished session no longer reopens its summary on the next visit, Recognition (FVG, IFVG, Liquidity incl. time-based, MSS, Order Block, Premium/Discount), Trade Practice (Guided Entry, Free Trade), Mixed/Review (Adaptive mix, Review mistakes). Each row: name, purpose, difficulty range, approximate length, accuracy with attempts (only at ≥ 5 attempts), recommended flag, CTA. Hierarchy instead of nine equal cards.
 - [ ] **P1-3 Dashboard (Phase 3).** Order: welcome/status → what to practice next (recommendation card with why, difficulty, time, CTA) → pending mistakes → summary metrics → concept skill rows (bar, attempts, "not enough data" below 5) → recent activity. "Session Score" is replaced by "This week" (attempts in the last 7 days).
 - [ ] **P1-4 Session complete (Phase 10).** Human labels, score, %, concept, difficulty mix, correct/missed counts, a one-line insight, "Review N mistakes" as the primary CTA when there are misses, missed items as friendly rows.
 - [ ] **P1-5 Recognition feedback (Phase 7).** Diagnostics checklist: zones get Coverage / Location (time window) / Size, with the measured value; levels get "N points too high/low" and the tolerance. "Show me exactly why" expander. "Retry this chart" (a retry is recorded as a practice retry, `attempt_number` > 1, never as independent mastery evidence).
