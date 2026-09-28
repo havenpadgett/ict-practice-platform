@@ -114,6 +114,8 @@ type GuidedProps = CommonProps & {
   correctEntry?: number | null;
   correctStop?: number | null;
   correctTarget?: number | null;
+  /** Faint reference lines (beginner guidance), e.g. the 2R target. */
+  guides?: { price: number; label: string }[];
 };
 
 /** Free Trade playback: only revealed candles are passed in (the chart
@@ -714,11 +716,30 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
                   >
                     {GUIDED_FIELD_LABELS[field]}
                   </text>
+                  <PriceTag x={bounds.right} y={priceToY(layout, userPrice)} price={userPrice} strong />
                 </g>
               )}
             </g>
           );
         })}
+
+      {props.answerType === "guided" &&
+        props.guides?.map((g) => (
+          <g key={g.label} pointerEvents="none">
+            <line
+              x1={bounds.left}
+              x2={bounds.right}
+              y1={priceToY(layout, g.price)}
+              y2={priceToY(layout, g.price)}
+              className="stroke-muted"
+              strokeWidth={1}
+              strokeDasharray="2 4"
+            />
+            <text x={bounds.right - 4} y={priceToY(layout, g.price) - 4} textAnchor="end" className="chart-tag fill-muted">
+              {g.label}
+            </text>
+          </g>
+        ))}
 
       {/* The user's line price, on the axis, so a placed level reads as a
           number as well as a position. */}

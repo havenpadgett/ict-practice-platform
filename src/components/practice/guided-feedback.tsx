@@ -10,18 +10,26 @@ const STEP_LABELS: Record<GuidedStepId, string> = {
 
 export function GuidedFeedback({
   result,
+  plan,
   onNext,
   nextLabel,
 }: {
   result: GuidedGradeResult;
+  /** What the user built, in one line. */
+  plan: string;
   onNext: () => void;
   nextLabel: string;
 }) {
   return (
     <div className="card" role="status" aria-live="polite">
-      <Verdict correct={result.isCorrect} />
+      <Verdict correct={result.isCorrect} label={result.isCorrect ? "Good setup" : "Setup has problems"} />
+      <p className="mt-2 text-sm text-foreground tabular-nums">
+        <span className="text-muted">Your plan: </span>
+        {plan}
+      </p>
 
-      <ul className="mt-5 space-y-4">
+      <p className="eyebrow mt-5">Step by step</p>
+      <ul className="mt-3 space-y-4">
         {result.steps.map((step) => (
           <CheckRow key={step.step} passed={step.isCorrect} label={STEP_LABELS[step.step]}>
             {step.explanation}
