@@ -189,6 +189,14 @@ export function GuidedExercise({
   }));
   const back = () => setStep(order[Math.max(0, currentIndex - 1)]);
 
+  function placeLevel(raw: number) {
+    // Snap to NQ's 0.25 tick, like Free Trade and a real platform.
+    const price = Math.round(raw * 4) / 4;
+    if (step === "entry") setEntry(price);
+    else if (step === "stop") setStop(price);
+    else if (step === "target") setTarget(price);
+  }
+
   const chart = (
     <div ref={chartRef} className="scroll-mt-16">
       <ChartFrame>
@@ -200,13 +208,7 @@ export function GuidedExercise({
           stopPrice={stop}
           targetPrice={target}
           activeField={interactive ? activeField : null}
-          onActiveFieldChange={(raw) => {
-            // Snap to NQ's 0.25 tick, like Free Trade and a real platform.
-            const price = Math.round(raw * 4) / 4;
-            if (step === "entry") setEntry(price);
-            else if (step === "stop") setStop(price);
-            else if (step === "target") setTarget(price);
-          }}
+          onActiveFieldChange={placeLevel}
           correctEntry={graded?.reveal.entry ?? null}
           correctStop={graded?.reveal.stop ?? null}
           correctTarget={graded?.reveal.target ?? null}
@@ -245,6 +247,7 @@ export function GuidedExercise({
             price={entry}
             onContinue={() => setStep("stop")}
             onBack={back}
+            onManualPrice={placeLevel}
             onNoTrade={() => finalize(false)}
             liveRR={null}
             minRR={exercise.min_rr}
@@ -256,6 +259,7 @@ export function GuidedExercise({
             price={stop}
             onContinue={() => setStep("target")}
             onBack={back}
+            onManualPrice={placeLevel}
             onNoTrade={() => finalize(false)}
             liveRR={null}
             minRR={exercise.min_rr}
@@ -268,6 +272,7 @@ export function GuidedExercise({
             price={target}
             onContinue={() => finalize(true)}
             onBack={back}
+            onManualPrice={placeLevel}
             onNoTrade={() => finalize(false)}
             liveRR={liveRR}
             minRR={exercise.min_rr}

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type Rea
 import { CandlestickChart } from "@/components/practice/candlestick-chart";
 import { ChartFrame, ExerciseLayout } from "@/components/practice/exercise-layout";
 import { FreeTradeFeedback } from "@/components/practice/free-trade-feedback";
+import { ManualEntry } from "@/components/practice/manual-entry";
 import type { FreeTradeAnswer, FreeTradeDirection } from "@/data/exercises";
 import type { PublicFreeTradeExercise as FreeTradeExerciseData } from "@/lib/public-exercise";
 import {
@@ -533,6 +534,13 @@ export function FreeTradeExercise({
                     </button>
                   ))}
                 </div>
+                <ManualEntry
+                  key={state.activeField}
+                  kind="level"
+                  candleCount={0}
+                  label={`Price of your ${state.activeField}`}
+                  onLevel={(price) => dispatch({ type: "set_level", price })}
+                />
                 {liveRR !== null && (
                   <p className="mt-3 text-sm text-foreground tabular-nums">
                     R:R <span className="font-medium">{liveRR.toFixed(2)}:1</span>

@@ -9,7 +9,7 @@ import type { UserRegion } from "@/lib/grading";
  * entered, so the result can be checked visually before submitting. */
 export function ManualEntry(
   props:
-    | { kind: "level"; candleCount: number; onLevel: (price: number) => void }
+    | { kind: "level"; candleCount: number; onLevel: (price: number) => void; label?: string }
     | { kind: "zone"; candleCount: number; onRegion: (region: UserRegion) => void },
 ) {
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +56,7 @@ export function ManualEntry(
       <form onSubmit={submit} noValidate className="mt-2 rounded-lg border border-line p-4">
         {props.kind === "level" ? (
           <label className="block text-xs text-muted">
-            Price of your line
+            {props.label ?? "Price of your line"}
             <input name="price" inputMode="decimal" autoComplete="off" className="field" />
           </label>
         ) : (

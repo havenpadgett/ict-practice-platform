@@ -1,4 +1,5 @@
 import type { GuidedLevelField } from "@/components/practice/candlestick-chart";
+import { ManualEntry } from "@/components/practice/manual-entry";
 
 const STEP_COPY: Record<GuidedLevelField, string> = {
   entry: "Click or tap the chart at your entry price. Drag to adjust.",
@@ -21,8 +22,11 @@ export function GuidedLevelControls({
   liveRR,
   minRR,
   guidance,
+  onManualPrice,
 }: {
   step: GuidedLevelField;
+  /** Sets this step's level from a typed price (keyboard alternative). */
+  onManualPrice: (price: number) => void;
   price: number | null;
   onContinue: () => void;
   onBack: () => void;
@@ -48,6 +52,8 @@ export function GuidedLevelControls({
           </span>
         </p>
       )}
+
+      <ManualEntry key={step} kind="level" candleCount={0} onLevel={onManualPrice} label={`Price of your ${step}`} />
 
       <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-line pt-5">
         <button type="button" onClick={onContinue} disabled={price === null} className="btn-primary">

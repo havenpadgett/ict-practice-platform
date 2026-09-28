@@ -402,7 +402,15 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
     <svg
       ref={svgRef}
       role="img"
-      aria-label={`Candlestick chart, ${candles.length} candles${props.answerType === "zone" ? ". Drag to draw a box" : props.answerType === "level" ? ". Click to place a line" : ""}`}
+      aria-label={`Candlestick chart, ${candles.length} candles${
+        !interactive
+          ? ""
+          : props.answerType === "zone"
+            ? ". Drag to draw a box, or enter the box's values manually below the chart"
+            : props.answerType === "level" || hasActiveField
+              ? ". Click to place a line, or enter its price manually below the chart"
+              : ""
+      }`}
       viewBox={`0 0 ${viewBox.width} ${viewBox.height}`}
       className={`w-full select-none ${touchClass} ${cursorClass}`}
       onPointerDown={handlePointerDown}
@@ -802,7 +810,7 @@ function PriceTag({ x, y, price, strong = false }: { x: number; y: number; price
   const w = text.length * 6.3 + 8;
   return (
     <g pointerEvents="none">
-      <rect x={x + 2} y={y - 9} width={w} height={18} rx={3} className={strong ? "fill-foreground" : "fill-control"} />
+      <rect x={x + 2} y={y - 9} width={w} height={18} rx={3} className={strong ? "fill-foreground" : "fill-muted"} />
       <text x={x + 6} y={y} dominantBaseline="middle" className="chart-axis fill-background font-medium">
         {text}
       </text>
