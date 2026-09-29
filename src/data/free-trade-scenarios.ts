@@ -30,9 +30,9 @@ export const freeTradeScenarios: FreeTradeExercise[] = [
     answer: {
       intended_bias: "long",
       is_valid_setup: true,
-      entry_zone: { price_low: 21335, price_high: 21362, earliest_index: 35 },
-      stop_zone: { price_low: 21250, price_high: 21284 },
-      target: 21520,
+      entry_zone: { price_low: 21335, price_high: 21362, earliest_index: 35, minor_margin: 10 },
+      stop_zone: { invalidation_price: 21285, reasonable_buffer: 34 },
+      target: { anchor: 21520, price_low: 21505, price_high: 21520, minor_margin: 10 },
       min_rr: 2,
     },
     candles: [
@@ -153,9 +153,9 @@ export const freeTradeScenarios: FreeTradeExercise[] = [
     answer: {
       intended_bias: "short",
       is_valid_setup: true,
-      entry_zone: { price_low: 21405, price_high: 21430, earliest_index: 47 },
-      stop_zone: { price_low: 21479, price_high: 21510 },
-      target: 21260,
+      entry_zone: { price_low: 21405, price_high: 21430, earliest_index: 47, minor_margin: 10 },
+      stop_zone: { invalidation_price: 21478, reasonable_buffer: 31 },
+      target: { anchor: 21260, price_low: 21260, price_high: 21275, minor_margin: 10 },
       min_rr: 2,
     },
     candles: [
@@ -276,9 +276,9 @@ export const freeTradeScenarios: FreeTradeExercise[] = [
     answer: {
       intended_bias: "long",
       is_valid_setup: true,
-      entry_zone: { price_low: 21172, price_high: 21190, earliest_index: 30 },
-      stop_zone: { price_low: 21090, price_high: 21119 },
-      target: 21330,
+      entry_zone: { price_low: 21172, price_high: 21190, earliest_index: 30, minor_margin: 10 },
+      stop_zone: { invalidation_price: 21120, reasonable_buffer: 29 },
+      target: { anchor: 21330, price_low: 21315, price_high: 21330, minor_margin: 10 },
       min_rr: 2,
     },
     candles: [
@@ -510,9 +510,9 @@ export const freeTradeScenarios: FreeTradeExercise[] = [
     answer: {
       intended_bias: "short",
       is_valid_setup: false,
-      entry_zone: { price_low: 21455, price_high: 21470, earliest_index: 37 },
-      stop_zone: { price_low: 21521, price_high: 21550 },
-      target: 21400,
+      entry_zone: { price_low: 21455, price_high: 21470, earliest_index: 37, minor_margin: 10 },
+      stop_zone: { invalidation_price: 21520, reasonable_buffer: 29 },
+      target: { anchor: 21400, price_low: 21400, price_high: 21415, minor_margin: 10 },
       min_rr: 2,
     },
     candles: [

@@ -11,16 +11,20 @@
   "answer": {
     "bias": "bearish",
     "entry": {
-      "price": 18287.5,
-      "tolerance": 5.5
+      "anchor": 18287.5,
+      "price_low": 18282.0,
+      "price_high": 18293.0,
+      "minor_margin": 5.5
     },
     "stop": {
-      "price": 18326.75,
-      "tolerance": 10.75
+      "invalidation_price": 18316.0,
+      "reasonable_buffer": 21.5
     },
     "target": {
-      "price": 18194.25,
-      "tolerance": 10.75
+      "anchor": 18194.25,
+      "price_low": 18183.5,
+      "price_high": 18205.0,
+      "minor_margin": 10.75
     },
     "min_rr": 2.0,
     "is_valid_setup": true,

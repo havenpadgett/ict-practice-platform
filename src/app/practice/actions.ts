@@ -202,7 +202,11 @@ export async function gradeGuided(
   return {
     ok: true,
     grade,
-    reveal: { entry: e.answer.entry?.price ?? null, stop: e.answer.stop?.price ?? null, target: e.answer.target?.price ?? null },
+    reveal: {
+      entry: e.answer.entry?.anchor ?? null,
+      stop: e.answer.stop?.invalidation_price ?? null,
+      target: e.answer.target?.anchor ?? null,
+    },
     row: buildGuidedAttempt(e, answer, grade, context(ctx)),
   };
 }

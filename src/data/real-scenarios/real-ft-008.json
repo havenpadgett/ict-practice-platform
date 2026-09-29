@@ -15,13 +15,19 @@
     "entry_zone": {
       "price_low": 18166.75,
       "price_high": 18174.5,
-      "earliest_index": 30
+      "earliest_index": 30,
+      "minor_margin": 10
     },
     "stop_zone": {
-      "price_low": 18129.75,
-      "price_high": 18153.25
+      "invalidation_price": 18153.25,
+      "reasonable_buffer": 23.5
     },
-    "target": 18221.25,
+    "target": {
+      "anchor": 18221.25,
+      "price_low": 18206.25,
+      "price_high": 18221.25,
+      "minor_margin": 10
+    },
     "min_rr": 2.0
   },
   "provenance": {

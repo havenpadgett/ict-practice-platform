@@ -8,8 +8,20 @@
 // losing trade with good process passes, a winning trade with bad process
 // fails. Outcome (win/loss, result in R) is reported alongside, never mixed
 // into the verdict.
+//
+// Phase B (docs/APP_PERFECTION_PLAN.md) widened every check from pass/fail
+// to the three-state verdict (src/lib/verdict.ts) and closed the "target
+// isn't graded on its own" V1 gap: target is now its own check, graded as
+// zone membership, same reasoning as entry.
 
-import type { Candle, FreeTradeDirection, FreeTradeExercise } from "@/data/exercises";
+import type { Candle, FreeTradeDirection, FreeTradeExercise, FreeTradePriceZone, FreeTradeTargetZone, StopAnswer } from "@/data/exercises";
+import {
+  gradeProtectiveStop,
+  gradeRiskReward,
+  gradeZonePlacement,
+  worstVerdict,
+  type Verdict3,
+} from "@/lib/verdict";
 
 export type FreeTradePosition = {
   direction: FreeTradeDirection;
@@ -33,18 +45,21 @@ export type FreeTradeExit = {
  * trade is marked at the last revealed close. */
 export type FreeTradeOutcome = "win" | "loss" | "open" | "no_trade";
 
-export type FreeTradeCheckId = "direction" | "entry" | "stop" | "rr" | "decision";
+export type FreeTradeCheckId = "direction" | "entry" | "stop" | "target" | "rr" | "decision";
 
 export type FreeTradeCheck = {
   id: FreeTradeCheckId;
   label: string;
-  /** "na" when the check doesn't apply (e.g. entry/stop when no trade was
-   * taken) — recorded as null, not false. */
-  status: "pass" | "fail" | "na";
+  /** null when the check doesn't apply (e.g. entry/stop/target/rr when no
+   * trade was taken) — recorded as null, not "incorrect". */
+  verdict: Verdict3 | null;
   reason: string;
 };
 
 export type FreeTradeGradeResult = {
+  verdict: Verdict3;
+  /** Backward-compat: true for CORRECT and COULD_IMPROVE, false only for
+   * INCORRECT (src/lib/verdict.ts). */
   passed: boolean;
   outcome: FreeTradeOutcome;
   /** Null when no trade was taken. */
@@ -60,6 +75,7 @@ const CHECK_LABELS: Record<FreeTradeCheckId, string> = {
   direction: "Direction",
   entry: "Entry",
   stop: "Stop",
+  target: "Target",
   rr: "Risk-to-reward",
   decision: "Trade decision",
 };
@@ -106,12 +122,30 @@ function resultInR(position: FreeTradePosition, exit: FreeTradeExit): number {
   return move / risk;
 }
 
-function inZone(price: number, zone: { price_low: number; price_high: number }): boolean {
-  return price >= zone.price_low && price <= zone.price_high;
+function pts(n: number): string {
+  const r = Math.round(Math.abs(n));
+  return `${r} point${r === 1 ? "" : "s"}`;
 }
 
-function formatRR(rr: number): string {
-  return `${rr.toFixed(2)}:1`;
+function zoneReason(verdict: Verdict3, price: number, zone: FreeTradePriceZone | FreeTradeTargetZone, noun: string): string {
+  if (verdict === "correct") return `Your ${noun} was inside the ideal zone.`;
+  const below = price < zone.price_low;
+  const distance = below ? zone.price_low - price : price - zone.price_high;
+  const where = below ? "below" : "above";
+  return verdict === "could_improve"
+    ? `Your ${noun} was close, about ${pts(distance)} ${where} the ideal zone.`
+    : `Your ${noun} was about ${pts(distance)} ${where} the ideal zone — not anchored to the setup's level.`;
+}
+
+function stopReason(verdict: Verdict3, price: number, stop: StopAnswer, direction: FreeTradeDirection): string {
+  const protects = direction === "long" ? price <= stop.invalidation_price : price >= stop.invalidation_price;
+  if (!protects) {
+    const distance = Math.abs(price - stop.invalidation_price);
+    return `Your stop was on the wrong side of the swing point that would prove the idea wrong, about ${pts(distance)} inside it — normal noise could take you out before the idea is actually invalidated.`;
+  }
+  if (verdict === "correct") return "Your stop sat just beyond the swing point that would prove the idea wrong.";
+  const extra = Math.abs(price - stop.invalidation_price) - stop.reasonable_buffer;
+  return `Your stop protects the trade, but it's about ${pts(extra)} wider than it needs to be, which shrinks your R:R for no benefit.`;
 }
 
 export function gradeFreeTrade(
@@ -120,27 +154,32 @@ export function gradeFreeTrade(
   exit: FreeTradeExit | null,
 ): FreeTradeGradeResult {
   const key = exercise.answer;
-  const check = (id: FreeTradeCheckId, status: FreeTradeCheck["status"], reason: string): FreeTradeCheck => ({
+  const check = (id: FreeTradeCheckId, verdict: Verdict3 | null, reason: string): FreeTradeCheck => ({
     id,
     label: CHECK_LABELS[id],
-    status,
+    verdict,
     reason,
   });
 
   if (position === null) {
-    const decision = key.is_valid_setup
-      ? check("decision", "fail", "There was a valid setup here — sitting out missed it.")
-      : check("decision", "pass", "No valid setup formed — sitting out was the right call.");
+    const decisionVerdict: Verdict3 = key.is_valid_setup ? "incorrect" : "correct";
+    const decision = check(
+      "decision",
+      decisionVerdict,
+      key.is_valid_setup ? "There was a valid setup here — sitting out missed it." : "No valid setup formed — sitting out was the right call.",
+    );
     const na = "No trade taken.";
     const checks = [
-      check("direction", "na", na),
-      check("entry", "na", na),
-      check("stop", "na", na),
-      check("rr", "na", na),
+      check("direction", null, na),
+      check("entry", null, na),
+      check("stop", null, na),
+      check("target", null, na),
+      check("rr", null, na),
       decision,
     ];
     return {
-      passed: decision.status === "pass",
+      verdict: decisionVerdict,
+      passed: decisionVerdict !== "incorrect",
       outcome: "no_trade",
       resultR: null,
       rr: null,
@@ -153,56 +192,84 @@ export function gradeFreeTrade(
   const { direction, entry, stop, target, entryIndex } = position;
   const dirWord = direction === "long" ? "Long" : "Short";
 
+  const directionVerdict: Verdict3 = key.intended_bias === direction ? "correct" : "incorrect";
   const directionCheck =
     key.intended_bias === "none"
-      ? check("direction", "fail", "Structure never shifted cleanly — there was no direction worth trading.")
+      ? check("direction", "incorrect", "Structure never shifted cleanly — there was no direction worth trading.")
       : key.intended_bias === direction
-        ? check("direction", "pass", `${dirWord} matched the ${direction === "long" ? "bullish" : "bearish"} structure.`)
+        ? check("direction", directionVerdict, `${dirWord} matched the ${direction === "long" ? "bullish" : "bearish"} structure.`)
         : check(
             "direction",
-            "fail",
+            directionVerdict,
             `You went ${direction}, but structure pointed ${key.intended_bias === "long" ? "long (bullish)" : "short (bearish)"}.`,
           );
 
-  const entryCheck =
-    key.entry_zone === null
-      ? check("entry", "fail", "There was no valid entry level in this scenario.")
-      : entryIndex < key.entry_zone.earliest_index
-        ? check("entry", "fail", "You entered before the setup had formed.")
-        : inZone(entry, key.entry_zone)
-          ? check("entry", "pass", "Your entry was inside the ideal zone.")
-          : check("entry", "fail", "Your entry was outside the ideal zone — it wasn't anchored to the setup's level.");
+  let entryVerdict: Verdict3 = "incorrect";
+  let entryCheck: FreeTradeCheck;
+  if (key.entry_zone === null) {
+    entryCheck = check("entry", "incorrect", "There was no valid entry level in this scenario.");
+  } else if (entryIndex < key.entry_zone.earliest_index) {
+    entryCheck = check("entry", "incorrect", "You entered before the setup had formed.");
+  } else {
+    entryVerdict = gradeZonePlacement(entry, key.entry_zone);
+    entryCheck = check("entry", entryVerdict, zoneReason(entryVerdict, entry, key.entry_zone, "entry"));
+  }
 
+  let stopVerdict: Verdict3 = "incorrect";
   let stopCheck: FreeTradeCheck;
   if (key.stop_zone === null) {
-    stopCheck = check("stop", "na", "No valid setup to anchor a stop to.");
-  } else if (inZone(stop, key.stop_zone)) {
-    stopCheck = check("stop", "pass", "Your stop sat just beyond the swing point that would prove the idea wrong.");
+    stopCheck = check("stop", null, "No valid setup to anchor a stop to.");
   } else {
-    const tooTight = direction === "long" ? stop > key.stop_zone.price_high : stop < key.stop_zone.price_low;
-    stopCheck = tooTight
-      ? check("stop", "fail", "Your stop was too tight — inside the swing point that formed the setup, so normal noise can take you out.")
-      : check("stop", "fail", "Your stop was further than needed beyond the swing point, which shrinks your R:R for no benefit.");
+    stopVerdict = gradeProtectiveStop(stop, key.stop_zone, direction);
+    stopCheck = check("stop", stopVerdict, stopReason(stopVerdict, stop, key.stop_zone, direction));
+  }
+
+  let targetVerdict: Verdict3 = "incorrect";
+  let targetCheck: FreeTradeCheck;
+  if (key.target === null) {
+    targetCheck = check("target", null, "There was no liquidity worth targeting here.");
+  } else {
+    targetVerdict = gradeZonePlacement(target, key.target);
+    targetCheck = check(
+      "target",
+      targetVerdict,
+      targetVerdict === "correct"
+        ? "Good target — you aimed at the actual liquidity this setup was drawing toward."
+        : zoneReason(targetVerdict, target, key.target, "target"),
+    );
   }
 
   const rr = computeRR(direction, entry, stop, target);
-  const rrCheck =
-    rr !== null && rr >= key.min_rr
-      ? check("rr", "pass", `${formatRR(rr)} clears the ${key.min_rr}:1 minimum.`)
-      : check("rr", "fail", `${rr === null ? "—" : formatRR(rr)} is below the ${key.min_rr}:1 minimum.`);
+  const rrVerdict = gradeRiskReward(rr, key.min_rr);
+  const rrCheck = check(
+    "rr",
+    rrVerdict,
+    rrVerdict === "correct"
+      ? `${rr!.toFixed(2)}:1 clears the ${key.min_rr}:1 minimum.`
+      : `${rr === null ? "—" : `${rr.toFixed(2)}:1`} is below the ${key.min_rr}:1 minimum.`,
+  );
 
-  const decisionCheck = key.is_valid_setup
-    ? check("decision", "pass", "There was a valid setup here, and you took a trade.")
-    : check("decision", "fail", "There was no valid setup here — the right call was not to trade.");
+  const decisionVerdict: Verdict3 = key.is_valid_setup ? "correct" : "incorrect";
+  const decisionCheck = check(
+    "decision",
+    decisionVerdict,
+    key.is_valid_setup ? "There was a valid setup here, and you took a trade." : "There was no valid setup here — the right call was not to trade.",
+  );
 
-  const checks = [directionCheck, entryCheck, stopCheck, rrCheck, decisionCheck];
-  const passed = checks.every((c) => c.status !== "fail");
+  const checks = [directionCheck, entryCheck, stopCheck, targetCheck, rrCheck, decisionCheck];
+  // Trading a scenario with no valid setup at all is a MAJOR error
+  // regardless of how the user's own levels read — there's no real level
+  // to have been anchored to either way (docs/CURRICULUM.md).
+  const verdict: Verdict3 = !key.is_valid_setup
+    ? "incorrect"
+    : worstVerdict([directionVerdict, entryVerdict, stopVerdict, targetVerdict, rrVerdict]);
 
   const outcome: FreeTradeOutcome =
     exit === null || exit.reason === "session_end" ? "open" : exit.reason === "target" ? "win" : "loss";
 
   return {
-    passed,
+    verdict,
+    passed: verdict !== "incorrect",
     outcome,
     resultR: exit === null ? null : resultInR(position, exit),
     rr,

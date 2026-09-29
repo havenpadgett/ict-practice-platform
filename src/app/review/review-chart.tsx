@@ -2,6 +2,7 @@
 
 import { CandlestickChart } from "@/components/practice/candlestick-chart";
 import type { Exercise } from "@/data/exercises";
+import { protectiveStopBand } from "@/lib/verdict";
 
 const noop = () => {};
 
@@ -43,9 +44,9 @@ export function ReviewChart({ exercise }: { exercise: Exercise }) {
         targetPrice={null}
         activeField={null}
         onActiveFieldChange={noop}
-        correctEntry={a.entry?.price ?? null}
-        correctStop={a.stop?.price ?? null}
-        correctTarget={a.target?.price ?? null}
+        correctEntry={a.entry?.anchor ?? null}
+        correctStop={a.stop?.invalidation_price ?? null}
+        correctTarget={a.target?.anchor ?? null}
       />
     );
   }
@@ -66,8 +67,8 @@ export function ReviewChart({ exercise }: { exercise: Exercise }) {
         entryIndex={null}
         exit={null}
         idealEntryZone={a.entry_zone ? { ...a.entry_zone, candle_start: a.entry_zone.earliest_index } : null}
-        idealStopZone={a.stop_zone}
-        idealTarget={a.target}
+        idealStopZone={a.stop_zone && a.intended_bias !== "none" ? protectiveStopBand(a.stop_zone, a.intended_bias) : null}
+        idealTarget={a.target?.anchor ?? null}
       />
     );
   }

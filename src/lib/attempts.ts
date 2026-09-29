@@ -5,6 +5,7 @@
 import { getExerciseMeta } from "@/data/catalog";
 import { createClient } from "@/lib/supabase/client";
 import type { StoredAttempt } from "@/lib/storage";
+import type { Verdict3 } from "@/lib/verdict";
 
 /** Matches the `attempts` table (supabase/migrations/...create_profiles_and_attempts.sql,
  * widened for Guided Entry by ..._add_guided_fields_to_attempts.sql and for
@@ -37,7 +38,10 @@ export type DbAttempt = {
   // Guided Entry fields — populated only when answer_type = 'guided'.
   // Each per-step *_correct flag is null when that step was never reached
   // (the user bailed with "No Trade" before placing it), not when it was
-  // reached and graded wrong (that's `false`).
+  // reached and graded wrong (that's `false`). guided_*_verdict (Phase B,
+  // supabase/migrations/20260929120000_add_verdict_to_attempts.sql) is the
+  // richer three-state read of the same step; guided_*_correct is derived
+  // from it (isCorrectForCompat) and kept for backward compatibility.
   guided_bias_choice: "bullish" | "bearish" | "unclear" | null;
   guided_entry_price: number | null;
   guided_stop_price: number | null;
@@ -46,6 +50,11 @@ export type DbAttempt = {
   guided_entry_correct: boolean | null;
   guided_stop_correct: boolean | null;
   guided_target_correct: boolean | null;
+  guided_bias_verdict: Verdict3 | null;
+  guided_entry_verdict: Verdict3 | null;
+  guided_stop_verdict: Verdict3 | null;
+  guided_target_verdict: Verdict3 | null;
+  guided_rr_verdict: Verdict3 | null;
   guided_achieved_rr: number | null;
   /** Whether the user confirmed all four steps as a trade ("Submit Setup")
    * rather than bailing with "No Trade" at some point. */
@@ -53,7 +62,7 @@ export type DbAttempt = {
   // Free Trade fields — populated only when answer_type = 'free'. Price,
   // R, and exit fields are null when the user finished with No Trade; each
   // free_*_correct process check is null when it didn't apply (e.g. entry
-  // on a no-trade decision), not false. is_correct holds the overall
+  // on a no-trade decision), not false. is_correct/verdict hold the overall
   // process verdict — never the win/loss outcome.
   free_direction: "long" | "short" | "none" | null;
   free_entry_price: number | null;
@@ -71,7 +80,21 @@ export type DbAttempt = {
   free_stop_correct: boolean | null;
   free_rr_correct: boolean | null;
   free_decision_correct: boolean | null;
+  free_direction_verdict: Verdict3 | null;
+  free_entry_verdict: Verdict3 | null;
+  free_stop_verdict: Verdict3 | null;
+  free_target_verdict: Verdict3 | null;
+  free_rr_verdict: Verdict3 | null;
+  free_decision_verdict: Verdict3 | null;
   is_correct: boolean;
+  /** Phase B: the three-state read of is_correct (src/lib/verdict.ts).
+   * is_correct = isCorrectForCompat(verdict) whenever verdict is recorded
+   * — kept in lockstep so every pre-Phase-B view, dashboard, and analytics
+   * computation over is_correct keeps working unchanged. Null only for
+   * attempts recorded before this column existed (no migration backfill —
+   * see supabase/migrations/20260929120000_add_verdict_to_attempts.sql);
+   * every attempt this app writes always sets a real value. */
+  verdict: Verdict3 | null;
   failure_reason: string | null;
   response_time_ms: number;
   attempt_number: number;
@@ -99,6 +122,12 @@ export const NULL_FREE_TRADE_FIELDS = {
   free_stop_correct: null,
   free_rr_correct: null,
   free_decision_correct: null,
+  free_direction_verdict: null,
+  free_entry_verdict: null,
+  free_stop_verdict: null,
+  free_target_verdict: null,
+  free_rr_verdict: null,
+  free_decision_verdict: null,
 } satisfies Partial<NewAttempt>;
 
 /** Just what the dashboard reads (overall/concept accuracy and the
@@ -112,6 +141,7 @@ export const DASHBOARD_COLUMNS = [
   "difficulty",
   "answer_type",
   "is_correct",
+  "verdict",
   "created_at",
   "guided_bias_correct",
   "guided_entry_correct",
@@ -222,10 +252,18 @@ export async function migrateLocalAttempts(
       guided_entry_correct: null,
       guided_stop_correct: null,
       guided_target_correct: null,
+      guided_bias_verdict: null,
+      guided_entry_verdict: null,
+      guided_stop_verdict: null,
+      guided_target_verdict: null,
+      guided_rr_verdict: null,
       guided_achieved_rr: null,
       guided_declared_trade: null,
       ...NULL_FREE_TRADE_FIELDS,
       is_correct: a.is_correct,
+      // Pre-Phase-B local attempts only ever recorded a boolean — there's
+      // no COULD_IMPROVE reading to recover, so the verdict is binary here.
+      verdict: a.is_correct ? "correct" : "incorrect",
       failure_reason: a.failure_reason,
       // Same 24-hour cap as the grading Server Functions and the
       // attempts_ranges constraint.

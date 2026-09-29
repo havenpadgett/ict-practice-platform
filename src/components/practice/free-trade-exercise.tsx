@@ -16,6 +16,7 @@ import {
   type FreeTradeGradeResult,
   type FreeTradePosition,
 } from "@/lib/free-trade-grading";
+import { protectiveStopBand } from "@/lib/verdict";
 
 type Speed = "slow" | "normal" | "fast";
 
@@ -385,8 +386,8 @@ export function FreeTradeExercise({
           idealEntryZone={
             key?.entry_zone ? { ...key.entry_zone, candle_start: key.entry_zone.earliest_index } : null
           }
-          idealStopZone={key?.stop_zone ?? null}
-          idealTarget={key?.target ?? null}
+          idealStopZone={key?.stop_zone && key.intended_bias !== "none" ? protectiveStopBand(key.stop_zone, key.intended_bias) : null}
+          idealTarget={key?.target?.anchor ?? null}
         />
       </ChartFrame>
       {!done && (

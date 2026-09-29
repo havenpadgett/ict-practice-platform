@@ -6,6 +6,7 @@
 import type { Exercise } from "@/data/exercises";
 import type { DbAttempt } from "@/lib/attempts";
 import { buildCorrectAnswerStatement, formatPrice } from "@/lib/grading";
+import { protectiveStopBand } from "@/lib/verdict";
 
 export type MistakeAttemptRow = Pick<
   DbAttempt,
@@ -61,7 +62,7 @@ export function describeCorrect(e: Exercise): { correctAnswer: string; explanati
     case "guided": {
       const a = e.answer;
       const correctAnswer = a.is_valid_setup
-        ? `${cap(a.bias)} bias: entry ${p(a.entry?.price ?? null)}, stop ${p(a.stop?.price ?? null)}, target ${p(a.target?.price ?? null)}`
+        ? `${cap(a.bias)} bias: entry ${p(a.entry?.anchor ?? null)}, stop ${p(a.stop?.invalidation_price ?? null)}, target ${p(a.target?.anchor ?? null)}`
         : a.bias === "unclear"
           ? "No Trade: the bias is unclear"
           : `${cap(a.bias)} bias, but No Trade`;
@@ -69,9 +70,10 @@ export function describeCorrect(e: Exercise): { correctAnswer: string; explanati
     }
     case "free": {
       const a = e.answer;
+      const stopBand = a.stop_zone && a.intended_bias !== "none" ? protectiveStopBand(a.stop_zone, a.intended_bias) : null;
       const correctAnswer =
-        a.is_valid_setup && a.intended_bias !== "none" && a.entry_zone && a.stop_zone
-          ? `${cap(a.intended_bias)}: enter ${p(a.entry_zone.price_low)}–${p(a.entry_zone.price_high)}, stop ${p(a.stop_zone.price_low)}–${p(a.stop_zone.price_high)}, target ${p(a.target)}`
+        a.is_valid_setup && a.intended_bias !== "none" && a.entry_zone && stopBand
+          ? `${cap(a.intended_bias)}: enter ${p(a.entry_zone.price_low)}–${p(a.entry_zone.price_high)}, stop ${p(stopBand.price_low)}–${p(stopBand.price_high)}, target ${p(a.target?.anchor ?? null)}`
           : "No Trade";
       return { correctAnswer, explanation: e.explanation };
     }

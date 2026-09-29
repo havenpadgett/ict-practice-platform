@@ -60,9 +60,9 @@ function realRows(): { label: string; row: NewAttempt }[] {
         { bias: "bullish", entry: e.candles[0].close, stop: null, target: null, declaredTrade: false },
       ];
       if (k.entry && k.stop && k.target && k.bias !== "unclear") {
-        answers.push({ bias: k.bias, entry: k.entry.price, stop: k.stop.price, target: k.target.price, declaredTrade: true });
+        answers.push({ bias: k.bias, entry: k.entry.anchor, stop: k.stop.invalidation_price, target: k.target.anchor, declaredTrade: true });
         // Target on the wrong side: a real mistake, negative R:R.
-        answers.push({ bias: k.bias, entry: k.entry.price, stop: k.stop.price, target: k.stop.price, declaredTrade: true });
+        answers.push({ bias: k.bias, entry: k.entry.anchor, stop: k.stop.invalidation_price, target: k.stop.invalidation_price, declaredTrade: true });
       }
       for (const [i, ans] of answers.entries()) push(`guided#${i}`, buildGuidedAttempt(e, ans, gradeGuidedAttempt(e, ans), meta));
     } else {
@@ -135,7 +135,7 @@ describe("attempt integrity constraints", () => {
     const g = exercises.find((e) => e.answer_type === "guided" && e.answer.is_valid_setup)!;
     if (g.answer_type !== "guided") throw new Error("fixture");
     const k = g.answer;
-    const ans: GuidedUserAnswer = { bias: k.bias, entry: k.entry!.price, stop: k.stop!.price, target: k.target!.price, declaredTrade: true };
+    const ans: GuidedUserAnswer = { bias: k.bias, entry: k.entry!.anchor, stop: k.stop!.invalidation_price, target: k.target!.anchor, declaredTrade: true };
     const row = buildGuidedAttempt(g, ans, gradeGuidedAttempt(g, ans), meta);
     expect(row.is_correct).toBe(true);
     await expect(insert({ ...row, guided_stop_correct: false })).rejects.toThrow(/attempts_guided_consistent/);

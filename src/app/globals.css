@@ -35,6 +35,12 @@
    * word or icon, never color alone. */
   --danger: #f0766b;
 
+  /* Status: the "could improve" verdict (Phase B) — between correct and
+   * incorrect, never used for anything else. Always paired with a word or
+   * icon, same as --accent/--danger. 11.6:1 against --background, 10.8:1
+   * against --surface. */
+  --warn: #fbbf24;
+
   /* Chart. Candles are slightly desaturated so the answer overlays (user:
    * --foreground, correct: --accent) sit on top of them, not among them. */
   --candle-up: #2fb380;
@@ -52,6 +58,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-danger: var(--danger);
+  --color-warn: var(--warn);
   --color-candle-up: var(--candle-up);
   --color-candle-down: var(--candle-down);
   --color-grid: var(--grid);

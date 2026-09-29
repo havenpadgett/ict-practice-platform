@@ -19,6 +19,7 @@ Single source of truth for visual tokens. Defined once in `src/app/globals.css`;
 | `--accent` | `#34d399` (mint) | **The one accent.** Primary action, selected state, focus ring, the "correct" verdict, the correct answer drawn on a chart |
 | `--accent-foreground` | `#0b1f16` | Text on a solid accent fill |
 | `--danger` | `#f0766b` | Incorrect verdict, failed checks, errors. Always with a word or icon |
+| `--warn` | `#fbbf24` (amber) | The "could improve" verdict (Phase B) only — between correct and incorrect. Always with a word or icon |
 | `--candle-up` / `--candle-down` | `#2fb380` / `#e0625a` | Candle bodies and wicks, slightly desaturated so answer overlays sit on top |
 | `--grid` | `#1c1f23` | Chart gridlines, deliberately faint |
 
@@ -36,6 +37,7 @@ Tailwind classes follow the token names: `bg-background`, `bg-surface`, `border-
 | muted on background / surface | 7.4 / 6.8 | 4.5 |
 | accent on background / surface | 10.1 / 9.3 | 4.5 |
 | danger on background / surface | 6.9 / 6.4 | 4.5 |
+| warn on background / surface | 11.6 / 10.8 | 4.5 |
 | accent-foreground on accent | 8.9 | 4.5 |
 | control border on background / surface | 3.6 / 3.4 | 3.0 (non-text) |
 

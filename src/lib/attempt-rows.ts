@@ -6,7 +6,8 @@ import type { Exercise, FreeTradeExercise, GuidedExercise } from "@/data/exercis
 import { NULL_FREE_TRADE_FIELDS, type NewAttempt } from "@/lib/attempts";
 import type { FreeTradeExit, FreeTradeGradeResult, FreeTradePosition } from "@/lib/free-trade-grading";
 import type { GradeResult, UserAnswer } from "@/lib/grading";
-import type { GuidedGradeResult, GuidedUserAnswer } from "@/lib/guided-grading";
+import type { GuidedGradeResult, GuidedStepId, GuidedUserAnswer } from "@/lib/guided-grading";
+import { isCorrectForCompat } from "@/lib/verdict";
 
 export type AttemptMeta = { sessionId: string; responseTimeMs: number; attemptNumber: number };
 
@@ -19,6 +20,11 @@ const NULL_GUIDED_FIELDS = {
   guided_entry_correct: null,
   guided_stop_correct: null,
   guided_target_correct: null,
+  guided_bias_verdict: null,
+  guided_entry_verdict: null,
+  guided_stop_verdict: null,
+  guided_target_verdict: null,
+  guided_rr_verdict: null,
   guided_achieved_rr: null,
   guided_declared_trade: null,
 } satisfies Partial<NewAttempt>;
@@ -57,6 +63,7 @@ export function buildAnswerAttempt(exercise: Exercise, answer: UserAnswer, grade
     ...NULL_GUIDED_FIELDS,
     ...NULL_FREE_TRADE_FIELDS,
     is_correct: grade.isCorrect,
+    verdict: grade.verdict,
     coverage: grade.coverage,
     precision_ratio: grade.precisionRatio,
     failure_reason: grade.failureReason,
@@ -71,8 +78,11 @@ export function buildGuidedAttempt(
   grade: GuidedGradeResult,
   meta: AttemptMeta,
 ): NewAttempt {
-  const stepResult = (step: "bias" | "entry" | "stop" | "target") =>
-    grade.steps.find((s) => s.step === step)?.isCorrect ?? null;
+  const stepVerdict = (step: GuidedStepId) => grade.steps.find((s) => s.step === step)?.verdict ?? null;
+  const bias = stepVerdict("bias");
+  const entry = stepVerdict("entry");
+  const stop = stepVerdict("stop");
+  const target = stepVerdict("target");
   return {
     exercise_id: exercise.exercise_id,
     session_id: meta.sessionId,
@@ -85,14 +95,20 @@ export function buildGuidedAttempt(
     guided_entry_price: answer.entry,
     guided_stop_price: answer.stop,
     guided_target_price: answer.target,
-    guided_bias_correct: stepResult("bias"),
-    guided_entry_correct: stepResult("entry"),
-    guided_stop_correct: stepResult("stop"),
-    guided_target_correct: stepResult("target"),
+    guided_bias_correct: bias === null ? null : isCorrectForCompat(bias),
+    guided_entry_correct: entry === null ? null : isCorrectForCompat(entry),
+    guided_stop_correct: stop === null ? null : isCorrectForCompat(stop),
+    guided_target_correct: target === null ? null : isCorrectForCompat(target),
+    guided_bias_verdict: bias,
+    guided_entry_verdict: entry,
+    guided_stop_verdict: stop,
+    guided_target_verdict: target,
+    guided_rr_verdict: grade.rrVerdict,
     guided_achieved_rr: grade.achievedRR,
     guided_declared_trade: answer.declaredTrade,
     ...NULL_FREE_TRADE_FIELDS,
     is_correct: grade.isCorrect,
+    verdict: grade.verdict,
     failure_reason: null,
     response_time_ms: meta.responseTimeMs,
     attempt_number: meta.attemptNumber,
@@ -107,10 +123,14 @@ export function buildFreeTradeAttempt(
   grade: FreeTradeGradeResult,
   meta: AttemptMeta,
 ): NewAttempt {
-  const checkResult = (id: FreeTradeGradeResult["checks"][number]["id"]) => {
-    const status = grade.checks.find((c) => c.id === id)?.status;
-    return status === "pass" ? true : status === "fail" ? false : null;
-  };
+  const checkVerdict = (id: FreeTradeGradeResult["checks"][number]["id"]) =>
+    grade.checks.find((c) => c.id === id)?.verdict ?? null;
+  const direction = checkVerdict("direction");
+  const entryV = checkVerdict("entry");
+  const stopV = checkVerdict("stop");
+  const targetV = checkVerdict("target");
+  const rrV = checkVerdict("rr");
+  const decisionV = checkVerdict("decision");
   return {
     exercise_id: exercise.exercise_id,
     session_id: meta.sessionId,
@@ -131,12 +151,19 @@ export function buildFreeTradeAttempt(
     free_rr: grade.rr,
     free_result_r: grade.resultR,
     free_outcome: grade.outcome,
-    free_direction_correct: checkResult("direction"),
-    free_entry_correct: checkResult("entry"),
-    free_stop_correct: checkResult("stop"),
-    free_rr_correct: checkResult("rr"),
-    free_decision_correct: checkResult("decision"),
+    free_direction_correct: direction === null ? null : isCorrectForCompat(direction),
+    free_entry_correct: entryV === null ? null : isCorrectForCompat(entryV),
+    free_stop_correct: stopV === null ? null : isCorrectForCompat(stopV),
+    free_rr_correct: rrV === null ? null : isCorrectForCompat(rrV),
+    free_decision_correct: decisionV === null ? null : isCorrectForCompat(decisionV),
+    free_direction_verdict: direction,
+    free_entry_verdict: entryV,
+    free_stop_verdict: stopV,
+    free_target_verdict: targetV,
+    free_rr_verdict: rrV,
+    free_decision_verdict: decisionV,
     is_correct: grade.passed,
+    verdict: grade.verdict,
     failure_reason: null,
     response_time_ms: meta.responseTimeMs,
     attempt_number: meta.attemptNumber,

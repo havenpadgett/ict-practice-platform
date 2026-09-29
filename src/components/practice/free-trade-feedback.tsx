@@ -8,6 +8,12 @@ const OUTCOME_LABELS: Record<FreeTradeOutcome, string> = {
   no_trade: "No Trade",
 };
 
+const PROCESS_LABEL: Record<FreeTradeGradeResult["verdict"], string> = {
+  correct: "Process passed",
+  could_improve: "Process passed — could improve",
+  incorrect: "Process failed",
+};
+
 function formatR(r: number): string {
   const sign = r > 0 ? "+" : r < 0 ? "−" : "";
   return `${sign}${Math.abs(r).toFixed(2)}R`;
@@ -24,13 +30,13 @@ export function FreeTradeFeedback({
   onNext: () => void;
   nextLabel: string;
 }) {
-  const shownChecks = result.checks.filter((c) => c.status !== "na");
+  const shownChecks = result.checks.filter((c) => c.verdict !== null);
 
   return (
     <div className="card" role="status" aria-live="polite">
       <p className="eyebrow">Process</p>
       <div className="mt-2">
-        <Verdict correct={result.passed} label={result.passed ? "Process passed" : "Process failed"} />
+        <Verdict verdict={result.verdict} label={PROCESS_LABEL[result.verdict]} />
       </div>
 
       <p className="eyebrow mt-5">Outcome</p>
@@ -47,7 +53,7 @@ export function FreeTradeFeedback({
 
       <ul className="mt-5 space-y-4">
         {shownChecks.map((check) => (
-          <CheckRow key={check.id} passed={check.status === "pass"} label={check.label}>
+          <CheckRow key={check.id} verdict={check.verdict} label={check.label}>
             {check.reason}
           </CheckRow>
         ))}

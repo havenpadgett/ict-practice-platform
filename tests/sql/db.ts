@@ -84,6 +84,7 @@ export async function seed(db: PGlite, rows: Row[]): Promise<void> {
       answer_type: type,
       user_answer_type: type === "zone" ? "region" : type,
       is_correct: r.correct,
+      verdict: r.correct ? "correct" : "incorrect",
       response_time_ms: r.ms ?? 5000,
       attempt_number: 1,
       session_id: r.session === undefined ? "s1" : r.session,

@@ -27,16 +27,16 @@ export function ProductPreview() {
         />
       </div>
       <div className="mt-3 rounded-lg border border-line bg-background p-4">
-        <Verdict correct={false} />
+        <Verdict verdict="could_improve" />
         <p className="mt-2 text-sm text-foreground">You found it, but your selection was too broad.</p>
         <ul className="mt-3 space-y-2">
-          <CheckRow passed label="Coverage">
+          <CheckRow verdict="correct" label="Coverage">
             Your box covers 100% of the gap (60% needed).
           </CheckRow>
-          <CheckRow passed label="Candles">
+          <CheckRow verdict="correct" label="Candles">
             Your box spans the middle candle of the three.
           </CheckRow>
-          <CheckRow passed={false} label="Size">
+          <CheckRow verdict="could_improve" label="Size">
             Your box is 2.8× the gap&apos;s height (up to 2.5× passes).
           </CheckRow>
         </ul>

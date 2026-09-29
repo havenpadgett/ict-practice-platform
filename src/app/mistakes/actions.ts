@@ -12,6 +12,7 @@ import { getConceptMeta } from "@/lib/concepts";
 import { describeAnswer, describeCorrect, type MistakeAttemptRow } from "@/lib/mistake-text";
 import { summarizeMistakes, type MistakeStatus } from "@/lib/mistakes";
 import { createClient } from "@/lib/supabase/server";
+import { protectiveStopBand } from "@/lib/verdict";
 
 /** What to draw for a mistake: the chart as stored (never the framed
  * window a session showed, since recorded answers use stored indices),
@@ -131,7 +132,11 @@ function reviewChart(e: Exercise, a: Row): ReviewChart {
         kind: "guided",
         candles: e.candles,
         user: { entry: a.guided_entry_price, stop: a.guided_stop_price, target: a.guided_target_price },
-        correct: { entry: e.answer.entry?.price ?? null, stop: e.answer.stop?.price ?? null, target: e.answer.target?.price ?? null },
+        correct: {
+          entry: e.answer.entry?.anchor ?? null,
+          stop: e.answer.stop?.invalidation_price ?? null,
+          target: e.answer.target?.anchor ?? null,
+        },
       };
     case "free":
       return {
@@ -148,8 +153,11 @@ function reviewChart(e: Exercise, a: Row): ReviewChart {
           entryZone: e.answer.entry_zone
             ? { price_low: e.answer.entry_zone.price_low, price_high: e.answer.entry_zone.price_high, candle_start: e.answer.entry_zone.earliest_index }
             : null,
-          stopZone: e.answer.stop_zone,
-          target: e.answer.target,
+          stopZone:
+            e.answer.stop_zone && e.answer.intended_bias !== "none"
+              ? protectiveStopBand(e.answer.stop_zone, e.answer.intended_bias)
+              : null,
+          target: e.answer.target?.anchor ?? null,
         },
       };
   }

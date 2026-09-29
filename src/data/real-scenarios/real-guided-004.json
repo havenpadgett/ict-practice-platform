@@ -11,16 +11,20 @@
   "answer": {
     "bias": "bullish",
     "entry": {
-      "price": 22863.5,
-      "tolerance": 6.75
+      "anchor": 22863.5,
+      "price_low": 22856.75,
+      "price_high": 22870.25,
+      "minor_margin": 6.75
     },
     "stop": {
-      "price": 22820.0,
-      "tolerance": 13.25
+      "invalidation_price": 22833.25,
+      "reasonable_buffer": 26.5
     },
     "target": {
-      "price": 22932.75,
-      "tolerance": 13.25
+      "anchor": 22932.75,
+      "price_low": 22919.5,
+      "price_high": 22946.0,
+      "minor_margin": 13.25
     },
     "min_rr": 2.0,
     "is_valid_setup": false,

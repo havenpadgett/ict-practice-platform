@@ -8,6 +8,12 @@ const STEP_LABELS: Record<GuidedStepId, string> = {
   target: "Target",
 };
 
+const OVERALL_LABEL: Record<GuidedGradeResult["verdict"], string> = {
+  correct: "Process passed",
+  could_improve: "Process passed — could improve",
+  incorrect: "Process failed",
+};
+
 export function GuidedFeedback({
   result,
   plan,
@@ -22,7 +28,7 @@ export function GuidedFeedback({
 }) {
   return (
     <div className="card" role="status" aria-live="polite">
-      <Verdict correct={result.isCorrect} label={result.isCorrect ? "Good setup" : "Setup has problems"} />
+      <Verdict verdict={result.verdict} label={OVERALL_LABEL[result.verdict]} />
       <p className="mt-2 text-sm text-foreground tabular-nums">
         <span className="text-muted">Your plan: </span>
         {plan}
@@ -31,7 +37,7 @@ export function GuidedFeedback({
       <p className="eyebrow mt-5">Step by step</p>
       <ul className="mt-3 space-y-4">
         {result.steps.map((step) => (
-          <CheckRow key={step.step} passed={step.isCorrect} label={STEP_LABELS[step.step]}>
+          <CheckRow key={step.step} verdict={step.verdict} label={STEP_LABELS[step.step]}>
             {step.explanation}
           </CheckRow>
         ))}

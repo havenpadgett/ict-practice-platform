@@ -21,9 +21,10 @@ describe("zone grading (PRD 6.1)", () => {
     expect(r.failureReason).toBe("precision");
   });
 
-  it("fails a correctly placed but too-small box as too_small, not 'wrong area'", () => {
+  it("grades a correctly placed but too-small box as too_small and COULD_IMPROVE, not 'wrong area'", () => {
     const r = gradeAttempt(zone(), box(108, 112));
-    expect(r.isCorrect).toBe(false);
+    expect(r.verdict).toBe("could_improve");
+    expect(r.isCorrect).toBe(true);
     expect(r.failureReason).toBe("too_small");
     expect(r.failureMessage).not.toMatch(/wrong area/i);
   });
@@ -51,15 +52,23 @@ describe("level grading (PRD 6.2)", () => {
     expect(gradeAttempt(level(), { type: "level", price: 20994 }).isCorrect).toBe(true);
   });
 
-  it("fails just outside the tolerance, with signed distance and direction", () => {
+  it("grades just outside the tolerance as a near miss (COULD_IMPROVE), with signed distance and direction", () => {
     const high = gradeAttempt(level(), { type: "level", price: 21006.01 });
-    expect(high.isCorrect).toBe(false);
+    expect(high.verdict).toBe("could_improve");
+    expect(high.isCorrect).toBe(true);
     expect(high.failureReason).toBe("off_level");
     expect(high.distanceFromLevel).toBeCloseTo(6.01);
     expect(high.failureMessage).toMatch(/too high/);
     const low = gradeAttempt(level(), { type: "level", price: 20993.99 });
-    expect(low.isCorrect).toBe(false);
+    expect(low.verdict).toBe("could_improve");
     expect(low.failureMessage).toMatch(/too low/);
+  });
+
+  it("fails well outside the tolerance as a genuinely wrong level", () => {
+    const far = gradeAttempt(level(), { type: "level", price: 21100 });
+    expect(far.verdict).toBe("incorrect");
+    expect(far.isCorrect).toBe(false);
+    expect(far.failureReason).toBe("off_level");
   });
 });
 
@@ -105,23 +114,23 @@ describe("feedback checklist (reports every test, never changes the verdict)", (
     const r = gradeAttempt(zone(), box(0, 1000, 20, 25));
     expect(r.isCorrect).toBe(false);
     const byId = Object.fromEntries((r.checks ?? []).map((c) => [c.id, c]));
-    expect(byId.coverage.passed).toBe(true);
-    expect(byId.size.passed).toBe(false);
-    expect(byId.candles.passed).toBe(false);
-    expect(byId.edges.passed).toBeNull();
+    expect(byId.coverage.verdict).toBe("correct");
+    expect(byId.size.verdict).toBe("incorrect");
+    expect(byId.candles.verdict).toBe("incorrect");
+    expect(byId.edges.verdict).toBeNull();
     expect(byId.size.detail).toMatch(/× the zone's height/);
   });
 
   it("all zone checks pass on a correct box", () => {
     const r = gradeAttempt(zone(), box(99, 121));
-    expect(r.checks?.filter((c) => c.passed === false)).toEqual([]);
+    expect(r.checks?.filter((c) => c.verdict === "incorrect")).toEqual([]);
   });
 
   it("says how far off a level is, and when it's close but outside tolerance", () => {
     const lv = level();
     const tol = lv.answer!.tolerance;
     const near = gradeAttempt(lv, { type: "level", price: lv.answer!.price + tol * 1.5 });
-    expect(near.checks?.[0].passed).toBe(false);
+    expect(near.checks?.[0].verdict).toBe("could_improve");
     expect(near.checks?.[0].detail).toMatch(/Right area/);
     const far = gradeAttempt(lv, { type: "level", price: lv.answer!.price - tol * 5 });
     expect(far.checks?.[0].detail).toMatch(/too low/);

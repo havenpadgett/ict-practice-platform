@@ -197,19 +197,40 @@ export type ChoiceExercise = ExerciseBase & {
 
 // Guided Entry (docs/CURRICULUM.md): a four-step framework — bias, entry,
 // stop, target — graded as a chain rather than four independent guesses.
-// Entry/stop/target are each a price + tolerance, graded the same way as
-// LevelAnswer above (the user places a line, not a box); "zone" in the PRD's
-// phrasing just means the entry is anchored to a real level (an FVG, an
-// IFVG, or a broken structural level) rather than open space, not that it's
-// drawn as a box.
+//
+// Phase B (docs/APP_PERFECTION_PLAN.md) replaced the original point +
+// tolerance answer key for entry/stop/target with reasoning-shaped types
+// below: entry and target are graded as zone membership (a valid entry
+// model — an FVG, an IFVG, or a broken structural level — not a single
+// "true" price, so anywhere inside is equally correct); stop is graded on
+// whether it protects the trade against the specific level that would
+// invalidate it, not distance from a reference price. Each carries a
+// graduated near-miss band, so a placement just outside the ideal is
+// COULD_IMPROVE rather than flatly wrong (src/lib/verdict.ts).
 
 export type GuidedBias = "bullish" | "bearish" | "unclear";
 
-export type GuidedLevelAnswer = {
-  price: number;
-  /** How far the user's placed line may be from `price` and still count as
-   * correct — same reasoning as LevelAnswer.tolerance. */
-  tolerance: number;
+/** Entry or target: correct anywhere in [price_low, price_high]; within
+ * `minor_margin` beyond either edge is a near miss; further out is wrong.
+ * `anchor` is the textbook reference price (inside the zone) shown as the
+ * revealed correct answer in feedback — e.g. the FVG's typical fill point,
+ * or the swing high itself for a target. */
+export type PriceZoneAnswer = {
+  anchor: number;
+  price_low: number;
+  price_high: number;
+  minor_margin: number;
+};
+
+/** Stop: correct beyond `invalidation_price` (the swing/level whose
+ * violation proves the idea wrong) by up to `reasonable_buffer`; further
+ * beyond it still protects the trade, so it's a near miss, never wrong on
+ * width alone; on the wrong side (doesn't protect) is always wrong,
+ * regardless of distance. `invalidation_price` is also the revealed
+ * correct answer in feedback. */
+export type StopAnswer = {
+  invalidation_price: number;
+  reasonable_buffer: number;
 };
 
 export type GuidedStepExplanations = {
@@ -224,9 +245,9 @@ export type GuidedAnswer = {
   /** Null whenever there's no valid level to place — bias is unclear, or
    * bias is clear but no entry/stop/target actually exists. The correct
    * action from that step onward is "No Trade" (src/lib/guided-grading.ts). */
-  entry: GuidedLevelAnswer | null;
-  stop: GuidedLevelAnswer | null;
-  target: GuidedLevelAnswer | null;
+  entry: PriceZoneAnswer | null;
+  stop: StopAnswer | null;
+  target: PriceZoneAnswer | null;
   /** Minimum acceptable risk-to-reward (PRD/curriculum: 2:1). */
   min_rr: number;
   /** Whether this scenario is actually a valid trade end to end — false
@@ -260,6 +281,10 @@ export type FreeTradeBias = FreeTradeDirection | "none";
 export type FreeTradePriceZone = {
   price_low: number;
   price_high: number;
+  /** Beyond price_low/price_high by up to this many points is a near miss
+   * (COULD_IMPROVE) rather than a wrong read — same graduated band as
+   * Guided Entry's PriceZoneAnswer (src/lib/verdict.ts). */
+  minor_margin: number;
 };
 
 export type FreeTradeEntryZone = FreeTradePriceZone & {
@@ -269,6 +294,11 @@ export type FreeTradeEntryZone = FreeTradePriceZone & {
   earliest_index: number;
 };
 
+/** Target: same zone-with-near-miss shape as entry, plus the textbook
+ * anchor price shown as the revealed correct answer. Closes the "target
+ * isn't graded on its own" V1 gap noted in docs/CURRICULUM.md. */
+export type FreeTradeTargetZone = FreeTradePriceZone & { anchor: number };
+
 export type FreeTradeAnswer = {
   intended_bias: FreeTradeBias;
   /** False for scenarios where the correct decision is to not trade at
@@ -277,8 +307,11 @@ export type FreeTradeAnswer = {
    * qualifies. */
   is_valid_setup: boolean;
   entry_zone: FreeTradeEntryZone | null;
-  stop_zone: FreeTradePriceZone | null;
-  target: number | null;
+  /** Graded on whether it protects the trade against the level that would
+   * invalidate the idea — same reasoning as Guided Entry's StopAnswer
+   * (src/lib/verdict.ts), not distance from a reference price. */
+  stop_zone: StopAnswer | null;
+  target: FreeTradeTargetZone | null;
   /** Minimum acceptable risk-to-reward (curriculum: 2:1). */
   min_rr: number;
 };
@@ -2514,9 +2547,9 @@ const conceptExercises: Exercise[] = [
       "A valid long setup: bullish MSS with sell-side liquidity taken, an unmitigated FVG for entry, a stop below the setup's swing low, and a target at the next buy-side liquidity — combining for roughly 2.25:1, clearing the 2:1 minimum.",
     answer: {
       bias: "bullish",
-      entry: { price: 21335, tolerance: 8 },
-      stop: { price: 21275, tolerance: 8 },
-      target: { price: 21470, tolerance: 6 },
+      entry: { anchor: 21335, price_low: 21328, price_high: 21350, minor_margin: 8 },
+      stop: { invalidation_price: 21280, reasonable_buffer: 15 },
+      target: { anchor: 21470, price_low: 21455, price_high: 21470, minor_margin: 10 },
       min_rr: 2,
       is_valid_setup: true,
       step_explanations: {
@@ -2603,9 +2636,9 @@ const conceptExercises: Exercise[] = [
       "A valid short setup: bearish MSS with buy-side liquidity taken, an unmitigated FVG for entry, a stop above the setup's swing high, and a target at the next sell-side liquidity — combining for roughly 2.25:1.",
     answer: {
       bias: "bearish",
-      entry: { price: 21365, tolerance: 8 },
-      stop: { price: 21425, tolerance: 8 },
-      target: { price: 21230, tolerance: 6 },
+      entry: { anchor: 21365, price_low: 21350, price_high: 21372, minor_margin: 8 },
+      stop: { invalidation_price: 21420, reasonable_buffer: 15 },
+      target: { anchor: 21230, price_low: 21230, price_high: 21245, minor_margin: 10 },
       min_rr: 2,
       is_valid_setup: true,
       step_explanations: {
@@ -2691,9 +2724,9 @@ const conceptExercises: Exercise[] = [
       "Every piece of the structure here is real — the bullish MSS, the FVG entry, the stop below the setup's swing low — but the only liquidity resting above is close enough that the trade only reaches about 1.8:1. That's below the 2:1 minimum, so the correct call is no trade, even though nothing about the read itself was wrong.",
     answer: {
       bias: "bullish",
-      entry: { price: 21335, tolerance: 8 },
-      stop: { price: 21275, tolerance: 8 },
-      target: { price: 21445, tolerance: 6 },
+      entry: { anchor: 21335, price_low: 21328, price_high: 21350, minor_margin: 8 },
+      stop: { invalidation_price: 21280, reasonable_buffer: 15 },
+      target: { anchor: 21445, price_low: 21430, price_high: 21445, minor_margin: 6 },
       min_rr: 2,
       is_valid_setup: false,
       step_explanations: {
@@ -2863,9 +2896,9 @@ const conceptExercises: Exercise[] = [
       "A valid, if layered, long setup: a bullish MSS with sell-side liquidity taken, entry from a former bearish FVG that failed and flipped into support (an IFVG), a stop below the setup's swing low, and a target at the next buy-side liquidity — combining for roughly 2.2:1.",
     answer: {
       bias: "bullish",
-      entry: { price: 21445, tolerance: 10 },
-      stop: { price: 21315, tolerance: 8 },
-      target: { price: 21730, tolerance: 6 },
+      entry: { anchor: 21445, price_low: 21440, price_high: 21470, minor_margin: 10 },
+      stop: { invalidation_price: 21320, reasonable_buffer: 15 },
+      target: { anchor: 21730, price_low: 21715, price_high: 21730, minor_margin: 6 },
       min_rr: 2,
       is_valid_setup: true,
       step_explanations: {

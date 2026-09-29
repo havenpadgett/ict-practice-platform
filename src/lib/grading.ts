@@ -1,4 +1,5 @@
 import type { ChoiceExercise, Exercise, LevelExercise, ZoneExercise } from "@/data/exercises";
+import { isCorrectForCompat, type Verdict3 } from "@/lib/verdict";
 
 /** Everything gradeAttempt actually dispatches to below — Guided Entry is
  * graded separately (src/lib/guided-grading.ts) and never reaches these
@@ -31,6 +32,13 @@ export type FailureReason =
   | "false_positive";
 
 export type GradeResult = {
+  /** Phase B (docs/APP_PERFECTION_PLAN.md): the three-state verdict.
+   * COULD_IMPROVE is a near miss — right area/level, not quite precise —
+   * distinct from a genuinely wrong read (INCORRECT). */
+  verdict: Verdict3;
+  /** Backward-compat: true for CORRECT and COULD_IMPROVE, false only for
+   * INCORRECT (src/lib/verdict.ts). Every existing view/dashboard/analytics
+   * computation keeps working unchanged against this field. */
   isCorrect: boolean;
   /** Zone-only; null for level exercises. */
   coverage: number | null;
@@ -54,14 +62,21 @@ export type GradeResult = {
   checks: GradeCheck[] | null;
 };
 
-/** One line of the feedback checklist. `passed` is null for a measurement
- * shown for information that isn't itself a pass/fail test. */
-export type GradeCheck = { id: string; label: string; passed: boolean | null; detail: string };
+/** One line of the feedback checklist. `verdict: null` is a measurement
+ * shown for information that isn't itself a pass/fail/near-miss test. */
+export type GradeCheck = { id: string; label: string; verdict: Verdict3 | null; detail: string };
 
 type GradeCore = Omit<GradeResult, "checks">;
 
 const COVERAGE_THRESHOLD = 0.6;
 const PRECISION_THRESHOLD = 2.5;
+/** Beyond PRECISION_THRESHOLD but within this multiple is a box that's
+ * clearly too broad but still roughly in the right place — COULD_IMPROVE
+ * rather than a flatly wrong read. */
+const PRECISION_INCORRECT_THRESHOLD = 5;
+/** Beyond a level's tolerance but within this multiple of it is a near
+ * miss (COULD_IMPROVE); further out is a genuinely wrong level. */
+const LEVEL_INCORRECT_MULTIPLE = 2;
 /** Floating-point safety margin for "is the user's box fully inside the
  * true zone" checks below. */
 const CONTAINMENT_EPSILON = 0.01;
@@ -193,14 +208,16 @@ function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): Grade
 
   if (!has_answer) {
     // Grading matrix, bottom row: "No zone present" is the correct answer
-    // here; a drawn box is incorrect no matter where it lands.
-    const isCorrect = userAnswer.type === "none";
+    // here; a drawn box is a genuinely wrong read no matter where it lands
+    // — there's no near-miss version of claiming a zone that isn't there.
+    const correct = userAnswer.type === "none";
     return {
-      isCorrect,
+      verdict: correct ? "correct" : "incorrect",
+      isCorrect: correct,
       coverage: null,
       precisionRatio: null,
       distanceFromLevel: null,
-      failureReason: isCorrect ? null : "false_positive",
+      failureReason: correct ? null : "false_positive",
       failureMessage: null,
       explanation: composeExplanation(exercise),
       revealZone: false,
@@ -213,8 +230,9 @@ function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): Grade
 
   if (userAnswer.type === "none") {
     // Grading matrix, top-right: the chart has a real zone but the user
-    // said there wasn't one.
+    // said there wasn't one — missing it entirely, not a near miss.
     return {
+      verdict: "incorrect",
       isCorrect: false,
       coverage: null,
       precisionRatio: null,
@@ -254,6 +272,7 @@ function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): Grade
 
   if (coverageOk && precisionOk && timeOk) {
     return {
+      verdict: "correct",
       isCorrect: true,
       coverage,
       precisionRatio,
@@ -267,7 +286,12 @@ function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): Grade
 
   // Checked in the priority order the PRD specifies — coverage, then
   // precision, then time — so a box failing more than one test is
-  // explained by the earliest one.
+  // explained by the earliest one. A box that's in the right area but not
+  // quite precise (too small but fully inside the zone, or too broad but
+  // within PRECISION_INCORRECT_THRESHOLD) is COULD_IMPROVE, not flatly
+  // wrong — same MINOR/MAJOR distinction as docs/CURRICULUM.md's Phase B
+  // severity rule, applied to Recognition's coverage/precision/time tests.
+  let verdict: Verdict3;
   let failureReason: FailureReason;
   let failureMessage: string;
   if (!coverageOk) {
@@ -282,22 +306,27 @@ function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): Grade
       region.priceLow >= answer.price_low - CONTAINMENT_EPSILON &&
       region.priceHigh <= answer.price_high + CONTAINMENT_EPSILON;
     if (isFullyContained) {
+      verdict = "could_improve";
       failureReason = "too_small";
       failureMessage = "Right area, but your selection was too small to cover enough of the zone.";
     } else {
+      verdict = "incorrect";
       failureReason = "coverage";
       failureMessage = "You marked the wrong area.";
     }
   } else if (!precisionOk) {
+    verdict = precisionRatio <= PRECISION_INCORRECT_THRESHOLD ? "could_improve" : "incorrect";
     failureReason = "precision";
     failureMessage = `You found it, but your selection was too broad — a ${exercise.answerLabel} is a specific price range.`;
   } else {
+    verdict = "incorrect";
     failureReason = "time";
     failureMessage = "Right price level, wrong candles.";
   }
 
   return {
-    isCorrect: false,
+    verdict,
+    isCorrect: isCorrectForCompat(verdict),
     coverage,
     precisionRatio,
     distanceFromLevel: null,
@@ -318,13 +347,14 @@ function gradeLevelAttempt(exercise: LevelExercise, userAnswer: UserAnswer): Gra
   const { has_answer, answer } = exercise;
 
   if (!has_answer) {
-    const isCorrect = userAnswer.type === "none";
+    const correct = userAnswer.type === "none";
     return {
-      isCorrect,
+      verdict: correct ? "correct" : "incorrect",
+      isCorrect: correct,
       coverage: null,
       precisionRatio: null,
       distanceFromLevel: null,
-      failureReason: isCorrect ? null : "false_positive",
+      failureReason: correct ? null : "false_positive",
       failureMessage: null,
       explanation: composeExplanation(exercise),
       revealZone: false,
@@ -337,6 +367,7 @@ function gradeLevelAttempt(exercise: LevelExercise, userAnswer: UserAnswer): Gra
 
   if (userAnswer.type === "none") {
     return {
+      verdict: "incorrect",
       isCorrect: false,
       coverage: null,
       precisionRatio: null,
@@ -354,10 +385,15 @@ function gradeLevelAttempt(exercise: LevelExercise, userAnswer: UserAnswer): Gra
 
   // Positive = the user placed the line above the true level; negative = below.
   const distanceFromLevel = userAnswer.price - answer.price;
-  const isCorrect = Math.abs(distanceFromLevel) <= answer.tolerance;
+  const abs = Math.abs(distanceFromLevel);
+  // Within tolerance: correct. Within LEVEL_INCORRECT_MULTIPLE x tolerance:
+  // a near miss (COULD_IMPROVE) — right area, not quite precise. Further:
+  // a genuinely wrong level.
+  const verdict: Verdict3 = abs <= answer.tolerance ? "correct" : abs <= answer.tolerance * LEVEL_INCORRECT_MULTIPLE ? "could_improve" : "incorrect";
 
-  if (isCorrect) {
+  if (verdict === "correct") {
     return {
+      verdict,
       isCorrect: true,
       coverage: null,
       precisionRatio: null,
@@ -370,10 +406,11 @@ function gradeLevelAttempt(exercise: LevelExercise, userAnswer: UserAnswer): Gra
   }
 
   const direction = distanceFromLevel > 0 ? "high" : "low";
-  const failureMessage = `You were ${Math.round(Math.abs(distanceFromLevel))} points too ${direction}.`;
+  const failureMessage = `You were ${Math.round(abs)} points too ${direction}.`;
 
   return {
-    isCorrect: false,
+    verdict,
+    isCorrect: isCorrectForCompat(verdict),
     coverage: null,
     precisionRatio: null,
     distanceFromLevel,
@@ -397,6 +434,9 @@ function gradeChoiceAttempt(exercise: ChoiceExercise, userAnswer: UserAnswer): G
   const isCorrect = userAnswer.choice === exercise.answer.correct_choice;
 
   return {
+    // Choice is a discrete pick among a fixed set of options — no near-miss
+    // state applies, unlike the continuous zone/level answers above.
+    verdict: isCorrect ? "correct" : "incorrect",
     isCorrect,
     coverage: null,
     precisionRatio: null,
@@ -443,11 +483,14 @@ export function buildChecks(exercise: ZoneExercise | LevelExercise, userAnswer: 
     const ratio = result.precisionRatio ?? 0;
     const timeOk = includesKeyCandle(r.candleIndexLow, r.candleIndexHigh, a.key_candle_index);
     const key = KEY_CANDLE[exercise.concept] ?? "the setup's key candle";
+    const coverageVerdict: Verdict3 =
+      coverage >= COVERAGE_THRESHOLD ? "correct" : result.failureReason === "too_small" ? "could_improve" : "incorrect";
+    const sizeVerdict: Verdict3 = ratio <= PRECISION_THRESHOLD ? "correct" : ratio <= PRECISION_INCORRECT_THRESHOLD ? "could_improve" : "incorrect";
     return [
       {
         id: "coverage",
         label: "Coverage",
-        passed: coverage >= COVERAGE_THRESHOLD,
+        verdict: coverageVerdict,
         detail:
           `Your box covers ${Math.round(coverage * 100)}% of the zone's price range (${Math.round(COVERAGE_THRESHOLD * 100)}% needed).` +
           (result.failureReason === "too_small" ? " It sits inside the zone, so draw it taller." : ""),
@@ -455,19 +498,19 @@ export function buildChecks(exercise: ZoneExercise | LevelExercise, userAnswer: 
       {
         id: "size",
         label: "Size",
-        passed: ratio <= PRECISION_THRESHOLD,
+        verdict: sizeVerdict,
         detail: `Your box is ${ratio.toFixed(1)}× the zone's height (up to ${PRECISION_THRESHOLD}× passes).`,
       },
       {
         id: "candles",
         label: "Candles",
-        passed: timeOk,
+        verdict: timeOk ? "correct" : "incorrect",
         detail: timeOk ? `Your box spans ${key}.` : `Your box doesn't span ${key}. It's highlighted on the chart.`,
       },
       {
         id: "edges",
         label: "Edges",
-        passed: null,
+        verdict: null,
         detail: `Your top edge is ${signedPoints(r.priceHigh - a.price_high)} the zone's top; your bottom edge is ${signedPoints(r.priceLow - a.price_low)} its bottom.`,
       },
     ];
@@ -478,15 +521,16 @@ export function buildChecks(exercise: ZoneExercise | LevelExercise, userAnswer: 
     const tol = exercise.answer.tolerance;
     const abs = Math.round(Math.abs(d));
     const within = Math.abs(d) <= tol;
+    const nearMiss = Math.abs(d) <= tol * LEVEL_INCORRECT_MULTIPLE;
     const dir = d > 0 ? "high" : "low";
     return [
       {
         id: "placement",
         label: "Placement",
-        passed: within,
+        verdict: within ? "correct" : nearMiss ? "could_improve" : "incorrect",
         detail: within
           ? `Your line is ${abs} point${abs === 1 ? "" : "s"} from the level, inside the ±${tol} tolerance.`
-          : Math.abs(d) <= 2 * tol
+          : nearMiss
             ? `Right area, but ${abs} points too ${dir}: just outside the ±${tol} tolerance.`
             : `Your line is ${abs} points too ${dir}. It needs to be within ±${tol} points of the level.`,
       },

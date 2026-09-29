@@ -26,7 +26,7 @@ export function FeedbackPanel({
 }) {
   return (
     <div className="card" role="status" aria-live="polite">
-      <Verdict correct={result.isCorrect} />
+      <Verdict verdict={result.verdict} />
       {isRetry && <p className="mt-1 text-xs text-muted">Retry: not counted in your stats or mistakes.</p>}
 
       {result.failureMessage && <p className="mt-3 text-base text-foreground">{result.failureMessage}</p>}
@@ -34,7 +34,7 @@ export function FeedbackPanel({
       {result.checks && result.checks.length > 0 && (
         <ul className="mt-4 space-y-3">
           {result.checks.map((check) => (
-            <CheckRow key={check.id} passed={check.passed} label={check.label}>
+            <CheckRow key={check.id} verdict={check.verdict} label={check.label}>
               {check.detail}
             </CheckRow>
           ))}
