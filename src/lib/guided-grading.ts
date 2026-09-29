@@ -14,6 +14,7 @@
 // component never fails the whole attempt on its own.
 
 import type { GuidedBias, GuidedExercise, PriceZoneAnswer, StopAnswer } from "@/data/exercises";
+import { formatPrice } from "@/lib/grading";
 import {
   gradeProtectiveStop,
   gradeRiskReward,
@@ -84,39 +85,45 @@ function pts(n: number): string {
   return `${r} point${r === 1 ? "" : "s"}`;
 }
 
-/** A short, data-driven lead sentence naming what the user's own placement
- * actually did, ahead of the exercise's authored reasoning — never a
- * hard-coded generic string: every number in it comes from this attempt's
- * real price and the real answer key. */
-function entryLead(verdict: Verdict3, price: number, zone: PriceZoneAnswer): string {
-  if (verdict === "correct") return "Your entry sat inside the valid zone — anywhere in it counts.";
+// Mentor-style feedback for entry/stop/target (docs/APP_PERFECTION_PLAN.md,
+// Phase C): one self-contained sentence, generated from this attempt's own
+// numbers — never a hard-coded generic string. Each names what the user's
+// placement did, and where the actual level sits, so it stands on its own
+// without needing the exercise's longer setup narrative appended (that
+// narrative stays on the bias step, where it belongs).
+
+function entryFeedback(verdict: Verdict3, price: number, zone: PriceZoneAnswer): string {
+  if (verdict === "correct") return `Your entry sat inside the valid zone (${formatPrice(zone.price_low)}–${formatPrice(zone.price_high)}) — anywhere in it counts.`;
   const below = price < zone.price_low;
   const distance = below ? zone.price_low - price : price - zone.price_high;
   const where = below ? "below" : "above";
+  const zoneDesc = `${formatPrice(zone.price_low)}–${formatPrice(zone.price_high)}`;
   return verdict === "could_improve"
-    ? `Your entry was close, about ${pts(distance)} ${where} the zone.`
-    : `Your entry was about ${pts(distance)} ${where} the zone — too far to call it anchored to this level.`;
+    ? `Your entry was close, about ${pts(distance)} ${where} the valid zone (${zoneDesc}).`
+    : `Your entry was too early or too far from the level — about ${pts(distance)} ${where} the valid zone (${zoneDesc}), not anchored to it.`;
 }
 
-function stopLead(verdict: Verdict3, price: number, stop: StopAnswer, direction: "long" | "short"): string {
+function stopFeedback(verdict: Verdict3, price: number, stop: StopAnswer, direction: "long" | "short"): string {
   const protects = direction === "long" ? price <= stop.invalidation_price : price >= stop.invalidation_price;
   const distance = Math.abs(price - stop.invalidation_price);
+  const level = formatPrice(stop.invalidation_price);
   if (!protects) {
-    return `Your stop was on the wrong side of the level that invalidates this idea, about ${pts(distance)} inside it — it wouldn't have protected the trade.`;
+    return `Your stop was on the wrong side of the level that invalidates this idea (around ${level}), about ${pts(distance)} inside it — it wouldn't have protected the trade.`;
   }
-  if (verdict === "correct") return "Your stop protects the trade without being unnecessarily wide.";
+  if (verdict === "correct") return `Your stop protects the trade, sitting just beyond the level that invalidates this idea (around ${level}), without being unnecessarily wide.`;
   const extra = distance - stop.reasonable_buffer;
-  return `Your stop protects the trade, but it's about ${pts(extra)} wider than it needs to be — that cuts into your risk-to-reward for no added protection.`;
+  return `Your stop protects the trade — it's beyond the level that invalidates this idea (around ${level}) — but it's about ${pts(extra)} wider than it needs to be, which cuts into your risk-to-reward for no added protection.`;
 }
 
-function targetLead(verdict: Verdict3, price: number, zone: PriceZoneAnswer): string {
-  if (verdict === "correct") return "Good target — you aimed at the actual liquidity this setup was drawing toward.";
+function targetFeedback(verdict: Verdict3, price: number, zone: PriceZoneAnswer): string {
+  const level = `${formatPrice(zone.price_low)}–${formatPrice(zone.price_high)}`;
+  if (verdict === "correct") return `Good target — you aimed at the actual liquidity this setup was drawing toward (${level}).`;
   const below = price < zone.price_low;
   const distance = below ? zone.price_low - price : price - zone.price_high;
   const where = below ? "short of" : "beyond";
   return verdict === "could_improve"
-    ? `Your target was close, about ${pts(distance)} ${where} the liquidity area.`
-    : `Your target wasn't aimed at the liquidity this setup was drawing toward — about ${pts(distance)} ${where} it.`;
+    ? `Your target was close, about ${pts(distance)} ${where} the liquidity area (${level}).`
+    : `Your target wasn't aimed at the liquidity this setup was drawing toward (${level}) — about ${pts(distance)} ${where} it.`;
 }
 
 const BIAS_LABEL: Record<GuidedBias, string> = { bullish: "bullish", bearish: "bearish", unclear: "unclear" };
@@ -148,7 +155,7 @@ export function gradeGuidedAttempt(
       step: "entry",
       verdict: entryVerdict,
       explanation: key.entry
-        ? `${entryLead(entryVerdict, answer.entry, key.entry)} ${key.step_explanations.entry}`
+        ? entryFeedback(entryVerdict, answer.entry, key.entry)
         : `There was no valid entry level here. ${key.step_explanations.entry}`,
     });
   }
@@ -161,7 +168,7 @@ export function gradeGuidedAttempt(
       verdict: stopVerdict,
       explanation:
         key.stop !== null && direction !== null
-          ? `${stopLead(stopVerdict, answer.stop, key.stop, direction)} ${key.step_explanations.stop}`
+          ? stopFeedback(stopVerdict, answer.stop, key.stop, direction)
           : `There was no level to build a stop from here. ${key.step_explanations.stop}`,
     });
   }
@@ -173,7 +180,7 @@ export function gradeGuidedAttempt(
       step: "target",
       verdict: targetVerdict,
       explanation: key.target
-        ? `${targetLead(targetVerdict, answer.target, key.target)} ${key.step_explanations.target}`
+        ? targetFeedback(targetVerdict, answer.target, key.target)
         : `There was no liquidity worth targeting here. ${key.step_explanations.target}`,
     });
   }

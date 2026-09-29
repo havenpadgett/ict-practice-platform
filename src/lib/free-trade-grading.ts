@@ -15,6 +15,7 @@
 // zone membership, same reasoning as entry.
 
 import type { Candle, FreeTradeDirection, FreeTradeExercise, FreeTradePriceZone, FreeTradeTargetZone, StopAnswer } from "@/data/exercises";
+import { formatPrice } from "@/lib/grading";
 import {
   gradeProtectiveStop,
   gradeRiskReward,
@@ -128,24 +129,26 @@ function pts(n: number): string {
 }
 
 function zoneReason(verdict: Verdict3, price: number, zone: FreeTradePriceZone | FreeTradeTargetZone, noun: string): string {
-  if (verdict === "correct") return `Your ${noun} was inside the ideal zone.`;
+  const level = `${formatPrice(zone.price_low)}–${formatPrice(zone.price_high)}`;
+  if (verdict === "correct") return `Your ${noun} was inside the ideal zone (${level}).`;
   const below = price < zone.price_low;
   const distance = below ? zone.price_low - price : price - zone.price_high;
   const where = below ? "below" : "above";
   return verdict === "could_improve"
-    ? `Your ${noun} was close, about ${pts(distance)} ${where} the ideal zone.`
-    : `Your ${noun} was about ${pts(distance)} ${where} the ideal zone — not anchored to the setup's level.`;
+    ? `Your ${noun} was close, about ${pts(distance)} ${where} the ideal zone (${level}).`
+    : `Your ${noun} was about ${pts(distance)} ${where} the ideal zone (${level}) — not anchored to the setup's level.`;
 }
 
 function stopReason(verdict: Verdict3, price: number, stop: StopAnswer, direction: FreeTradeDirection): string {
   const protects = direction === "long" ? price <= stop.invalidation_price : price >= stop.invalidation_price;
+  const level = formatPrice(stop.invalidation_price);
   if (!protects) {
     const distance = Math.abs(price - stop.invalidation_price);
-    return `Your stop was on the wrong side of the swing point that would prove the idea wrong, about ${pts(distance)} inside it — normal noise could take you out before the idea is actually invalidated.`;
+    return `Your stop was on the wrong side of the swing point that would prove the idea wrong (around ${level}), about ${pts(distance)} inside it — normal noise could take you out before the idea is actually invalidated.`;
   }
-  if (verdict === "correct") return "Your stop sat just beyond the swing point that would prove the idea wrong.";
+  if (verdict === "correct") return `Your stop sat just beyond the swing point that would prove the idea wrong (around ${level}).`;
   const extra = Math.abs(price - stop.invalidation_price) - stop.reasonable_buffer;
-  return `Your stop protects the trade, but it's about ${pts(extra)} wider than it needs to be, which shrinks your R:R for no benefit.`;
+  return `Your stop protects the trade — it's beyond the swing point that would prove the idea wrong (around ${level}) — but it's about ${pts(extra)} wider than it needs to be, which shrinks your R:R for no benefit.`;
 }
 
 export function gradeFreeTrade(
@@ -230,13 +233,7 @@ export function gradeFreeTrade(
     targetCheck = check("target", null, "There was no liquidity worth targeting here.");
   } else {
     targetVerdict = gradeZonePlacement(target, key.target);
-    targetCheck = check(
-      "target",
-      targetVerdict,
-      targetVerdict === "correct"
-        ? "Good target — you aimed at the actual liquidity this setup was drawing toward."
-        : zoneReason(targetVerdict, target, key.target, "target"),
-    );
+    targetCheck = check("target", targetVerdict, zoneReason(targetVerdict, target, key.target, "target"));
   }
 
   const rr = computeRR(direction, entry, stop, target);
