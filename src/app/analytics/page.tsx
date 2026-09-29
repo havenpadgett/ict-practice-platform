@@ -239,6 +239,7 @@ function AnalyticsContent({ attempts, viewRows }: { attempts: DbAttempt[]; viewR
                   shortLabel: conceptShortName(c.concept),
                   attempts: c.attempts,
                   accuracy: c.accuracy,
+                  couldImprove: (aggregates.couldImproveByConcept[c.concept] ?? 0) / 100,
                   trend: conceptTrend(filtered.filter((a) => a.concept === c.concept)),
                 }))}
             />

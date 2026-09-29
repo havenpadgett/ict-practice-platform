@@ -39,7 +39,7 @@ from typing import Any, Dict, List, Optional
 from build_scenario import DEFAULT_OUTPUT_DIR, DRAFT_NOTE
 from common import curriculum_versions, load_clean, load_json, round_price, trading_date, write_json
 from detect import group_indices, session_median_range
-from setups import MIN_RR, TICK, find_setup, tick
+from setups import MIN_RR, find_setup
 
 KINDS = ["valid", "no_shift", "no_sweep", "no_entry", "low_rr"]
 
@@ -160,7 +160,14 @@ def build(mode: str, exercise_id: str, day: List[Dict[str, Any]], n_ctx: int, s:
             end = min(len(day) - 1, s["break_index"] + 3)
         window = day[:end + 1]
         provenance["date_range"] = {"start": window[0]["timestamp"], "end": window[-1]["timestamp"]}
-        lvl = lambda p: {"price": round_price(p), "tolerance": s["level_tolerance"]}  # noqa: E731
+        # Phase B (docs/APP_PERFECTION_PLAN.md): entry and target are graded
+        # as zone membership, not point + tolerance — entry_tolerance is
+        # already half the FVG/order-block zone (docs/CURRICULUM.md), so
+        # [entry - tol, entry + tol] IS that zone; minor_margin is a further
+        # near-miss band beyond it. Stop is graded on whether it protects
+        # against the actual swing extreme, not distance from the
+        # already-buffered `stop` reference price.
+        zone = lambda p, tol: {"anchor": round_price(p), "price_low": round_price(p - tol), "price_high": round_price(p + tol), "minor_margin": tol}  # noqa: E731
         return {
             **base,
             "concept": "GuidedEntry",
@@ -169,9 +176,9 @@ def build(mode: str, exercise_id: str, day: List[Dict[str, Any]], n_ctx: int, s:
             "prompt": "Work through the setup: bias, entry, stop, and target.",
             "answer": {
                 "bias": s["direction"] if kind in ("valid", "low_rr", "no_entry") else "unclear",
-                "entry": {"price": s["entry"], "tolerance": s["entry_tolerance"]} if has_levels else None,
-                "stop": lvl(s["stop"]) if has_levels else None,
-                "target": lvl(s["target"]) if has_levels else None,
+                "entry": zone(s["entry"], s["entry_tolerance"]) if has_levels else None,
+                "stop": {"invalidation_price": round_price(s["extreme_price"]), "reasonable_buffer": s["level_tolerance"]} if has_levels else None,
+                "target": zone(s["target"], s["level_tolerance"]) if has_levels else None,
                 "min_rr": MIN_RR,
                 "is_valid_setup": kind == "valid",
                 "step_explanations": {k: t[k] for k in ("bias", "entry", "stop", "target")},
@@ -183,10 +190,7 @@ def build(mode: str, exercise_id: str, day: List[Dict[str, Any]], n_ctx: int, s:
     # Free Trade
     provenance["date_range"] = {"start": day[0]["timestamp"], "end": day[-1]["timestamp"]}
     ext, m = s.get("extreme_price"), s.get("median_range")
-    stop_zone = None
-    if has_levels:
-        stop_zone = ({"price_low": tick(ext - m), "price_high": round_price(ext - TICK)} if bull
-                     else {"price_low": round_price(ext + TICK), "price_high": tick(ext + m)})
+    tol = s.get("level_tolerance")
     return {
         **base,
         "concept": "FreeTrade",
@@ -197,10 +201,17 @@ def build(mode: str, exercise_id: str, day: List[Dict[str, Any]], n_ctx: int, s:
         "answer": {
             "intended_bias": ("long" if bull else "short") if kind in ("valid", "low_rr", "no_entry") else "none",
             "is_valid_setup": kind == "valid",
+            # Phase B (docs/APP_PERFECTION_PLAN.md): stop is graded on
+            # whether it protects against the actual swing extreme (`ext`),
+            # by up to one median bar range (`m`) — docs/CURRICULUM.md's
+            # "1x the median bar range beyond it" — not a two-sided zone
+            # around an already-buffered reference price. Target is now
+            # graded on its own (closing the "not graded on its own" V1 gap).
             "entry_zone": ({"price_low": s["zone"]["low"], "price_high": s["zone"]["high"],
-                            "earliest_index": s["zone"]["formed_index"] + 1} if has_levels else None),
-            "stop_zone": stop_zone,
-            "target": s["target"] if has_levels else None,
+                            "earliest_index": s["zone"]["formed_index"] + 1, "minor_margin": tol} if has_levels else None),
+            "stop_zone": ({"invalidation_price": round_price(ext), "reasonable_buffer": m} if has_levels else None),
+            "target": ({"anchor": round_price(s["target"]), "price_low": round_price(s["target"] - tol),
+                        "price_high": round_price(s["target"] + tol), "minor_margin": tol} if has_levels else None),
             "min_rr": MIN_RR,
         },
         "provenance": provenance,

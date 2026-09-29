@@ -93,6 +93,8 @@ Every step explanation and the overall verdict are drafts. `/review` asks for ea
 
 To try the pipeline without licensed data, generate synthetic bars first: `python3 scripts/sample/make_synthetic.py`, then run the same commands on `scripts/sample/synthetic_nq_5m.csv`. **Never promote a scenario built from synthetic data.**
 
+**Schema (updated 2026-09-29, Phase B).** `build_trade_scenarios.py` now emits the zone/invalidation-level answer key `src/data/exercises.ts` expects (`PriceZoneAnswer` for entry/target, `StopAnswer` for stop — see docs/CURRICULUM.md's grading severity note under Guided Entry) instead of the old point + tolerance shape. The 20 already-registered `real-guided-*`/`real-ft-*` files (all `human_reviewed: false`, blocked on B1/B3 regardless) were converted to the new shape by a one-off script rather than rebuilt, preserving each one's previously-accepted range exactly — nothing about which placements would have graded correctly changed, only how that's expressed. A future re-run of the commands above produces the new shape natively.
+
 Previous-day and weekly levels span a full day or week; build those from 1h (or 4h) bars so the chart stays around 40 candles. `build_scenario.py` warns when a window exceeds 120 bars.
 
 ## Chart framing

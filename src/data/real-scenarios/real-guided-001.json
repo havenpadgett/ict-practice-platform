@@ -36,7 +36,7 @@
     "timeframe": "5m",
     "detection_rule": "guided_setup",
     "curriculum_versions": {
-      "guided_entry": 1,
+      "guided_entry": 2,
       "mss": 1,
       "fvg": 1,
       "fvg_respect": 1,

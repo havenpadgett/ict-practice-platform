@@ -155,7 +155,12 @@ export const DASHBOARD_COLUMNS = [
 ].join(",");
 
 /** Ascending by created_at. `columns` narrows the select for pages that
- * don't need every field; the default is the full row. */
+ * don't need every field; the default is the full row. Falls back to
+ * dropping `verdict` from an explicit column list if the migration that
+ * adds it (20260929120000, not yet applied — B4) hasn't run: naming an
+ * unknown column in `.select()` fails the whole query, not just that
+ * field, so this degrades to the plain is_correct reading every caller
+ * already had rather than breaking the page. */
 export async function fetchAttempts(userId: string, columns = "*"): Promise<DbAttempt[]> {
   const supabase = createClient();
   const { data, error } = await supabase
@@ -163,7 +168,12 @@ export async function fetchAttempts(userId: string, columns = "*"): Promise<DbAt
     .select(columns)
     .eq("user_id", userId)
     .order("created_at", { ascending: true });
-  if (error) throw error;
+  if (error) {
+    if ((error.code === "PGRST204" || error.code === "42703") && columns.includes("verdict")) {
+      return fetchAttempts(userId, columns.split(",").filter((c) => c !== "verdict").join(","));
+    }
+    throw error;
+  }
   return (data ?? []) as unknown as DbAttempt[];
 }
 
@@ -187,14 +197,30 @@ export async function nextAttemptNumber(
  * counts (the nav's open-mistakes badge) can refresh. */
 export const ATTEMPTS_CHANGED_EVENT = "ict:attempts-changed";
 
+/** Verdict columns added in 20260929120000_add_verdict_to_attempts.sql —
+ * not yet applied in production (B4). Stripped on VERDICT_COLUMNS_MISSING
+ * so grading keeps recording attempts (on is_correct alone, as it always
+ * did) until the migration runs; same pattern as the report-reasons
+ * fallback in src/app/report/actions.ts. */
+const VERDICT_COLUMNS: (keyof NewAttempt)[] = [
+  "verdict",
+  "guided_bias_verdict", "guided_entry_verdict", "guided_stop_verdict", "guided_target_verdict", "guided_rr_verdict",
+  "free_direction_verdict", "free_entry_verdict", "free_stop_verdict", "free_target_verdict", "free_rr_verdict", "free_decision_verdict",
+];
+
 export async function insertAttempt(
   userId: string,
   attempt: NewAttempt,
 ): Promise<void> {
   const supabase = createClient();
-  const { error } = await supabase
+  let { error } = await supabase
     .from("attempts")
     .insert({ ...attempt, user_id: userId });
+  if (error && (error.code === "PGRST204" || error.code === "42703")) {
+    const fallback = { ...attempt, user_id: userId };
+    for (const col of VERDICT_COLUMNS) delete fallback[col];
+    ({ error } = await supabase.from("attempts").insert(fallback));
+  }
   if (error) throw error;
   if (typeof window !== "undefined") window.dispatchEvent(new Event(ATTEMPTS_CHANGED_EVENT));
 }
@@ -273,7 +299,15 @@ export async function migrateLocalAttempts(
   });
 
   const supabase = createClient();
-  const { error } = await supabase.from("attempts").insert(rows);
+  let { error } = await supabase.from("attempts").insert(rows);
+  if (error && (error.code === "PGRST204" || error.code === "42703")) {
+    const fallback = rows.map((r) => {
+      const copy = { ...r } as Record<string, unknown>;
+      for (const col of VERDICT_COLUMNS) delete copy[col];
+      return copy;
+    });
+    ({ error } = await supabase.from("attempts").insert(fallback));
+  }
   if (error) throw error;
   return rows.length;
 }
@@ -306,6 +340,27 @@ export function getAccuracyByConcept(
   const result: Record<string, number> = {};
   for (const [concept, { correct, total }] of byConcept) {
     result[concept] = Math.round((correct / total) * 100);
+  }
+  return result;
+}
+
+/** Share of each concept's attempts that were COULD_IMPROVE (0-1) — a
+ * near miss counted as correct above, but worth showing on its own
+ * (Phase B, docs/APP_PERFECTION_PLAN.md). Null verdict (pre-Phase-B
+ * attempts) never counts: those rows are binary, with nothing to recover. */
+export function getCouldImproveByConcept(
+  attempts: { concept: string; verdict: Verdict3 | null }[],
+): Record<string, number> {
+  const byConcept = new Map<string, { couldImprove: number; total: number }>();
+  for (const attempt of attempts) {
+    const entry = byConcept.get(attempt.concept) ?? { couldImprove: 0, total: 0 };
+    entry.total += 1;
+    if (attempt.verdict === "could_improve") entry.couldImprove += 1;
+    byConcept.set(attempt.concept, entry);
+  }
+  const result: Record<string, number> = {};
+  for (const [concept, { couldImprove, total }] of byConcept) {
+    result[concept] = couldImprove / total;
   }
   return result;
 }

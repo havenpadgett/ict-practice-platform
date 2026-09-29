@@ -207,6 +207,15 @@ R:R = (target − entry) / (entry − stop)     // for a long; mirrored for a sh
 
 **Why grade the process, not the outcome (PRD Section 13):** a setup that satisfies all four steps and clears 2:1 is a *valid* setup even if the trade would have lost — market structure describes probability, not certainty. Conversely, a setup that happened to work out but skipped a step (no real entry level, R:R below 2:1, bias never actually confirmed) is not a good decision that got lucky. Guided Entry exercises are graded against whether the four-step process was followed correctly, never against what price did afterward.
 
+**Grading severity (Phase B, docs/APP_PERFECTION_PLAN.md; `src/lib/verdict.ts`).** Each step is CORRECT, COULD IMPROVE, or INCORRECT — never a flat pass/fail — and the overall verdict is the worst of its steps, so one imperfect piece never fails an otherwise-sound setup:
+
+- **Entry** is graded as zone membership, not distance from a single "true" price: anywhere inside the valid entry model (an unmitigated FVG, an IFVG, or a retested broken structural level) is CORRECT, including its far edge. Just outside it is COULD IMPROVE; well outside, or anchored to nothing at all, is INCORRECT.
+- **Stop** is graded on whether it protects the trade against the specific level that would invalidate the idea, not distance from a reference price. Beyond that level by a reasonable amount is CORRECT; further out is COULD IMPROVE (it still protects the trade, just costs R:R for no benefit — width alone never fails a stop that protects); on the wrong side — it wouldn't actually trigger before the idea is already invalidated — is always INCORRECT, regardless of how close.
+- **Target** is graded the same way as entry: inside the liquidity zone is CORRECT, a near miss is COULD IMPROVE, aimed at the wrong thing entirely is INCORRECT.
+- **Risk-to-reward** below the 2:1 minimum but at or above 1.5:1 (75% of it) is COULD IMPROVE — a weak but real setup; below that is INCORRECT.
+- **Bias** and the **No Trade decision** stay binary: a categorical read is either right or wrong, with no partial credit.
+- **Trading a scenario with no valid setup at all is always INCORRECT**, regardless of how well the user's own invented levels read — there's no real level to have been anchored to either way.
+
 ### Real-data Guided Entry scenarios (AI-DRAFTED, 2026-09-24 — pending Haven's review)
 
 `scripts/setups.py` applies the four steps above to a real session (5m NY AM, structure read from 07:00 ET) as a chain. Each level comes from detected structure, not typed in:
@@ -239,17 +248,16 @@ No-trade is the correct answer most days. The real batch mixes 6 valid setups wi
 
 **What it is:** historical playback. The user sees a starting window of candles, then reveals the rest one candle at a time — no future candle is rendered, and the chart's price axis is scaled to revealed candles only, so it never hints at where price goes next. At any revealed candle the user may go **Long** or **Short** (a market order filled at that candle's close), then place a stop and a target. The trade closes when a later candle's high/low touches the stop or target; if one candle touches both, the stop is assumed hit first. One trade per scenario. Ending the session without a trade is a **No Trade** decision.
 
-**Graded on process, not outcome** — same principle as [Guided Entry](#guided-entry). Each check is pass/fail:
+**Graded on process, not outcome** — same principle as [Guided Entry](#guided-entry). Each check is CORRECT, COULD IMPROVE, or INCORRECT (Phase B — see the severity rules under Guided Entry above, which apply here unchanged):
 
-1. **Direction** — matches the scenario's intended bias (read from [MSS](#market-structure-shift-mss) and which side's liquidity was taken).
-2. **Entry** — the fill price sits inside the scenario's ideal entry zone, and only once the setup has actually formed (an entry at the same price before the MSS isn't the same trade).
-3. **Stop** — inside the scenario's stop zone: just beyond the swing point that would invalidate the idea. Inside that swing point is too tight; well past it is too wide.
-4. **Risk-to-reward** — the user's own planned R:R (the entry, stop, and target they placed) is at least **2:1**.
-5. **Trade decision** — traded a scenario that has a valid setup, or sat out one that doesn't.
+1. **Direction** — matches the scenario's intended bias (read from [MSS](#market-structure-shift-mss) and which side's liquidity was taken). Binary — no partial credit.
+2. **Entry** — the fill price sits inside the scenario's ideal entry zone (or COULD IMPROVE just outside it), and only once the setup has actually formed — entering before that is always INCORRECT, regardless of price (an entry at the same price before the MSS isn't the same trade).
+3. **Stop** — graded on whether it protects against the swing point that would invalidate the idea, same rule as Guided Entry: beyond it is CORRECT, further beyond is COULD IMPROVE (never a hard fail on width alone), on the wrong side is always INCORRECT.
+4. **Target** — the fill's planned exit sits inside the scenario's ideal target zone (or COULD IMPROVE just outside it), graded on its own — not only through the R:R check below. *(Closed the V1 gap this used to have: a target placed far beyond the nearest opposing liquidity used to inflate planned R:R without being caught. It's now graded directly, same zone reasoning as entry.)*
+5. **Risk-to-reward** — the user's own planned R:R (the entry, stop, and target they placed) is CORRECT at or above **2:1**, COULD IMPROVE from 1.5:1 up to it, INCORRECT below that.
+6. **Trade decision** — traded a scenario that has a valid setup, or sat out one that doesn't. Binary. Trading a no-setup scenario is always INCORRECT overall, regardless of how the placed levels read.
 
-The overall verdict passes only if every check that applies passes. Win/loss and the result in R are reported alongside but never change the verdict: a losing trade with good process passes; a winning trade with bad process fails. A trade still open when the session ends is marked at the last revealed close.
-
-**Known V1 gap:** the target is not graded on its own — only through the R:R check. A target placed far beyond the nearest opposing liquidity inflates planned R:R. Revisit with Haven before wider use.
+The overall verdict is the worst of every check that applies — one COULD IMPROVE never fails an otherwise-sound trade, but any INCORRECT does. Win/loss and the result in R are reported alongside but never change the verdict: a losing trade with good process passes; a winning trade with bad process fails. A trade still open when the session ends is marked at the last revealed close.
 
 ### Scenarios (AI-DRAFTED — pending Haven's review)
 

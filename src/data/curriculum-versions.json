@@ -43,13 +43,13 @@
     },
     "guided_entry": {
       "section": "Guided Entry",
-      "version": 1,
-      "sha256": "28960b3c4953bd93e20338d19a23bb7ef3cdf9f9f5f03e5ed7d127af7fee479e"
+      "version": 2,
+      "sha256": "469145bb2cbab3560fe60d96729accd16fd08d43413a0ae6569b7e3e62a89fee"
     },
     "free_trade": {
       "section": "Free Trade",
-      "version": 1,
-      "sha256": "8eba21277b7714c3866bc4ca3bc0239c2b8128816d2471b4ba49f8362f315d87"
+      "version": 2,
+      "sha256": "62e218107f3e95fd5544a1ec204ee2241445930455ca4e6748a2eb77f641b8b1"
     },
     "time_levels": {
       "section": "Liquidity — Time-Based Levels",
@@ -215,7 +215,7 @@
         "liquidity"
       ],
       "verified_against": {
-        "guided_entry": 1,
+        "guided_entry": 2,
         "mss": 1,
         "fvg": 1,
         "fvg_respect": 1,
@@ -233,8 +233,8 @@
         "liquidity"
       ],
       "verified_against": {
-        "free_trade": 1,
-        "guided_entry": 1,
+        "free_trade": 2,
+        "guided_entry": 2,
         "mss": 1,
         "fvg": 1,
         "liquidity": 1

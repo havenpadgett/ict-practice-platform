@@ -9,7 +9,7 @@ import { RecommendedSession } from "@/components/recommended-session";
 import { MetricStrip } from "@/components/metric-strip";
 import { SkillRows, type SkillRow } from "@/components/skill-rows";
 import { useRequireAuth } from "@/hooks/use-require-auth";
-import { DASHBOARD_COLUMNS, fetchAttempts, migrateLocalAttempts, type DbAttempt } from "@/lib/attempts";
+import { DASHBOARD_COLUMNS, fetchAttempts, getCouldImproveByConcept, migrateLocalAttempts, type DbAttempt } from "@/lib/attempts";
 import { conceptDisplayName, conceptShortName } from "@/lib/concepts";
 import { fetchProfile } from "@/lib/profiles";
 import { describeError } from "@/lib/errors";
@@ -174,6 +174,7 @@ function DashboardContent({ attempts, streak }: { attempts: DbAttempt[]; streak:
   const mistakes = mistakeCounts(attempts);
   const { concepts } = scoreConcepts(attempts);
   const byConcept = new Map(concepts.map((c) => [c.concept, c]));
+  const couldImproveByConcept = getCouldImproveByConcept(attempts);
   const correct = attempts.filter((a) => a.is_correct).length;
   const week = attemptsSince(attempts, 7);
   const weekCorrect = week.filter((a) => a.is_correct).length;
@@ -186,6 +187,7 @@ function DashboardContent({ attempts, streak }: { attempts: DbAttempt[]; streak:
       shortLabel: conceptShortName(concept),
       attempts: score?.attempts ?? 0,
       accuracy: score?.accuracy ?? 0,
+      couldImprove: couldImproveByConcept[concept] ?? 0,
       trend: conceptTrend(attempts.filter((a) => a.concept === concept)),
     };
   });

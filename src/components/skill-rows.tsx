@@ -9,6 +9,10 @@ export type SkillRow = {
   attempts: number;
   /** 0-1. */
   accuracy: number;
+  /** 0-1, the share of `accuracy` that was COULD_IMPROVE rather than a
+   * clean CORRECT (Phase B) — drawn as its own amber segment of the bar,
+   * inside the accuracy width, not added on top of it. */
+  couldImprove?: number;
   trend?: Trend | null;
 };
 
@@ -23,6 +27,10 @@ export function SkillRows({ rows }: { rows: SkillRow[] }) {
       {rows.map((row) => {
         const scored = row.attempts >= MIN_ATTEMPTS_FOR_ACCURACY;
         const pct = Math.round(row.accuracy * 100);
+        // couldImprove is a share of accuracy, not additional width — the
+        // amber segment sits inside the accent bar, never past its end.
+        const couldImprovePct = Math.round((row.couldImprove ?? 0) * 100);
+        const correctPct = Math.max(0, pct - couldImprovePct);
         return (
           <li key={row.key} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 py-3 sm:grid-cols-[12rem_minmax(0,1fr)_15rem]">
             <span className="truncate text-sm text-foreground">
@@ -37,8 +45,14 @@ export function SkillRows({ rows }: { rows: SkillRow[] }) {
             </span>
             <span className="order-last col-span-2 sm:order-none sm:col-span-1">
               {scored ? (
-                <span className="block h-1.5 overflow-hidden rounded-full bg-line" aria-hidden>
+                <span className="relative block h-1.5 overflow-hidden rounded-full bg-line" aria-hidden>
                   <span className="block h-full rounded-full bg-muted" style={{ width: `${pct}%` }} />
+                  {couldImprovePct > 0 && (
+                    <span
+                      className="absolute inset-y-0 right-0 rounded-full bg-warn"
+                      style={{ width: `${couldImprovePct}%`, left: `${correctPct}%` }}
+                    />
+                  )}
                 </span>
               ) : (
                 <span className="block h-1.5 rounded-full border border-dashed border-line" aria-hidden />
@@ -50,6 +64,7 @@ export function SkillRows({ rows }: { rows: SkillRow[] }) {
               ) : scored ? (
                 <>
                   <span className="text-sm font-medium text-foreground">{pct}%</span> · {row.attempts} attempts
+                  {couldImprovePct > 0 && <span className="text-warn"> · {couldImprovePct}% could improve</span>}
                   {row.trend && <span className="ml-2">{TREND_TEXT[row.trend]}</span>}
                 </>
               ) : (

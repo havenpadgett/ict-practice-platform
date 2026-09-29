@@ -7,7 +7,7 @@
 
 import { getExerciseMeta } from "@/data/catalog";
 import type { DbAttempt } from "@/lib/attempts";
-import { getAccuracyByConcept } from "@/lib/attempts";
+import { getAccuracyByConcept, getCouldImproveByConcept } from "@/lib/attempts";
 import {
   getAccuracyByConceptAndDifficulty,
   getAccuracyByDifficulty,
@@ -28,6 +28,9 @@ import { createClient } from "@/lib/supabase/client";
 export type Aggregates = {
   source: "database" | "browser";
   byConcept: Record<string, number>;
+  /** Share of each concept's accuracy that was COULD_IMPROVE, 0-100 —
+   * same percentage convention as byConcept (Phase B). */
+  couldImproveByConcept: Record<string, number>;
   byDifficulty: Record<number, number>;
   conceptDifficulty: Record<string, Partial<Record<1 | 2 | 3, RateCount>>>;
   byExercise: ExerciseAccuracy[];
@@ -39,7 +42,7 @@ export type Aggregates = {
 
 type Num = number | string | null;
 export type ViewRows = {
-  concept: { concept: string; attempts: Num; accuracy: Num }[];
+  concept: { concept: string; attempts: Num; accuracy: Num; could_improve_rate: Num }[];
   conceptDifficulty: { concept: string; difficulty: Num; attempts: Num; correct: Num }[];
   exercise: { exercise_id: string; concept: string; attempts: Num; correct: Num }[];
   realVsConstructed: { concept: string; source: "real" | "constructed"; attempts: Num; correct: Num; accuracy: Num }[];
@@ -61,9 +64,11 @@ const n = (v: Num): number => (v === null ? 0 : Number(v));
 const pct = (fraction: Num): number => Math.round(n(fraction) * 100);
 
 export function aggregatesFromAttempts(attempts: DbAttempt[]): Aggregates {
+  const couldImprove = getCouldImproveByConcept(attempts);
   return {
     source: "browser",
     byConcept: getAccuracyByConcept(attempts),
+    couldImproveByConcept: Object.fromEntries(Object.entries(couldImprove).map(([k, v]) => [k, Math.round(v * 100)])),
     byDifficulty: getAccuracyByDifficulty(attempts),
     conceptDifficulty: getAccuracyByConceptAndDifficulty(attempts),
     byExercise: getAccuracyByExercise(attempts),
@@ -80,7 +85,11 @@ function rate(correct: number, total: number): RateCount {
 
 export function aggregatesFromViews(v: ViewRows): Aggregates {
   const byConcept: Record<string, number> = {};
-  for (const r of v.concept) byConcept[r.concept] = pct(r.accuracy);
+  const couldImproveByConcept: Record<string, number> = {};
+  for (const r of v.concept) {
+    byConcept[r.concept] = pct(r.accuracy);
+    couldImproveByConcept[r.concept] = pct(r.could_improve_rate);
+  }
 
   const conceptDifficulty: Aggregates["conceptDifficulty"] = {};
   const byDiff = new Map<number, { correct: number; total: number }>();
@@ -135,6 +144,7 @@ export function aggregatesFromViews(v: ViewRows): Aggregates {
   return {
     source: "database",
     byConcept,
+    couldImproveByConcept,
     byDifficulty,
     conceptDifficulty,
     byExercise,
