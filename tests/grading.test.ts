@@ -89,7 +89,7 @@ describe.each([
     const r = gradeAttempt(make(false), drawn);
     expect(r.isCorrect).toBe(false);
     expect(r.failureReason).toBe("false_positive");
-    expect(r.explanation).toMatch(/^The correct answer was: no /);
+    expect(r.explanation).toMatch(/^There's no /);
     expect(r.explanation).toContain("near miss");
   });
   it("no answer + said none → correct, with the distractor note as confirmation", () => {
@@ -105,7 +105,7 @@ describe("choice grading", () => {
     const wrong = gradeAttempt(choice(), { type: "choice", choice: "premium" });
     expect(wrong.isCorrect).toBe(false);
     expect(wrong.failureReason).toBe("wrong_choice");
-    expect(wrong.explanation).toContain("The correct answer was: Discount.");
+    expect(wrong.explanation).toContain('The read here is "Discount."');
   });
 });
 

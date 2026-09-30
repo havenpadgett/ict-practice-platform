@@ -1,4 +1,5 @@
 import type { ChoiceExercise, Exercise, LevelExercise, ZoneExercise } from "@/data/exercises";
+import { getConceptMeta } from "@/lib/concepts";
 import { isCorrectForCompat, type Verdict3 } from "@/lib/verdict";
 
 /** Everything gradeAttempt actually dispatches to below — Guided Entry is
@@ -50,9 +51,9 @@ export type GradeResult = {
   failureReason: FailureReason | null;
   /** Names which test failed, or how far off a level answer was. */
   failureMessage: string | null;
-  /** Feedback text: reasoning plus an explicit statement of the correct
-   * answer, in the order described in composeExplanation() below. Always
-   * shown, correct or not. */
+  /** Mentor-style feedback: one or two self-contained sentences generated
+   * from this exercise's own data (zoneExplanation/levelExplanation/
+   * choiceExplanation below). Always shown, correct or not. */
   explanation: string;
   /** Whether the feedback view should draw the true answer on the chart. */
   revealZone: boolean;
@@ -88,13 +89,12 @@ export function formatPrice(value: number): string {
   return Math.round(value).toLocaleString("en-US");
 }
 
-// Every exercise's feedback states the correct answer explicitly — this is
-// what fixed the bug where a no-zone/no-level exercise only showed the
-// distractor note, leaving the user to infer what they should have done.
-// The statement is qualitative ("no X on this chart") when nothing exists,
-// so it reads naturally leading the explanation; it carries the actual
-// coordinates when something does exist, so it reads naturally trailing
-// the reasoning (numbers last, per the feedback restructuring below).
+// A blunt, coordinate-bearing statement of the correct answer — used by
+// Review Mistakes (src/lib/mistake-text.ts), which shows it in its own
+// "correct answer" field separately from the reasoning. The mentor-style
+// GradeResult.explanation below (zoneExplanation/levelExplanation/
+// choiceExplanation) states coordinates itself where they matter (a missed
+// or off-level answer) rather than composing with this statement.
 export function buildCorrectAnswerStatement(exercise: GradableExercise): string {
   // Choice exercises (FVG respected/disrespected) always have a definite
   // correct option among the choices offered — there's no "no X on this
@@ -121,20 +121,66 @@ export function buildCorrectAnswerStatement(exercise: GradableExercise): string 
   return `The correct answer was: a ${exercise.answerLabel} level around ${formatPrice(answer.price)}.`;
 }
 
-// Feedback structure: a plain verdict sentence and any test-specific detail
-// come first (failureMessage, rendered by the UI before this text) — this
-// composes what follows: the correct-answer statement and the reasoning,
-// ordered so numbers come last. When nothing exists, the "no X" statement
-// has no numbers of its own, so it reads naturally as the lead-in instead;
-// when something does exist, the reasoning comes first and the concrete
-// coordinates trail it.
-function composeExplanation(exercise: GradableExercise): string {
-  const statement = buildCorrectAnswerStatement(exercise);
-  if (exercise.answer_type !== "choice" && !exercise.has_answer) {
+// Mentor-style feedback (docs/APP_PERFECTION_PLAN.md, Phase C — extended
+// from Guided Entry/Free Trade to recognition exercises): a short,
+// self-contained line or two, generated from this exercise's own data
+// (its authored explanation/distractor_note, and — for near-miss reads —
+// the concept's plain-English rule from src/lib/concepts.ts) rather than
+// a hard-coded generic phrase. Correct answers confirm what the user read
+// right, not just that they were right; near-misses say what to look for
+// instead, in the concept's own terms.
+
+/** The concept's rule in plain words (src/lib/concepts.ts) — used as the
+ * "what to look for instead" clause for a near-miss read that's in the
+ * right place but not quite matching the concept's actual definition
+ * (e.g. a box drawn too wide). Data-driven per concept, not per exercise,
+ * same as KEY_CANDLE below. */
+function conceptRule(exercise: GradableExercise): string {
+  return getConceptMeta(exercise.concept).rule ?? exercise.explanation;
+}
+
+function zoneExplanation(exercise: ZoneExercise, userAnswer: UserAnswer, verdict: Verdict3, failureReason: FailureReason | null): string {
+  const { has_answer, answer, answerLabel } = exercise;
+
+  if (!has_answer) {
     const reasoning = exercise.distractor_note ?? exercise.explanation;
-    return `${statement} ${reasoning}`;
+    return verdict === "correct" ? `Right — there's no ${answerLabel} here. ${reasoning}` : `There's no ${answerLabel} here. ${reasoning}`;
   }
-  return `${exercise.explanation} ${statement}`;
+  if (!answer) throw new Error(`Exercise ${exercise.exercise_id} has has_answer=true but no answer`);
+
+  if (userAnswer.type === "none") {
+    return `There was a real ${answerLabel} here, between ${formatPrice(answer.price_low)} and ${formatPrice(answer.price_high)}. ${exercise.explanation}`;
+  }
+  if (verdict === "correct") return `Right — ${exercise.explanation}`;
+  if (failureReason === "too_small") return conceptRule(exercise);
+  if (failureReason === "precision") return conceptRule(exercise);
+  // "coverage" (wrong area) and "time" (wrong candles) both mean the box
+  // isn't anchored to the real zone — the real zone's own reasoning is the
+  // most useful "look for this instead" for either.
+  return exercise.explanation;
+}
+
+function levelExplanation(exercise: LevelExercise, userAnswer: UserAnswer, verdict: Verdict3): string {
+  const { has_answer, answer, answerLabel } = exercise;
+
+  if (!has_answer) {
+    const reasoning = exercise.distractor_note ?? exercise.explanation;
+    return verdict === "correct" ? `Right — there's no ${answerLabel} here. ${reasoning}` : `There's no ${answerLabel} here. ${reasoning}`;
+  }
+  if (!answer) throw new Error(`Exercise ${exercise.exercise_id} has has_answer=true but no answer`);
+
+  if (userAnswer.type === "none") {
+    return `There was a real ${answerLabel} here, around ${formatPrice(answer.price)}. ${exercise.explanation}`;
+  }
+  if (verdict === "correct") return `Right — ${exercise.explanation}`;
+  return exercise.explanation;
+}
+
+function choiceExplanation(exercise: ChoiceExercise, verdict: Verdict3): string {
+  if (verdict === "correct") return `Right — ${exercise.explanation}`;
+  const correctOption = exercise.options.find((o) => o.value === exercise.answer.correct_choice);
+  const correctLabel = correctOption?.label ?? exercise.answer.correct_choice;
+  return `${exercise.explanation} The read here is "${correctLabel}."`;
 }
 
 export function gradeAttempt(exercise: Exercise, userAnswer: UserAnswer): GradeResult {
@@ -219,7 +265,7 @@ function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): Grade
       distanceFromLevel: null,
       failureReason: correct ? null : "false_positive",
       failureMessage: null,
-      explanation: composeExplanation(exercise),
+      explanation: zoneExplanation(exercise, userAnswer, correct ? "correct" : "incorrect", correct ? null : "false_positive"),
       revealZone: false,
     };
   }
@@ -239,7 +285,7 @@ function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): Grade
       distanceFromLevel: null,
       failureReason: "missed_answer",
       failureMessage: null,
-      explanation: composeExplanation(exercise),
+      explanation: zoneExplanation(exercise, userAnswer, "incorrect", "missed_answer"),
       revealZone: true,
     };
   }
@@ -279,7 +325,7 @@ function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): Grade
       distanceFromLevel: null,
       failureReason: null,
       failureMessage: null,
-      explanation: composeExplanation(exercise),
+      explanation: zoneExplanation(exercise, userAnswer, "correct", null),
       revealZone: true,
     };
   }
@@ -317,7 +363,7 @@ function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): Grade
   } else if (!precisionOk) {
     verdict = precisionRatio <= PRECISION_INCORRECT_THRESHOLD ? "could_improve" : "incorrect";
     failureReason = "precision";
-    failureMessage = `You found it, but your selection was too broad — a ${exercise.answerLabel} is a specific price range.`;
+    failureMessage = "You found the right area, but marked it too wide.";
   } else {
     verdict = "incorrect";
     failureReason = "time";
@@ -332,7 +378,7 @@ function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): Grade
     distanceFromLevel: null,
     failureReason,
     failureMessage,
-    explanation: composeExplanation(exercise),
+    explanation: zoneExplanation(exercise, userAnswer, verdict, failureReason),
     revealZone: true,
   };
 }
@@ -344,7 +390,7 @@ function gradeZoneAttempt(exercise: ZoneExercise, userAnswer: UserAnswer): Grade
 // is a single check: is the placed line within tolerance of the true price?
 
 function gradeLevelAttempt(exercise: LevelExercise, userAnswer: UserAnswer): GradeCore {
-  const { has_answer, answer } = exercise;
+  const { has_answer, answer, answerLabel } = exercise;
 
   if (!has_answer) {
     const correct = userAnswer.type === "none";
@@ -356,7 +402,7 @@ function gradeLevelAttempt(exercise: LevelExercise, userAnswer: UserAnswer): Gra
       distanceFromLevel: null,
       failureReason: correct ? null : "false_positive",
       failureMessage: null,
-      explanation: composeExplanation(exercise),
+      explanation: levelExplanation(exercise, userAnswer, correct ? "correct" : "incorrect"),
       revealZone: false,
     };
   }
@@ -374,7 +420,7 @@ function gradeLevelAttempt(exercise: LevelExercise, userAnswer: UserAnswer): Gra
       distanceFromLevel: null,
       failureReason: "missed_answer",
       failureMessage: null,
-      explanation: composeExplanation(exercise),
+      explanation: levelExplanation(exercise, userAnswer, "incorrect"),
       revealZone: true,
     };
   }
@@ -400,13 +446,17 @@ function gradeLevelAttempt(exercise: LevelExercise, userAnswer: UserAnswer): Gra
       distanceFromLevel,
       failureReason: null,
       failureMessage: null,
-      explanation: composeExplanation(exercise),
+      explanation: levelExplanation(exercise, userAnswer, "correct"),
       revealZone: true,
     };
   }
 
+  // Names the direction and rough distance in terms of what the level
+  // actually represents (its own answerLabel, e.g. "Buy-Side Liquidity" or
+  // "Previous Day High") rather than a bare number — the exercise's own
+  // explanation, shown alongside, then says what that level represents.
   const direction = distanceFromLevel > 0 ? "high" : "low";
-  const failureMessage = `You were ${Math.round(abs)} points too ${direction}.`;
+  const failureMessage = `You were ${Math.round(abs)} points too ${direction} of the actual ${answerLabel.toLowerCase()}, at ${formatPrice(answer.price)}.`;
 
   return {
     verdict,
@@ -416,7 +466,7 @@ function gradeLevelAttempt(exercise: LevelExercise, userAnswer: UserAnswer): Gra
     distanceFromLevel,
     failureReason: "off_level",
     failureMessage,
-    explanation: composeExplanation(exercise),
+    explanation: levelExplanation(exercise, userAnswer, verdict),
     revealZone: true,
   };
 }
@@ -443,7 +493,7 @@ function gradeChoiceAttempt(exercise: ChoiceExercise, userAnswer: UserAnswer): G
     distanceFromLevel: null,
     failureReason: isCorrect ? null : "wrong_choice",
     failureMessage: null,
-    explanation: composeExplanation(exercise),
+    explanation: choiceExplanation(exercise, isCorrect ? "correct" : "incorrect"),
     // Always reveal the FVG zone — it's shown on the chart from the start
     // for this exercise type (see ChoiceAnswer's fvg_zone comment in
     // exercises.ts), so this just keeps that overlay in place through

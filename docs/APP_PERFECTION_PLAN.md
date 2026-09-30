@@ -4,6 +4,49 @@
 
 **Branch rule.** Stay on `demo-mode` until Haven says the review phase is over. Don't delete the branch, the Vercel preview, or the `NEXT_PUBLIC_DEMO_MODE` preview variable.
 
+---
+
+## Resume point (read this first — updated 2026-09-29)
+
+**1. Fully complete phases.** P0 (except P0-3/P0-4, blocked on Haven), P1 (all 11), P2 (all 7), Phase B (grading redesign), Phase C (feedback rewrite). Every `[x]` line under P0–P2 and Phases B–C below is verified: `tsc`, `eslint`, full test suite, production build, and a live browser walkthrough — see the Verification log and Phase B/C sections for exact commits.
+
+**2. Partially done, and exactly where they stopped.**
+- **P3 (maintainability):** P3-1 and P3-5/P3-6 done. P3-2 (`usePracticeSession()` hook) — not started, needs session-recovery tests extended first, then the refactor. P3-3 (E2E tests) — not started, needs a decision to add Playwright as a dependency. P3-4 (per-exercise abandonment tracking) — investigated, not built: session-level abandonment already exists, but per-exercise needs either persisting the planned exercise sequence or an inference from attempt order — a design decision, not a quick add.
+- **Phase D (synchronized multi-timeframe charts):** not started at all. Stopped at the architecture-planning stage — see Phase D below for the 6-step concrete plan (data model, offline pipeline extension, runtime resampling, per-timeframe hidden-candle security, chart UI with zoom/pan, and a decision needed from Haven on reversing the "charts stay static" constraint).
+- **Phase E (drawing tools):** not started. Deliberately sequenced after Phase D (would otherwise mean building the drawing layer twice). Architecture plan (Drawing data model, toolbar, hit-testing, undo/redo, localStorage persistence) is written below, ready to execute once D lands.
+- **Phase F (new exercise flow CONTEXT→BIAS→CONFLUENCES→CONFIRMATION→EXECUTION):** not started. Hard-depends on Phase D, soft-depends on Phase E. Plan is written below.
+- **Phase G (difficulty):** not started, but has no independent work — it falls out of Phase F's content authoring, so nothing to build until F exists.
+
+**3. Migrations written but not run (all in `supabase/migrations/`, confirmed on disk 2026-09-29), oldest first:**
+- `20260926120000_analytics_views.sql`
+- `20260926130000_practice_events.sql`
+- `20260926140000_admin_functions.sql`
+- `20260927120000_roles.sql`
+- `20260927130000_attempt_integrity.sql`
+- `20260927140000_mistakes_session_events.sql`
+- `20260927150000_question_reports.sql`
+- `20260928120000_report_reasons_app_version.sql`
+- `20260929120000_add_verdict_to_attempts.sql` (Phase B — verdict columns)
+- `20260929130000_analytics_could_improve.sql` (Phase B — analytics could-improve breakdown)
+
+All are PGlite-tested (`tests/sql/`). The app degrades gracefully without them (see B4 and the Phase B production-safety fallback in `src/lib/attempts.ts`), but reports, mistake events, roles, attempt integrity checks, and per-attempt `verdict` won't be live until Haven applies them to the hosted database.
+
+**4. Everything blocked on Haven, with the exact action needed** (full detail in "Blocked on Haven" below):
+- **B1** — decide the license/visibility of `src/data/real-scenarios/*.json` (confirm license, move files out of the public repo, or make the repo private).
+- **B2** — review the AI-drafted answer keys/definitions (MSS, IFVG, Order Block, Premium & Discount, Guided Entry rules, Free Trade rules, session boundaries) before any non-Haven user sees them.
+- **B3** — approve real scenarios at `/review` (blocked on B1 first).
+- **B4** — apply the 10 migrations listed above to the hosted database.
+- **B5** — create two test accounts (env vars) so the cross-user RLS test can run instead of skip.
+- **B6** — configure a Google Cloud OAuth client in Supabase to turn on Google sign-in.
+- **B7** — add `…/auth/callback` as an allowed redirect URL in Supabase Auth settings for production.
+- **B8** — decide the product name (still "ICT Practice").
+- **B9** — do a real-device mobile pass (everything so far is verified in an emulated viewport only).
+- **Phase D decision** — confirm reversing the PRD's "charts stay static on purpose" constraint is intended, since Phase D's whole premise depends on it.
+
+**5. What the next session should pick up first.** Read Phase D's "Concrete plan for the next session" section below in full before writing code — it's an architecture handoff, not a stub. Do not start Phase E or F before Phase D lands (both explicitly depend on it). If Haven has answered any Blocked-on-Haven items or run migrations between sessions, check that first and update the relevant checkboxes/fallback logic before continuing feature work. No code changes were made in this update — this section only clarifies resume state.
+
+---
+
 **Getting back to `main`.** `docs/OPERATIONS.md` says demo mode must never be merged. So every polish commit here leaves the demo files alone (`src/lib/demo/*`, `src/app/api/demo/*`, `src/components/demo-banner.tsx`, the demo lines in `src/lib/supabase/*`, `src/proxy.ts`, `src/app/layout.tsx`'s banner, `next.config.ts`'s demo block, `tests/demo-mode.test.ts`). When it's time, a branch cut from `main` cherry-picks the polish commits and skips the three demo commits (`c1317c4`, `9b5a4df`, `6a85fee`) and any commit with "Demo mode:" in its subject. The subjects say which is which.
 
 ---
@@ -180,13 +223,14 @@ Each batch: `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run build`, wal
 
 **Commits:** `a6f7c96` (grading engine + content + migration), `6709d3e` (could-improve UI, docs, degrade-safely fix), `f6ea487` (Phase C sentence tightening).
 
-### Phase C — Feedback rewrite: done
+### Phase C — Feedback rewrite: done, now covering all three answer families
 
 - [x] Guided Entry and Free Trade entry/stop/target feedback is one self-contained mentor sentence per component, generated from the attempt's own numbers (real computed distance, real formatted zone bounds or invalidation price) — never a hard-coded generic string, and never claims something the data doesn't support.
 - [x] Bias feedback keeps the exercise's authored paragraph (already mentor-style and data-grounded per exercise — "Price swept below the prior swing low around 21,300 ... A liquidity sweep followed by a structural break the other way is a confirmed bullish Market Structure Shift.") — that's the right place for the fuller setup narrative; entry/stop/target no longer concatenate onto it, keeping each within the one-or-two-sentence target.
 - [x] Correct answers get short, real feedback too ("Good target — you aimed at the actual liquidity this setup was drawing toward (21,455–21,470).").
 - [x] Recognition's existing checklist details (coverage %, box height ratio, points off a level) were already data-driven per-attempt; unchanged, now feeding three-state verdicts instead of pass/fail.
 - [x] ICT terminology (buy-side/sell-side liquidity, sweep, MSS, FVG, IFVG) appears only where the exercise's own detected structure actually uses it — nothing new was invented for feedback text.
+- [x] **Follow-up session:** extended the same mentor-style rewrite to Recognition (zone/level/choice, `src/lib/grading.ts`), which Phase C originally left on the old grader-style composed text (`buildCorrectAnswerStatement` + `explanation` concatenation with a "The correct answer was: ..." lead-in). `zoneExplanation`/`levelExplanation`/`choiceExplanation` now generate the same one-or-two-sentence, data-driven feedback: correct answers confirm what was read right (`Right — {exercise.explanation}`); near-misses (too-small box, too-wide box) say what to look for instead using the concept's own plain-English rule (`src/lib/concepts.ts`'s `rule` field, e.g. FVG's "the gap is the price range between those two wicks..."); a wrong-area or wrong-candles box, or a missed/false-positive no-answer read, uses the exercise's own authored `explanation`/`distractor_note` rather than a generic phrase. Level near-misses name the actual level in terms of what it represents (`answerLabel`, e.g. "the actual buy-side liquidity, at 21,315") instead of a bare distance. `buildCorrectAnswerStatement` itself is untouched — Review Mistakes (`src/lib/mistake-text.ts`) still uses it for its separate "correct answer" field, which is a different UI surface and out of scope here. Three-state (COULD_IMPROVE) grading for zone/level was already in place from the original Phase B work; nothing changed there. Verified live in demo mode: a too-wide FVG box now reads "You found the right area, but marked it too wide" plus the FVG rule; an off-level Liquidity answer reads "You were 15 points too high of the actual buy-side liquidity, at 21,315." Three grading tests that asserted the old boilerplate string were updated to assert the new mentor-style text instead (`tests/grading.test.ts`); full suite (454 tests) still green.
 
 **Not done, out of scope for this pass:** a systematic audit of every existing exercise's step-explanation prose for redundancy with the new lead sentences. The two now sit back-to-back (lead sentence, then the exercise's own paragraph) rather than being merged into one voice. Low risk, cosmetic, logged as a polish item below.
 
