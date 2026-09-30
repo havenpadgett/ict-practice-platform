@@ -3,19 +3,19 @@
   "instrument": "NQ (real data)",
   "timeframe": "5m",
   "difficulty": 3,
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] Bias is unclear, so there is no trade.",
+  "explanation": "There is no valid trade setup here. Price reversed sharply lower, but the move never swept the previous swing low first, so the liquidity condition for a valid setup was not met. The correct decision is to stay out and wait for a cleaner setup with a confirmed liquidity sweep.",
   "concept": "FreeTrade",
   "answer_type": "free",
   "title": "Real NY AM session 2",
   "answerLabel": "Real NY AM session 2",
-  "prompt": "Play the chart forward. Trade it if a valid setup forms \u2014 or don't.",
+  "prompt": "Play the chart forward. Trade it if a valid setup forms — or don't.",
   "answer": {
     "intended_bias": "none",
     "is_valid_setup": false,
     "entry_zone": null,
     "stop_zone": null,
     "target": null,
-    "min_rr": 2.0
+    "min_rr": 2
   },
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
@@ -54,15 +54,15 @@
       "equal_tolerance_pct": 0.05,
       "fvg_min_range_mult": 0.25,
       "range_window": 100,
-      "ob_displacement_mult": 2.0,
+      "ob_displacement_mult": 2,
       "ob_max_leg": 3
     },
     "detection_notes": "the setup low 17701.2 did not take the previous swing low 17681.2",
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-25T03:37:35+00:00",
-    "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "human_reviewed": true,
+    "reviewed_by": "lpshaven@gmail.com",
+    "reviewed_at": "2026-09-30",
     "review_notes": null
   },
   "candles": [
@@ -70,9 +70,9 @@
       "time": "07:00",
       "timestamp": "2023-06-16T07:00:00-04:00",
       "open": 17739.75,
-      "high": 17750.0,
+      "high": 17750,
       "low": 17736.5,
-      "close": 17749.0
+      "close": 17749
     },
     {
       "time": "07:05",
@@ -80,12 +80,12 @@
       "open": 17749.5,
       "high": 17750.25,
       "low": 17741.25,
-      "close": 17744.0
+      "close": 17744
     },
     {
       "time": "07:10",
       "timestamp": "2023-06-16T07:10:00-04:00",
-      "open": 17744.0,
+      "open": 17744,
       "high": 17753.25,
       "low": 17742.75,
       "close": 17750.25
@@ -96,7 +96,7 @@
       "open": 17750.25,
       "high": 17757.25,
       "low": 17746.75,
-      "close": 17748.0
+      "close": 17748
     },
     {
       "time": "07:20",
@@ -109,33 +109,33 @@
     {
       "time": "07:25",
       "timestamp": "2023-06-16T07:25:00-04:00",
-      "open": 17751.0,
+      "open": 17751,
       "high": 17764.75,
-      "low": 17751.0,
-      "close": 17763.0
+      "low": 17751,
+      "close": 17763
     },
     {
       "time": "07:30",
       "timestamp": "2023-06-16T07:30:00-04:00",
-      "open": 17763.0,
+      "open": 17763,
       "high": 17765.5,
       "low": 17759.5,
-      "close": 17765.0
+      "close": 17765
     },
     {
       "time": "07:35",
       "timestamp": "2023-06-16T07:35:00-04:00",
       "open": 17765.5,
       "high": 17771.5,
-      "low": 17765.0,
+      "low": 17765,
       "close": 17767.5
     },
     {
       "time": "07:40",
       "timestamp": "2023-06-16T07:40:00-04:00",
-      "open": 17768.0,
+      "open": 17768,
       "high": 17772.25,
-      "low": 17763.0,
+      "low": 17763,
       "close": 17763.5
     },
     {
@@ -152,7 +152,7 @@
       "open": 17765.5,
       "high": 17766.25,
       "low": 17755.75,
-      "close": 17756.0
+      "close": 17756
     },
     {
       "time": "07:55",
@@ -181,7 +181,7 @@
     {
       "time": "08:10",
       "timestamp": "2023-06-16T08:10:00-04:00",
-      "open": 17764.0,
+      "open": 17764,
       "high": 17778.75,
       "low": 17762.75,
       "close": 17777.75
@@ -192,7 +192,7 @@
       "open": 17777.5,
       "high": 17777.5,
       "low": 17770.25,
-      "close": 17772.0
+      "close": 17772
     },
     {
       "time": "08:20",
@@ -200,22 +200,22 @@
       "open": 17772.25,
       "high": 17783.5,
       "low": 17770.5,
-      "close": 17783.0
+      "close": 17783
     },
     {
       "time": "08:25",
       "timestamp": "2023-06-16T08:25:00-04:00",
-      "open": 17783.0,
+      "open": 17783,
       "high": 17783.5,
-      "low": 17776.0,
+      "low": 17776,
       "close": 17777.75
     },
     {
       "time": "08:30",
       "timestamp": "2023-06-16T08:30:00-04:00",
       "open": 17778.25,
-      "high": 17792.0,
-      "low": 17777.0,
+      "high": 17792,
+      "low": 17777,
       "close": 17783.5
     },
     {
@@ -232,15 +232,15 @@
       "open": 17776.75,
       "high": 17780.5,
       "low": 17769.5,
-      "close": 17779.0
+      "close": 17779
     },
     {
       "time": "08:45",
       "timestamp": "2023-06-16T08:45:00-04:00",
       "open": 17778.75,
-      "high": 17786.0,
+      "high": 17786,
       "low": 17772.75,
-      "close": 17774.0
+      "close": 17774
     },
     {
       "time": "08:50",
@@ -255,8 +255,8 @@
       "timestamp": "2023-06-16T08:55:00-04:00",
       "open": 17778.75,
       "high": 17786.25,
-      "low": 17777.0,
-      "close": 17781.0
+      "low": 17777,
+      "close": 17781
     },
     {
       "time": "09:00",
@@ -272,7 +272,7 @@
       "open": 17778.5,
       "high": 17779.25,
       "low": 17760.75,
-      "close": 17762.0
+      "close": 17762
     },
     {
       "time": "09:10",
@@ -286,7 +286,7 @@
       "time": "09:15",
       "timestamp": "2023-06-16T09:15:00-04:00",
       "open": 17764.25,
-      "high": 17786.0,
+      "high": 17786,
       "low": 17762.75,
       "close": 17783.5
     },
@@ -294,7 +294,7 @@
       "time": "09:20",
       "timestamp": "2023-06-16T09:20:00-04:00",
       "open": 17783.25,
-      "high": 17813.0,
+      "high": 17813,
       "low": 17781.25,
       "close": 17811.25
     },
@@ -303,7 +303,7 @@
       "timestamp": "2023-06-16T09:25:00-04:00",
       "open": 17811.5,
       "high": 17822.75,
-      "low": 17788.0,
+      "low": 17788,
       "close": 17818.75
     }
   ],
@@ -321,7 +321,7 @@
       "timestamp": "2023-06-16T09:35:00-04:00",
       "open": 17753.75,
       "high": 17756.25,
-      "low": 17725.0,
+      "low": 17725,
       "close": 17735.5
     },
     {
@@ -343,16 +343,16 @@
     {
       "time": "09:50",
       "timestamp": "2023-06-16T09:50:00-04:00",
-      "open": 17708.0,
-      "high": 17726.0,
+      "open": 17708,
+      "high": 17726,
       "low": 17681.25,
-      "close": 17687.0
+      "close": 17687
     },
     {
       "time": "09:55",
       "timestamp": "2023-06-16T09:55:00-04:00",
       "open": 17686.75,
-      "high": 17712.0,
+      "high": 17712,
       "low": 17684.75,
       "close": 17707.25
     },
@@ -362,14 +362,14 @@
       "open": 17709.5,
       "high": 17737.25,
       "low": 17701.75,
-      "close": 17717.0
+      "close": 17717
     },
     {
       "time": "10:05",
       "timestamp": "2023-06-16T10:05:00-04:00",
       "open": 17717.25,
       "high": 17728.75,
-      "low": 17692.0,
+      "low": 17692,
       "close": 17724.75
     },
     {
@@ -391,7 +391,7 @@
     {
       "time": "10:20",
       "timestamp": "2023-06-16T10:20:00-04:00",
-      "open": 17719.0,
+      "open": 17719,
       "high": 17743.75,
       "low": 17711.25,
       "close": 17739.75
@@ -401,7 +401,7 @@
       "timestamp": "2023-06-16T10:25:00-04:00",
       "open": 17739.75,
       "high": 17761.5,
-      "low": 17721.0,
+      "low": 17721,
       "close": 17758.75
     },
     {
@@ -409,24 +409,24 @@
       "timestamp": "2023-06-16T10:30:00-04:00",
       "open": 17758.75,
       "high": 17759.75,
-      "low": 17737.0,
+      "low": 17737,
       "close": 17751.5
     },
     {
       "time": "10:35",
       "timestamp": "2023-06-16T10:35:00-04:00",
-      "open": 17752.0,
+      "open": 17752,
       "high": 17763.25,
       "low": 17737.75,
-      "close": 17751.0
+      "close": 17751
     },
     {
       "time": "10:40",
       "timestamp": "2023-06-16T10:40:00-04:00",
-      "open": 17751.0,
+      "open": 17751,
       "high": 17752.5,
-      "low": 17717.0,
-      "close": 17718.0
+      "low": 17717,
+      "close": 17718
     },
     {
       "time": "10:45",
@@ -442,14 +442,14 @@
       "open": 17711.25,
       "high": 17723.25,
       "low": 17703.25,
-      "close": 17718.0
+      "close": 17718
     },
     {
       "time": "10:55",
       "timestamp": "2023-06-16T10:55:00-04:00",
       "open": 17718.25,
-      "high": 17738.0,
-      "low": 17713.0,
+      "high": 17738,
+      "low": 17713,
       "close": 17722.5
     }
   ]

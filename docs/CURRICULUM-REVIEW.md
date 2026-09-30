@@ -15,7 +15,7 @@ Where I'm genuinely unsure, I say so.
 
 **Counting convention:**
 - **"constructed":** hand-built exercises in `src/data/*.ts`. They are live in practice.
-- **"real":** scenarios in `src/data/real-scenarios/`. All 50 are awaiting review, so none are live.
+- **"real":** scenarios in `src/data/real-scenarios/`. **Updated 2026-09-30:** the first batch of 50 has been reviewed — 49 approved and live, 1 flagged ambiguous (`real-mss-007`, kept on disk but never practice-ready; see "Review outcome" below). A second batch of 39 more (`real-fvg-011..015`, `real-liq-011..015`, `real-mss-011..015`, `real-ob-001..008`, `real-tliq-001..006`, `real-guided-011..015`, `real-ft-011..015`) was built 2026-09-30 and is awaiting review, same as the rest of this doc describes for the original 50.
 - **Curriculum version:** each definition carries one in `src/data/curriculum-versions.json`. Changing it flags every derived exercise for re-review (see the end of this doc).
 
 ## Summary
@@ -69,6 +69,8 @@ Where I'm genuinely unsure, I say so.
 - **Which trend is prevailing** when the 07:00 context and the 9:30 session disagree.
 
 **My uncertainty:** high on clauses 1, 5 and 6. I wrote them as teaching language, and the code implements a looser rule than the words.
+
+**Review outcome (2026-09-30):** `real-mss-007` (`mss-bearish-20250924T0930`) was flagged ambiguous rather than approved or rejected. Haven's note: "The bearish break is clear, but the prior bullish structure is not well established. Confirm that the highlighted level is a valid higher low before labeling this a bearish Market Structure Shift." This is a concrete instance of clause 4 and the "structural vs internal" doubt above, not a one-off detection mistake: the lookback-2 fractal swing the rule treated as "the most recent higher low" satisfied the mechanical definition (two lower bars on each side) without there being an established uptrend behind it for that swing to be part of — the code's "structural" and "minor internal" are the same computation, so nothing distinguishes a genuine trend swing from a two-bar wiggle that happens to qualify. Approving it anyway would violate the one-valid-answer rule (PRD Section 5) by the reviewer's own read. **This confirms the curriculum gap rather than a code bug to fix**: CURRICULUM.md's MSS definition needs an explicit, operational minimum for what counts as "prevailing direction" before a swing's break can be scored as a shift — e.g., a minimum number of confirmed prior swings in the same direction, or a minimum move size for the leg that formed the swing (the same kind of threshold clause 6's FVG-displacement idea already uses elsewhere). Until that's written and versioned, `real-mss-007` stays ambiguous and out of practice, and any future candidate with a similarly thin prior structure will keep needing a judgment call at review rather than a rule.
 
 ---
 

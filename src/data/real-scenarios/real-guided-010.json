@@ -3,7 +3,7 @@
   "instrument": "NQ (real data)",
   "timeframe": "5m",
   "difficulty": 2,
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A valid bearish setup at about 2.2:1, clearing the 2:1 minimum.",
+  "explanation": "Valid bearish trade. The liquidity sweep, bearish confirmation, entry, stop, and target align, with a favorable risk-to-reward.",
   "concept": "GuidedEntry",
   "answer_type": "guided",
   "answerLabel": "a valid trade setup",
@@ -11,30 +11,30 @@
   "answer": {
     "bias": "bearish",
     "entry": {
-      "anchor": 19227.0,
-      "price_low": 19219.0,
-      "price_high": 19235.0,
-      "minor_margin": 8.0
+      "anchor": 19227,
+      "price_low": 19219,
+      "price_high": 19235,
+      "minor_margin": 8
     },
     "stop": {
       "invalidation_price": 19234.25,
-      "reasonable_buffer": 32.0
+      "reasonable_buffer": 32
     },
     "target": {
-      "anchor": 19175.0,
-      "price_low": 19159.0,
-      "price_high": 19191.0,
-      "minor_margin": 16.0
+      "anchor": 19175,
+      "price_low": 19159,
+      "price_high": 19191,
+      "minor_margin": 16
     },
-    "min_rr": 2.0,
+    "min_rr": 2,
     "is_valid_setup": true,
     "step_explanations": {
-      "bias": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] Price swept the previous swing high at 19,201.25 (to 19,247), taking the buy-side liquidity there, then a candle body closed below 19,175: a bearish Market Structure Shift. Bias is bearish.",
-      "entry": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] The move that broke structure left a Fair Value Gap between 19,222.25 and 19,231.5. Entry sits at its middle, about 19,227.",
-      "stop": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] The idea is wrong if price goes back above the setup high at 19,247. The stop sits just beyond it, about 19,250.25.",
-      "target": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] The nearest untaken sell-side liquidity is the swing low at 19,175."
+      "bias": "Bearish bias. Price pushed above the previous highs, took buy-side liquidity, and then reversed lower, showing bearish intent.",
+      "entry": "Enter short at the marked entry after the bearish reversal confirms and price returns to the setup area.",
+      "stop": "Place the stop above the swept high. A move back above that high would invalidate the bearish setup.",
+      "target": "Target the sell-side liquidity resting below the previous lows at the marked level."
     },
-    "overall_explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A valid bearish setup at about 2.2:1, clearing the 2:1 minimum."
+    "overall_explanation": "Valid bearish trade. The liquidity sweep, bearish confirmation, entry, stop, and target align, with a favorable risk-to-reward."
   },
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
@@ -72,23 +72,23 @@
       "equal_tolerance_pct": 0.05,
       "fvg_min_range_mult": 0.25,
       "range_window": 100,
-      "ob_displacement_mult": 2.0,
+      "ob_displacement_mult": 2,
       "ob_max_leg": 3
     },
     "detection_notes": "valid bearish setup, R:R 2.24",
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-25T03:37:28+00:00",
-    "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "human_reviewed": true,
+    "reviewed_by": "lpshaven@gmail.com",
+    "reviewed_at": "2026-09-30",
     "review_notes": null
   },
   "candles": [
     {
       "time": "07:00",
       "timestamp": "2024-04-19T07:00:00-04:00",
-      "open": 19138.0,
-      "high": 19147.0,
+      "open": 19138,
+      "high": 19147,
       "low": 19128.5,
       "close": 19132.25
     },
@@ -103,16 +103,16 @@
     {
       "time": "07:10",
       "timestamp": "2024-04-19T07:10:00-04:00",
-      "open": 19133.0,
+      "open": 19133,
       "high": 19142.25,
       "low": 19124.25,
-      "close": 19132.0
+      "close": 19132
     },
     {
       "time": "07:15",
       "timestamp": "2024-04-19T07:15:00-04:00",
       "open": 19131.25,
-      "high": 19164.0,
+      "high": 19164,
       "low": 19129.25,
       "close": 19153.25
     },
@@ -121,7 +121,7 @@
       "timestamp": "2024-04-19T07:20:00-04:00",
       "open": 19153.5,
       "high": 19169.5,
-      "low": 19148.0,
+      "low": 19148,
       "close": 19167.5
     },
     {
@@ -130,7 +130,7 @@
       "open": 19166.75,
       "high": 19181.75,
       "low": 19165.25,
-      "close": 19175.0
+      "close": 19175
     },
     {
       "time": "07:30",
@@ -143,7 +143,7 @@
     {
       "time": "07:35",
       "timestamp": "2024-04-19T07:35:00-04:00",
-      "open": 19177.0,
+      "open": 19177,
       "high": 19185.25,
       "low": 19170.75,
       "close": 19184.75
@@ -151,9 +151,9 @@
     {
       "time": "07:40",
       "timestamp": "2024-04-19T07:40:00-04:00",
-      "open": 19185.0,
+      "open": 19185,
       "high": 19201.25,
-      "low": 19185.0,
+      "low": 19185,
       "close": 19195.25
     },
     {
@@ -167,9 +167,9 @@
     {
       "time": "07:50",
       "timestamp": "2024-04-19T07:50:00-04:00",
-      "open": 19174.0,
+      "open": 19174,
       "high": 19178.25,
-      "low": 19166.0,
+      "low": 19166,
       "close": 19176.75
     },
     {
@@ -183,9 +183,9 @@
     {
       "time": "08:00",
       "timestamp": "2024-04-19T08:00:00-04:00",
-      "open": 19198.0,
+      "open": 19198,
       "high": 19200.5,
-      "low": 19180.0,
+      "low": 19180,
       "close": 19186.5
     },
     {
@@ -193,7 +193,7 @@
       "timestamp": "2024-04-19T08:05:00-04:00",
       "open": 19187.25,
       "high": 19188.5,
-      "low": 19175.0,
+      "low": 19175,
       "close": 19186.5
     },
     {
@@ -207,7 +207,7 @@
     {
       "time": "08:15",
       "timestamp": "2024-04-19T08:15:00-04:00",
-      "open": 19210.0,
+      "open": 19210,
       "high": 19217.75,
       "low": 19201.75,
       "close": 19210.75
@@ -215,24 +215,24 @@
     {
       "time": "08:20",
       "timestamp": "2024-04-19T08:20:00-04:00",
-      "open": 19210.0,
+      "open": 19210,
       "high": 19230.75,
       "low": 19208.25,
-      "close": 19218.0
+      "close": 19218
     },
     {
       "time": "08:25",
       "timestamp": "2024-04-19T08:25:00-04:00",
-      "open": 19218.0,
+      "open": 19218,
       "high": 19230.75,
       "low": 19210.75,
-      "close": 19223.0
+      "close": 19223
     },
     {
       "time": "08:30",
       "timestamp": "2024-04-19T08:30:00-04:00",
-      "open": 19224.0,
-      "high": 19247.0,
+      "open": 19224,
+      "high": 19247,
       "low": 19218.75,
       "close": 19239.5
     },
@@ -242,7 +242,7 @@
       "open": 19240.25,
       "high": 19241.25,
       "low": 19231.5,
-      "close": 19233.0
+      "close": 19233
     },
     {
       "time": "08:40",
@@ -250,14 +250,14 @@
       "open": 19232.75,
       "high": 19234.75,
       "low": 19206.25,
-      "close": 19221.0
+      "close": 19221
     },
     {
       "time": "08:45",
       "timestamp": "2024-04-19T08:45:00-04:00",
       "open": 19221.25,
       "high": 19222.25,
-      "low": 19204.0,
+      "low": 19204,
       "close": 19219.5
     },
     {
@@ -272,7 +272,7 @@
       "time": "08:55",
       "timestamp": "2024-04-19T08:55:00-04:00",
       "open": 19218.25,
-      "high": 19219.0,
+      "high": 19219,
       "low": 19202.25,
       "close": 19211.5
     },

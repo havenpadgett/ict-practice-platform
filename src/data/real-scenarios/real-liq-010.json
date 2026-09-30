@@ -12,13 +12,13 @@
   "answer": {
     "type": "sell_side",
     "price": 25038.75,
-    "tolerance": 17.0
+    "tolerance": 17
   },
   "setup_span": [
     14,
     23
   ],
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] 2 lows land within 3.5 points of each other around 25038.8, stacking resting stops into one larger pool.",
+  "explanation": "This is Sell-Side Liquidity. Two lows formed around the same level, creating a pool of liquidity resting below them at the highlighted level.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
     "symbol": "NQ",
@@ -53,9 +53,9 @@
     "detection_notes": "2 touches within 3.5 points (tolerance 0.05% = 12.52 points)",
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-25T03:21:05+00:00",
-    "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "human_reviewed": true,
+    "reviewed_by": "lpshaven@gmail.com",
+    "reviewed_at": "2026-09-30",
     "review_notes": null
   },
   "candles": [
@@ -65,28 +65,28 @@
       "open": 25257.5,
       "high": 25266.25,
       "low": 25199.25,
-      "close": 25211.0
+      "close": 25211
     },
     {
       "time": "09:45",
       "timestamp": "2025-09-23T09:45:00-04:00",
-      "open": 25211.0,
-      "high": 25228.0,
-      "low": 25189.0,
+      "open": 25211,
+      "high": 25228,
+      "low": 25189,
       "close": 25196.5
     },
     {
       "time": "10:00",
       "timestamp": "2025-09-23T10:00:00-04:00",
-      "open": 25197.0,
+      "open": 25197,
       "high": 25218.25,
-      "low": 25186.0,
+      "low": 25186,
       "close": 25214.5
     },
     {
       "time": "10:15",
       "timestamp": "2025-09-23T10:15:00-04:00",
-      "open": 25214.0,
+      "open": 25214,
       "high": 25218.75,
       "low": 25189.5,
       "close": 25209.75
@@ -102,16 +102,16 @@
     {
       "time": "10:45",
       "timestamp": "2025-09-23T10:45:00-04:00",
-      "open": 25209.0,
-      "high": 25220.0,
+      "open": 25209,
+      "high": 25220,
       "low": 25194.5,
-      "close": 25201.0
+      "close": 25201
     },
     {
       "time": "11:00",
       "timestamp": "2025-09-23T11:00:00-04:00",
-      "open": 25201.0,
-      "high": 25223.0,
+      "open": 25201,
+      "high": 25223,
       "low": 25188.75,
       "close": 25218.25
     },
@@ -120,15 +120,15 @@
       "timestamp": "2025-09-23T11:15:00-04:00",
       "open": 25218.5,
       "high": 25226.25,
-      "low": 25206.0,
-      "close": 25215.0
+      "low": 25206,
+      "close": 25215
     },
     {
       "time": "11:30",
       "timestamp": "2025-09-23T11:30:00-04:00",
       "open": 25215.25,
       "high": 25219.25,
-      "low": 25186.0,
+      "low": 25186,
       "close": 25206.25
     },
     {
@@ -151,7 +151,7 @@
       "time": "12:15",
       "timestamp": "2025-09-23T12:15:00-04:00",
       "open": 25186.25,
-      "high": 25211.0,
+      "high": 25211,
       "low": 25182.75,
       "close": 25187.75
     },
@@ -175,14 +175,14 @@
       "time": "13:00",
       "timestamp": "2025-09-23T13:00:00-04:00",
       "open": 25185.25,
-      "high": 25187.0,
+      "high": 25187,
       "low": 25165.25,
       "close": 25167.25
     },
     {
       "time": "13:15",
       "timestamp": "2025-09-23T13:15:00-04:00",
-      "open": 25167.0,
+      "open": 25167,
       "high": 25170.25,
       "low": 25122.25,
       "close": 25125.5
@@ -192,14 +192,14 @@
       "timestamp": "2025-09-23T13:30:00-04:00",
       "open": 25125.25,
       "high": 25136.5,
-      "low": 25037.0,
+      "low": 25037,
       "close": 25058.75
     },
     {
       "time": "13:45",
       "timestamp": "2025-09-23T13:45:00-04:00",
       "open": 25059.5,
-      "high": 25101.0,
+      "high": 25101,
       "low": 25047.75,
       "close": 25092.25
     },
@@ -209,7 +209,7 @@
       "open": 25091.75,
       "high": 25102.75,
       "low": 25063.25,
-      "close": 25067.0
+      "close": 25067
     },
     {
       "time": "14:15",
@@ -225,7 +225,7 @@
       "open": 25067.5,
       "high": 25092.5,
       "low": 25055.5,
-      "close": 25067.0
+      "close": 25067
     },
     {
       "time": "14:45",
@@ -247,8 +247,8 @@
       "time": "15:15",
       "timestamp": "2025-09-23T15:15:00-04:00",
       "open": 25060.75,
-      "high": 25086.0,
-      "low": 25050.0,
+      "high": 25086,
+      "low": 25050,
       "close": 25058.75
     },
     {
@@ -256,8 +256,8 @@
       "timestamp": "2025-09-23T15:30:00-04:00",
       "open": 25058.75,
       "high": 25086.75,
-      "low": 25058.0,
-      "close": 25086.0
+      "low": 25058,
+      "close": 25086
     },
     {
       "time": "15:45",

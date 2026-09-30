@@ -613,7 +613,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-04-15",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-002",
@@ -624,7 +624,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-06-16",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-003",
@@ -635,7 +635,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-02-21",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-004",
@@ -646,7 +646,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-10-29",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-005",
@@ -657,7 +657,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-09-25",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-006",
@@ -668,7 +668,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-02-29",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-007",
@@ -679,7 +679,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-01-12",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-008",
@@ -690,7 +690,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-07-20",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-009",
@@ -701,7 +701,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-06-05",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-010",
@@ -712,6 +712,61 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-11-17",
+  "practice_ready": true
+ },
+ {
+  "exercise_id": "real-ft-011",
+  "concept": "FreeTrade",
+  "answer_type": "free",
+  "difficulty": 3,
+  "answerLabel": "Real NY AM session 11",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2023-08-15",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ft-012",
+  "concept": "FreeTrade",
+  "answer_type": "free",
+  "difficulty": 1,
+  "answerLabel": "Real NY AM session 12",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2023-01-20",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ft-013",
+  "concept": "FreeTrade",
+  "answer_type": "free",
+  "difficulty": 3,
+  "answerLabel": "Real NY AM session 13",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2025-09-10",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ft-014",
+  "concept": "FreeTrade",
+  "answer_type": "free",
+  "difficulty": 1,
+  "answerLabel": "Real NY AM session 14",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2025-03-07",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ft-015",
+  "concept": "FreeTrade",
+  "answer_type": "free",
+  "difficulty": 2,
+  "answerLabel": "Real NY AM session 15",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2025-04-21",
   "practice_ready": false
  },
  {
@@ -723,7 +778,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-05-12",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-002",
@@ -734,7 +789,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-12-11",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-003",
@@ -745,7 +800,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-05-13",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-004",
@@ -756,7 +811,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-09-30",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-005",
@@ -767,7 +822,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-04-14",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-006",
@@ -778,7 +833,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-07-25",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-007",
@@ -789,7 +844,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2023-02-03",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-008",
@@ -800,7 +855,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2024-01-12",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-009",
@@ -811,7 +866,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2024-12-26",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-010",
@@ -822,6 +877,61 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2025-05-09",
+  "practice_ready": true
+ },
+ {
+  "exercise_id": "real-fvg-011",
+  "concept": "FVG",
+  "answer_type": "zone",
+  "difficulty": 1,
+  "answerLabel": "Fair Value Gap",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2023-09-06",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-fvg-012",
+  "concept": "FVG",
+  "answer_type": "zone",
+  "difficulty": 2,
+  "answerLabel": "Fair Value Gap",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2024-02-29",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-fvg-013",
+  "concept": "FVG",
+  "answer_type": "zone",
+  "difficulty": 3,
+  "answerLabel": "Fair Value Gap",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2025-06-16",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-fvg-014",
+  "concept": "FVG",
+  "answer_type": "zone",
+  "difficulty": 1,
+  "answerLabel": "Fair Value Gap",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2023-12-08",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-fvg-015",
+  "concept": "FVG",
+  "answer_type": "zone",
+  "difficulty": 2,
+  "answerLabel": "Fair Value Gap",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2024-11-25",
   "practice_ready": false
  },
  {
@@ -833,7 +943,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-05-21",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-002",
@@ -844,7 +954,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-01-07",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-003",
@@ -855,7 +965,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-11-22",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-004",
@@ -866,7 +976,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-12-12",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-005",
@@ -877,7 +987,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-05-29",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-006",
@@ -888,7 +998,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-08-05",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-007",
@@ -899,7 +1009,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-02-03",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-008",
@@ -910,7 +1020,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-12-20",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-009",
@@ -921,7 +1031,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-08-11",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-010",
@@ -932,6 +1042,61 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-04-19",
+  "practice_ready": true
+ },
+ {
+  "exercise_id": "real-guided-011",
+  "concept": "GuidedEntry",
+  "answer_type": "guided",
+  "difficulty": 2,
+  "answerLabel": "a valid trade setup",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2023-04-28",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-guided-012",
+  "concept": "GuidedEntry",
+  "answer_type": "guided",
+  "difficulty": 1,
+  "answerLabel": "a valid trade setup",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2023-10-20",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-guided-013",
+  "concept": "GuidedEntry",
+  "answer_type": "guided",
+  "difficulty": 3,
+  "answerLabel": "a valid trade setup",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2024-03-12",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-guided-014",
+  "concept": "GuidedEntry",
+  "answer_type": "guided",
+  "difficulty": 2,
+  "answerLabel": "a valid trade setup",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2024-02-07",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-guided-015",
+  "concept": "GuidedEntry",
+  "answer_type": "guided",
+  "difficulty": 2,
+  "answerLabel": "a valid trade setup",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2025-03-04",
   "practice_ready": false
  },
  {
@@ -943,7 +1108,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-03-01",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-002",
@@ -954,7 +1119,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-07-12",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-003",
@@ -965,7 +1130,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-12-22",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-004",
@@ -976,7 +1141,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-09-23",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-005",
@@ -987,7 +1152,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-01-03",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-006",
@@ -998,7 +1163,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-11-20",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-007",
@@ -1009,7 +1174,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2023-02-17",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-008",
@@ -1020,7 +1185,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2023-12-08",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-009",
@@ -1031,7 +1196,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2024-09-12",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-010",
@@ -1042,6 +1207,61 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2025-09-23",
+  "practice_ready": true
+ },
+ {
+  "exercise_id": "real-liq-011",
+  "concept": "Liquidity",
+  "answer_type": "level",
+  "difficulty": 1,
+  "answerLabel": "Buy-Side Liquidity",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2023-10-12",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-liq-012",
+  "concept": "Liquidity",
+  "answer_type": "level",
+  "difficulty": 2,
+  "answerLabel": "Sell-Side Liquidity",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2024-11-25",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-liq-013",
+  "concept": "Liquidity",
+  "answer_type": "level",
+  "difficulty": 3,
+  "answerLabel": "Sell-Side Liquidity",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2025-05-21",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-liq-014",
+  "concept": "Liquidity",
+  "answer_type": "level",
+  "difficulty": 1,
+  "answerLabel": "Buy-Side Liquidity",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2024-04-04",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-liq-015",
+  "concept": "Liquidity",
+  "answer_type": "level",
+  "difficulty": 2,
+  "answerLabel": "Sell-Side Liquidity",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2025-06-30",
   "practice_ready": false
  },
  {
@@ -1053,7 +1273,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-05-25",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-mss-002",
@@ -1064,7 +1284,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-09-11",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-mss-003",
@@ -1075,7 +1295,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-03-15",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-mss-004",
@@ -1086,7 +1306,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-04-15",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-mss-005",
@@ -1097,7 +1317,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-12-10",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-mss-006",
@@ -1108,7 +1328,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-03-27",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-mss-007",
@@ -1130,7 +1350,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2023-06-13",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-mss-009",
@@ -1141,7 +1361,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2024-03-28",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-mss-010",
@@ -1152,6 +1372,215 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2025-08-27",
+  "practice_ready": true
+ },
+ {
+  "exercise_id": "real-mss-011",
+  "concept": "MSS",
+  "answer_type": "level",
+  "difficulty": 1,
+  "answerLabel": "Market Structure Shift",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2023-08-24",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-mss-012",
+  "concept": "MSS",
+  "answer_type": "level",
+  "difficulty": 2,
+  "answerLabel": "Market Structure Shift",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2024-10-04",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-mss-013",
+  "concept": "MSS",
+  "answer_type": "level",
+  "difficulty": 3,
+  "answerLabel": "Market Structure Shift",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2025-03-06",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-mss-014",
+  "concept": "MSS",
+  "answer_type": "level",
+  "difficulty": 1,
+  "answerLabel": "Market Structure Shift",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2024-05-23",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-mss-015",
+  "concept": "MSS",
+  "answer_type": "level",
+  "difficulty": 2,
+  "answerLabel": "Market Structure Shift",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2025-01-27",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ob-001",
+  "concept": "OrderBlock",
+  "answer_type": "zone",
+  "difficulty": 1,
+  "answerLabel": "Order Block",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2023-04-24",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ob-002",
+  "concept": "OrderBlock",
+  "answer_type": "zone",
+  "difficulty": 3,
+  "answerLabel": "Order Block",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2023-12-08",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ob-003",
+  "concept": "OrderBlock",
+  "answer_type": "zone",
+  "difficulty": 2,
+  "answerLabel": "Order Block",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2024-04-10",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ob-004",
+  "concept": "OrderBlock",
+  "answer_type": "zone",
+  "difficulty": 2,
+  "answerLabel": "Order Block",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2025-01-08",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ob-005",
+  "concept": "OrderBlock",
+  "answer_type": "zone",
+  "difficulty": 1,
+  "answerLabel": "Order Block",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2025-07-08",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ob-006",
+  "concept": "OrderBlock",
+  "answer_type": "zone",
+  "difficulty": 3,
+  "answerLabel": "Order Block",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2023-10-25",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ob-007",
+  "concept": "OrderBlock",
+  "answer_type": "zone",
+  "difficulty": 1,
+  "answerLabel": "Order Block",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2024-02-16",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ob-008",
+  "concept": "OrderBlock",
+  "answer_type": "zone",
+  "difficulty": 1,
+  "answerLabel": "Order Block",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2025-05-06",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-tliq-001",
+  "concept": "TimeLiquidity",
+  "answer_type": "level",
+  "difficulty": 2,
+  "answerLabel": "NY AM Session High",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2023-09-15",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-tliq-002",
+  "concept": "TimeLiquidity",
+  "answer_type": "level",
+  "difficulty": 2,
+  "answerLabel": "NY AM Session High",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2024-05-07",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-tliq-003",
+  "concept": "TimeLiquidity",
+  "answer_type": "level",
+  "difficulty": 2,
+  "answerLabel": "NY AM Session High",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2025-06-13",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-tliq-004",
+  "concept": "TimeLiquidity",
+  "answer_type": "level",
+  "difficulty": 2,
+  "answerLabel": "NY AM Session Low",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2023-08-07",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-tliq-005",
+  "concept": "TimeLiquidity",
+  "answer_type": "level",
+  "difficulty": 2,
+  "answerLabel": "NY AM Session Low",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2024-11-18",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-tliq-006",
+  "concept": "TimeLiquidity",
+  "answer_type": "level",
+  "difficulty": 2,
+  "answerLabel": "NY AM Session Low",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2025-06-25",
   "practice_ready": false
  }
 ]

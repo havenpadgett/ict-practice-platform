@@ -11,14 +11,14 @@
   "has_answer": true,
   "answer": {
     "type": "bullish",
-    "price": 24106.0,
+    "price": 24106,
     "tolerance": 14.75
   },
   "setup_span": [
     6,
     16
   ],
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bullish Market Structure Shift: a candle body closed beyond the swing at 24106, against the prevailing trend.",
+  "explanation": "This is a bullish Market Structure Shift. Price was trending downward, then broke and closed above the previous lower high, confirming a shift to bullish structure at the highlighted level.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
     "symbol": "NQ",
@@ -53,16 +53,16 @@
     "detection_notes": "downtrend; body close 24110.5 above lower high 24106",
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-25T03:21:09+00:00",
-    "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "human_reviewed": true,
+    "reviewed_by": "lpshaven@gmail.com",
+    "reviewed_at": "2026-09-30",
     "review_notes": null
   },
   "candles": [
     {
       "time": "09:30",
       "timestamp": "2025-08-27T09:30:00-04:00",
-      "open": 24035.0,
+      "open": 24035,
       "high": 24059.25,
       "low": 24007.5,
       "close": 24018.75
@@ -79,17 +79,17 @@
       "time": "10:00",
       "timestamp": "2025-08-27T10:00:00-04:00",
       "open": 24028.75,
-      "high": 24061.0,
+      "high": 24061,
       "low": 24020.5,
       "close": 24060.5
     },
     {
       "time": "10:15",
       "timestamp": "2025-08-27T10:15:00-04:00",
-      "open": 24060.0,
+      "open": 24060,
       "high": 24100.5,
       "low": 24059.5,
-      "close": 24092.0
+      "close": 24092
     },
     {
       "time": "10:30",
@@ -103,17 +103,17 @@
       "time": "10:45",
       "timestamp": "2025-08-27T10:45:00-04:00",
       "open": 24096.25,
-      "high": 24104.0,
+      "high": 24104,
       "low": 24077.75,
-      "close": 24094.0
+      "close": 24094
     },
     {
       "time": "11:00",
       "timestamp": "2025-08-27T11:00:00-04:00",
       "open": 24094.25,
-      "high": 24103.0,
+      "high": 24103,
       "low": 24083.25,
-      "close": 24092.0
+      "close": 24092
     },
     {
       "time": "11:15",
@@ -121,7 +121,7 @@
       "open": 24092.5,
       "high": 24102.75,
       "low": 24081.25,
-      "close": 24084.0
+      "close": 24084
     },
     {
       "time": "11:30",
@@ -145,7 +145,7 @@
       "open": 24117.25,
       "high": 24118.25,
       "low": 24098.25,
-      "close": 24100.0
+      "close": 24100
     },
     {
       "time": "12:15",
@@ -153,23 +153,23 @@
       "open": 24099.5,
       "high": 24100.25,
       "low": 24039.25,
-      "close": 24061.0
+      "close": 24061
     },
     {
       "time": "12:30",
       "timestamp": "2025-08-27T12:30:00-04:00",
       "open": 24060.75,
-      "high": 24073.0,
-      "low": 24036.0,
+      "high": 24073,
+      "low": 24036,
       "close": 24064.75
     },
     {
       "time": "12:45",
       "timestamp": "2025-08-27T12:45:00-04:00",
-      "open": 24064.0,
-      "high": 24106.0,
+      "open": 24064,
+      "high": 24106,
       "low": 24062.75,
-      "close": 24094.0
+      "close": 24094
     },
     {
       "time": "13:00",
@@ -185,14 +185,14 @@
       "open": 24096.25,
       "high": 24099.5,
       "low": 24081.25,
-      "close": 24096.0
+      "close": 24096
     },
     {
       "time": "13:30",
       "timestamp": "2025-08-27T13:30:00-04:00",
-      "open": 24096.0,
-      "high": 24113.0,
-      "low": 24096.0,
+      "open": 24096,
+      "high": 24113,
+      "low": 24096,
       "close": 24110.5
     },
     {
@@ -209,7 +209,7 @@
       "open": 24115.25,
       "high": 24147.25,
       "low": 24107.25,
-      "close": 24144.0
+      "close": 24144
     },
     {
       "time": "14:15",
@@ -223,7 +223,7 @@
       "time": "14:30",
       "timestamp": "2025-08-27T14:30:00-04:00",
       "open": 24143.5,
-      "high": 24145.0,
+      "high": 24145,
       "low": 24132.5,
       "close": 24133.75
     },
@@ -246,7 +246,7 @@
     {
       "time": "15:15",
       "timestamp": "2025-08-27T15:15:00-04:00",
-      "open": 24063.0,
+      "open": 24063,
       "high": 24097.75,
       "low": 24060.75,
       "close": 24091.25

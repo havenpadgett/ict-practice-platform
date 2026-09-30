@@ -74,7 +74,28 @@ python3 scripts/pick_candidates.py $N.clean.json $N.candidates.json --rules mss 
 python3 scripts/pick_candidates.py $R.clean.json $R.candidates.json --rules mss --count 3 --prefix real-mss --first 8 --seed 6
 ```
 
-That is 30 scenarios (`real-fvg-001`…`010`, `real-liq-001`…`010`, `real-mss-001`…`010`), each with `human_reviewed: false`. They are registered in `src/data/real-scenarios/index.ts`, so they're visible at `/review` but never served in practice until approved.
+That is 30 scenarios (`real-fvg-001`…`010`, `real-liq-001`…`010`, `real-mss-001`…`010`), each with `human_reviewed: false`. They are registered in `src/data/real-scenarios/index.ts`, so they're visible at `/review` but never served in practice until approved. **Reviewed 2026-09-30: 49 of the first 50 approved (across this batch and the Guided/Free Trade one below), 1 (`real-mss-007`) flagged ambiguous — see the Review Log and Ambiguous Log below.**
+
+The second batch (2026-09-30, awaiting review), deepening the existing pools and adding the first-ever real Order Block and TimeLiquidity content:
+
+```bash
+N=data/clean/nq_nyam_ctx.5m; R=data/clean/nq_rth_full.15m
+python3 scripts/pick_candidates.py $N.clean.json $N.candidates.json --rules fvg --count 3 --prefix real-fvg --first 11 --seed 11
+python3 scripts/pick_candidates.py $R.clean.json $R.candidates.json --rules fvg --count 2 --prefix real-fvg --first 14 --seed 12
+python3 scripts/pick_candidates.py $N.clean.json $N.candidates.json --rules equal_highs,equal_lows --count 3 --prefix real-liq --first 11 --seed 13
+python3 scripts/pick_candidates.py $R.clean.json $R.candidates.json --rules equal_highs,equal_lows --count 2 --prefix real-liq --first 14 --seed 14
+python3 scripts/pick_candidates.py $N.clean.json $N.candidates.json --rules mss --count 3 --prefix real-mss --first 11 --seed 15
+python3 scripts/pick_candidates.py $R.clean.json $R.candidates.json --rules mss --count 2 --prefix real-mss --first 14 --seed 23
+python3 scripts/pick_candidates.py $N.clean.json $N.candidates.json --rules order_block --count 5 --prefix real-ob --first 1 --seed 21
+python3 scripts/pick_candidates.py $R.clean.json $R.candidates.json --rules order_block --count 3 --prefix real-ob --first 6 --seed 22
+python3 scripts/pick_candidates.py $N.clean.json $N.candidates.json --rules ny_am_high --count 3 --prefix real-tliq --first 1 --seed 31
+python3 scripts/pick_candidates.py $N.clean.json $N.candidates.json --rules ny_am_low --count 3 --prefix real-tliq --first 4 --seed 32
+```
+
+That's 26 more recognition scenarios (`real-fvg-011`…`015`, `real-liq-011`…`015`, `real-mss-011`…`015`, `real-ob-001`…`008`, `real-tliq-001`…`006`). Notes:
+- `pick_candidates.py`'s difficulty heuristic only covers `fvg`/`equal_*`/`mss` (see "Building a batch" above); `order_block` and the time-based rules always get difficulty 2 by default. The 8 Order Block scenarios were rebuilt with `build_scenario.py --candidate ... --difficulty <1-3>` directly, hand-set from each candidate's `displacement_ratio` (≥2.8× median range → 1, 2.3–2.8× → 2, below → 3) so the batch isn't uniformly "Medium". The 6 TimeLiquidity scenarios have no equivalent clarity signal in the candidate data (a session high/low is just the extreme, not a matter of degree) and were left at the default 2.
+- One `pick_candidates.py` run (`mss --first 14 --seed 16`, not shown above) picked `mss-bearish-20230613T1415` — the exact same candidate already built as `real-mss-008`. Seeded random picks aren't checked against already-*built* scenarios, only against scenarios another *run in progress* would reuse, so an exact duplicate is possible by chance; this one was caught by hand (comparing every file's `provenance.candidate_id`) and rebuilt with `--seed 23` instead, which is what's shown above. Check for this before registering a future batch: `python3 -c "..."` comparing `candidate_id` across all `src/data/real-scenarios/real-<prefix>-*.json` files, same rule.
+- TimeLiquidity's default window for a `ny_am_high`/`ny_am_low` candidate is exactly the 18-bar NY AM session (`build_scenario.py`'s `--window session` excludes context bars for every rule except `mss`/`order_block`) — every one of these scenarios would otherwise be the same fixed length, which `tests/framing.test.ts` catches as a chart-size clustering regression. They were rebuilt with `--start <day>T07:00:00<offset> --end <day>T10:55:00<offset>` to include the same 07:00 context bars MSS/Order Block scenarios get, then hand-patched to `setup_span: [30, 47]` (the original 18 session bars, offset by the 30 context bars) — the context bars are legitimate extra distractor history (a pre-market spike that isn't part of the NY AM session, exactly CURRICULUM.md's own "a lower pre-market spike... is a different level" distractor), not part of what the answer needs, so framing can vary how much of it is shown without ever hiding the session itself.
 
 ### Guided Entry and Free Trade batches
 
@@ -90,6 +111,19 @@ python3 scripts/register_scenarios.py
 ```
 
 Every step explanation and the overall verdict are drafts. `/review` asks for each of them to be rewritten before approving.
+
+**Second batch (2026-09-30):** `build_trade_scenarios.py` never reuses a session another scenario file already covers, so re-running the original commands against the now-larger registered set draws from what's left. Only 20 of 736 NY AM sessions ever pass the full valid-setup chain (CURRICULUM.md, Guided Entry → "How rare valid setups are"); the first batch (`valid=6`) and a second Guided Entry batch below already took 9 of them, leaving none for a second Free Trade `valid=` request — that command fails loudly (`ERROR: only 0 'valid' sessions available`) rather than silently building fewer, so a future batch must check what's left first.
+
+```bash
+N=data/clean/nq_nyam_ctx.5m
+python3 scripts/build_trade_scenarios.py $N.clean.json $N.candidates.json --mode guided \
+    --plan valid=3,no_shift=1,no_sweep=1 --prefix real-guided --first 11 --seed 41
+python3 scripts/build_trade_scenarios.py $N.clean.json $N.candidates.json --mode free \
+    --plan no_shift=2,no_sweep=1,no_entry=1,low_rr=1 --prefix real-ft --first 11 --seed 43
+python3 scripts/register_scenarios.py
+```
+
+That's `real-guided-011`…`015` and `real-ft-011`…`015`, 10 more, all `human_reviewed: false`.
 
 To try the pipeline without licensed data, generate synthetic bars first: `python3 scripts/sample/make_synthetic.py`, then run the same commands on `scripts/sample/synthetic_nq_5m.csv`. **Never promote a scenario built from synthetic data.**
 
@@ -254,12 +288,15 @@ Rejection reasons (picked on `/review`, keys 1–5):
 
 | Rule | Awaiting | Reviewed | Approved | Rejected | Ambiguous | Rejection rate | Most common reason |
 |---|---|---|---|---|---|---|---|
-| equal_highs | 5 | 0 | 0 | 0 | 0 | — | — |
-| equal_lows | 5 | 0 | 0 | 0 | 0 | — | — |
-| free_trade_setup | 10 | 0 | 0 | 0 | 0 | — | — |
-| fvg | 10 | 0 | 0 | 0 | 0 | — | — |
-| guided_setup | 10 | 0 | 0 | 0 | 0 | — | — |
-| mss | 10 | 0 | 0 | 0 | 0 | — | — |
+| equal_highs | 2 | 5 | 5 | 0 | 0 | 0% | — |
+| equal_lows | 3 | 5 | 5 | 0 | 0 | 0% | — |
+| free_trade_setup | 5 | 10 | 10 | 0 | 0 | 0% | — |
+| fvg | 5 | 10 | 10 | 0 | 0 | 0% | — |
+| guided_setup | 5 | 10 | 10 | 0 | 0 | 0% | — |
+| mss | 5 | 10 | 9 | 0 | 1 | 10% | — |
+| ny_am_high | 3 | 0 | 0 | 0 | 0 | — | — |
+| ny_am_low | 3 | 0 | 0 | 0 | 0 | — | — |
+| order_block | 8 | 0 | 0 | 0 | 0 | — | — |
 
 | Reason | Rejections | Share | Rules |
 |---|---|---|---|
@@ -279,7 +316,55 @@ Every candidate that reaches review gets a row: approvals and rejections alike. 
 <!-- review-log:start -->
 | Date | Exercise ID | Candidate ID | Rule | Decision | Reason | Reviewer | Notes |
 |---|---|---|---|---|---|---|---|
-| — | — | — | — | — | — | — | No real scenarios reviewed yet |
+| 2026-09-30 | real-fvg-001 | fvg-bearish-20230512T1000 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-002 | fvg-bullish-20231211T1045 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-003 | fvg-bearish-20240513T0940 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-004 | fvg-bearish-20240930T0955 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-005 | fvg-bearish-20250414T0935 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-006 | fvg-bullish-20250725T0945 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-007 | fvg-bearish-20230203T1245 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-008 | fvg-bearish-20240112T1130 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-009 | fvg-bullish-20241226T1430 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-010 | fvg-bearish-20250509T1015 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-liq-002 | equal_highs-20230712T1040 | equal_highs | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-liq-003 | equal_highs-20231222T1035 | equal_highs | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-liq-005 | equal_highs-20250103T1005 | equal_highs | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-liq-007 | equal_highs-20230217T1500 | equal_highs | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-liq-008 | equal_highs-20231208T1445 | equal_highs | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-liq-001 | equal_lows-20230301T1030 | equal_lows | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-liq-004 | equal_lows-20240923T1015 | equal_lows | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-liq-006 | equal_lows-20251120T1015 | equal_lows | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-liq-009 | equal_lows-20240912T1145 | equal_lows | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-liq-010 | equal_lows-20250923T1445 | equal_lows | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-mss-001 | mss-bearish-20230525T0930 | mss | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-mss-002 | mss-bearish-20230911T0935 | mss | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-mss-003 | mss-bullish-20240315T1035 | mss | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-mss-004 | mss-bearish-20240415T0930 | mss | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-mss-005 | mss-bearish-20241210T1050 | mss | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-mss-006 | mss-bullish-20250327T0955 | mss | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-mss-008 | mss-bearish-20230613T1415 | mss | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-mss-009 | mss-bullish-20240328T1445 | mss | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-mss-010 | mss-bullish-20250827T1330 | mss | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-guided-001 | setup-no_sweep-20240521 | guided_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-guided-002 | setup-no_entry-20250107 | guided_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-guided-003 | setup-valid-20231122 | guided_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-guided-004 | setup-low_rr-20241212 | guided_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-guided-005 | setup-valid-20240529 | guided_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-guided-006 | setup-valid-20250805 | guided_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-guided-007 | setup-valid-20230203 | guided_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-guided-008 | setup-no_shift-20241220 | guided_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-guided-009 | setup-valid-20230811 | guided_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-guided-010 | setup-valid-20240419 | guided_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-ft-001 | setup-valid-20250415 | free_trade_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-ft-002 | setup-no_sweep-20230616 | free_trade_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-ft-003 | setup-valid-20240221 | free_trade_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-ft-004 | setup-no_entry-20241029 | free_trade_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-ft-005 | setup-no_sweep-20240925 | free_trade_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-ft-006 | setup-valid-20240229 | free_trade_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-ft-007 | setup-low_rr-20240112 | free_trade_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-ft-008 | setup-valid-20230720 | free_trade_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-ft-009 | setup-no_shift-20230605 | free_trade_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-ft-010 | setup-no_shift-20251117 | free_trade_setup | approved | — | lpshaven@gmail.com | — |
 <!-- review-log:end -->
 
 ## Ambiguous Log
@@ -289,5 +374,5 @@ Candidates flagged **ambiguous**: two reasonable traders would label the chart d
 <!-- ambiguous-log:start -->
 | Date | Exercise ID | Candidate ID | Rule | Decision | Reason | Reviewer | Notes |
 |---|---|---|---|---|---|---|---|
-| — | — | — | — | — | — | — | None flagged yet |
+| 2026-09-30 | real-mss-007 | mss-bearish-20250924T0930 | mss | ambiguous | — | lpshaven@gmail.com | The bearish break is clear, but the prior bullish structure is not well established. Confirm that the highlighted level is a valid higher low before labeling this a bearish Market Structure Shift. |
 <!-- ambiguous-log:end -->

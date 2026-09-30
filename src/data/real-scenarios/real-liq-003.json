@@ -12,13 +12,13 @@
   "answer": {
     "type": "buy_side",
     "price": 18979.25,
-    "tolerance": 10.0
+    "tolerance": 10
   },
   "setup_span": [
     2,
     15
   ],
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] 2 highs land within 7 points of each other around 18979.2, stacking resting stops into one larger pool.",
+  "explanation": "This is Buy-Side Liquidity. Several highs formed around the same level, creating a clear pool of liquidity resting above them in the highlighted area.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
     "symbol": "NQ",
@@ -53,9 +53,9 @@
     "detection_notes": "2 touches within 7 points (tolerance 0.05% = 9.49 points)",
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-25T03:21:04+00:00",
-    "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "human_reviewed": true,
+    "reviewed_by": "lpshaven@gmail.com",
+    "reviewed_at": "2026-09-30",
     "review_notes": null
   },
   "candles": [
@@ -65,7 +65,7 @@
       "open": 18940.5,
       "high": 18963.25,
       "low": 18935.75,
-      "close": 18939.0
+      "close": 18939
     },
     {
       "time": "09:35",
@@ -73,14 +73,14 @@
       "open": 18939.25,
       "high": 18952.25,
       "low": 18930.5,
-      "close": 18947.0
+      "close": 18947
     },
     {
       "time": "09:40",
       "timestamp": "2023-12-22T09:40:00-05:00",
       "open": 18947.75,
       "high": 18978.25,
-      "low": 18943.0,
+      "low": 18943,
       "close": 18974.25
     },
     {
@@ -96,7 +96,7 @@
       "timestamp": "2023-12-22T09:50:00-05:00",
       "open": 18971.5,
       "high": 18982.75,
-      "low": 18970.0,
+      "low": 18970,
       "close": 18971.25
     },
     {
@@ -111,14 +111,14 @@
       "time": "10:00",
       "timestamp": "2023-12-22T10:00:00-05:00",
       "open": 18965.75,
-      "high": 18975.0,
+      "high": 18975,
       "low": 18947.25,
       "close": 18966.75
     },
     {
       "time": "10:05",
       "timestamp": "2023-12-22T10:05:00-05:00",
-      "open": 18967.0,
+      "open": 18967,
       "high": 18976.75,
       "low": 18949.25,
       "close": 18964.25
@@ -143,7 +143,7 @@
       "time": "10:20",
       "timestamp": "2023-12-22T10:20:00-05:00",
       "open": 18962.5,
-      "high": 18963.0,
+      "high": 18963,
       "low": 18945.75,
       "close": 18952.25
     },
@@ -152,7 +152,7 @@
       "timestamp": "2023-12-22T10:25:00-05:00",
       "open": 18952.25,
       "high": 18970.5,
-      "low": 18944.0,
+      "low": 18944,
       "close": 18966.75
     },
     {
@@ -166,7 +166,7 @@
     {
       "time": "10:35",
       "timestamp": "2023-12-22T10:35:00-05:00",
-      "open": 18969.0,
+      "open": 18969,
       "high": 18975.75,
       "low": 18949.25,
       "close": 18964.5
@@ -177,20 +177,20 @@
       "open": 18964.5,
       "high": 18975.25,
       "low": 18964.5,
-      "close": 18971.0
+      "close": 18971
     },
     {
       "time": "10:45",
       "timestamp": "2023-12-22T10:45:00-05:00",
       "open": 18971.25,
-      "high": 18975.0,
+      "high": 18975,
       "low": 18960.75,
       "close": 18961.75
     },
     {
       "time": "10:50",
       "timestamp": "2023-12-22T10:50:00-05:00",
-      "open": 18962.0,
+      "open": 18962,
       "high": 18964.25,
       "low": 18954.5,
       "close": 18960.75

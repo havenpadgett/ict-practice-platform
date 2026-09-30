@@ -19,9 +19,9 @@
 | 4 | Multiple concepts: Liquidity (level answers), then MSS, FVG respected/disrespected (choice), IFVG | ✅ Done | 2026-09-09 → 09-19 |
 | 5 | Accounts and database: Supabase Auth, `profiles` + `attempts` with RLS, local-attempt migration | ✅ Done | 2026-09-10 |
 | 6 | User-facing analytics page | ✅ Done, extended 2026-09-24 (trend line, difficulty × concept, real vs constructed, process vs outcome) | 2026-09-10 |
-| 7 | Real historical NQ data with a validation process: pipeline, provenance, review gate, `/review` | ✅ Built. **0 of 50 real scenarios approved yet**, so none are live | 2026-09-24 |
-| 8 | Guided Entry mode (bias → entry → stop → target) | ✅ Done, including 10 real-data scenarios awaiting review | 2026-09-20 |
-| 9 | Free Trade mode (candle-by-candle playback, graded on process) | ✅ Done, including 10 real sessions awaiting review | 2026-09-24 |
+| 7 | Real historical NQ data with a validation process: pipeline, provenance, review gate, `/review` | ✅ Built and reviewed. **49 of the first 50 real scenarios are approved and live** (1 flagged ambiguous, never live — docs/CURRICULUM-REVIEW.md). A second batch of 39 is built and awaiting review. | 2026-09-30 |
+| 8 | Guided Entry mode (bias → entry → stop → target) | ✅ Done. 10 real-data scenarios approved and live, 5 more awaiting review | 2026-09-30 |
+| 9 | Free Trade mode (candle-by-candle playback, graded on process) | ✅ Done. 10 real sessions approved and live, 5 more awaiting review | 2026-09-30 |
 | 10 | Adaptive practice: recommendation engine, adaptive session mix | ✅ Done | 2026-09-24 |
 | — | Order Blocks, Premium & Discount, Time-based liquidity concepts | ✅ Done (constructed exercises) | 2026-09-24 |
 | — | Hardening: automated tests, error handling, CSV export, performance | ✅ Done. All tests pass (the live RLS check is skipped without test accounts) | 2026-09-25 |
@@ -429,14 +429,14 @@ Every one of these is in the vision document and most will get built. None belon
 *Rewritten 2026-09-25 (AI-DRAFTED). The seeded NOW/NEXT/LATER lists were all delivered apart from the items below. Status per phase is in Build Status at the top.*
 
 **NEXT**
-- Review the 50 real scenarios at `/review`. Nothing real is live until this happens.
+- **Update 2026-09-30:** the first 50 real scenarios have been reviewed — 49 approved and live, 1 (`real-mss-007`) flagged ambiguous (see docs/CURRICULUM-REVIEW.md → MSS → Review outcome). A second batch of 39 (including the first-ever real Order Block and TimeLiquidity scenarios) is built and awaiting review at `/review`.
 - Confirm the Kaggle NQ data's license before any public release (docs/SCENARIO-VALIDATION.md).
 - Real-device mobile pass (NFR-1/2).
 - Re-check grading tolerances (D-3) against real beginner attempts.
 - Haven to review every AI-DRAFTED definition and decision (CURRICULUM.md, this log).
 
 **LATER**
-- Real scenarios for Order Blocks, Premium & Discount, IFVG and time-based liquidity. Detection exists for all but IFVG; no batch has been built.
+- Real scenarios for Premium & Discount and IFVG: still none. `scripts/detect.py` has no IFVG rule at all, and its `dealing_range` rule (Premium/Discount) is detected but not yet wired into `scripts/build_scenario.py` (which only maps `fvg`/`order_block`/`equal_highs`/`equal_lows`/`mss`/the time-based rules to an exercise shape) — both need script work before a batch can be built. Order Blocks and time-based liquidity (NY AM high/low) got their first real batches 2026-09-30; previous-day and weekly levels still need a `--session all` ingest of the raw CSV, which hasn't been run.
 - Serve Free Trade candles from the server one at a time. Today unrevealed candles are never in the DOM, but they are in the page's JavaScript (CURRICULUM.md, Free Trade → no lookahead).
 - An all-users CSV export for BI. It needs a server-side service-role key and an admin check (docs/ANALYTICS.md).
 - Multi-level liquidity exercises (several lines on one chart). Needs a partial-credit grading design.

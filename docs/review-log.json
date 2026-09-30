@@ -1,1 +1,502 @@
-[]
+[
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-001",
+    "candidate_id": "fvg-bearish-20230512T1000",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-002",
+    "candidate_id": "fvg-bullish-20231211T1045",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-003",
+    "candidate_id": "fvg-bearish-20240513T0940",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-004",
+    "candidate_id": "fvg-bearish-20240930T0955",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-005",
+    "candidate_id": "fvg-bearish-20250414T0935",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-006",
+    "candidate_id": "fvg-bullish-20250725T0945",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-007",
+    "candidate_id": "fvg-bearish-20230203T1245",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-008",
+    "candidate_id": "fvg-bearish-20240112T1130",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-009",
+    "candidate_id": "fvg-bullish-20241226T1430",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-010",
+    "candidate_id": "fvg-bearish-20250509T1015",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-liq-002",
+    "candidate_id": "equal_highs-20230712T1040",
+    "rule": "equal_highs",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-liq-003",
+    "candidate_id": "equal_highs-20231222T1035",
+    "rule": "equal_highs",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-liq-005",
+    "candidate_id": "equal_highs-20250103T1005",
+    "rule": "equal_highs",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-liq-007",
+    "candidate_id": "equal_highs-20230217T1500",
+    "rule": "equal_highs",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-liq-008",
+    "candidate_id": "equal_highs-20231208T1445",
+    "rule": "equal_highs",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-liq-001",
+    "candidate_id": "equal_lows-20230301T1030",
+    "rule": "equal_lows",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-liq-004",
+    "candidate_id": "equal_lows-20240923T1015",
+    "rule": "equal_lows",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-liq-006",
+    "candidate_id": "equal_lows-20251120T1015",
+    "rule": "equal_lows",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-liq-009",
+    "candidate_id": "equal_lows-20240912T1145",
+    "rule": "equal_lows",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-liq-010",
+    "candidate_id": "equal_lows-20250923T1445",
+    "rule": "equal_lows",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-mss-001",
+    "candidate_id": "mss-bearish-20230525T0930",
+    "rule": "mss",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-mss-002",
+    "candidate_id": "mss-bearish-20230911T0935",
+    "rule": "mss",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-mss-003",
+    "candidate_id": "mss-bullish-20240315T1035",
+    "rule": "mss",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-mss-004",
+    "candidate_id": "mss-bearish-20240415T0930",
+    "rule": "mss",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-mss-005",
+    "candidate_id": "mss-bearish-20241210T1050",
+    "rule": "mss",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-mss-006",
+    "candidate_id": "mss-bullish-20250327T0955",
+    "rule": "mss",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-mss-007",
+    "candidate_id": "mss-bearish-20250924T0930",
+    "rule": "mss",
+    "decision": "ambiguous",
+    "reason": null,
+    "note": "The bearish break is clear, but the prior bullish structure is not well established. Confirm that the highlighted level is a valid higher low before labeling this a bearish Market Structure Shift.",
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-mss-008",
+    "candidate_id": "mss-bearish-20230613T1415",
+    "rule": "mss",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-mss-009",
+    "candidate_id": "mss-bullish-20240328T1445",
+    "rule": "mss",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-mss-010",
+    "candidate_id": "mss-bullish-20250827T1330",
+    "rule": "mss",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-guided-001",
+    "candidate_id": "setup-no_sweep-20240521",
+    "rule": "guided_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-guided-002",
+    "candidate_id": "setup-no_entry-20250107",
+    "rule": "guided_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-guided-003",
+    "candidate_id": "setup-valid-20231122",
+    "rule": "guided_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-guided-004",
+    "candidate_id": "setup-low_rr-20241212",
+    "rule": "guided_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-guided-005",
+    "candidate_id": "setup-valid-20240529",
+    "rule": "guided_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-guided-006",
+    "candidate_id": "setup-valid-20250805",
+    "rule": "guided_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-guided-007",
+    "candidate_id": "setup-valid-20230203",
+    "rule": "guided_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-guided-008",
+    "candidate_id": "setup-no_shift-20241220",
+    "rule": "guided_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-guided-009",
+    "candidate_id": "setup-valid-20230811",
+    "rule": "guided_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-guided-010",
+    "candidate_id": "setup-valid-20240419",
+    "rule": "guided_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-ft-001",
+    "candidate_id": "setup-valid-20250415",
+    "rule": "free_trade_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-ft-002",
+    "candidate_id": "setup-no_sweep-20230616",
+    "rule": "free_trade_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-ft-003",
+    "candidate_id": "setup-valid-20240221",
+    "rule": "free_trade_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-ft-004",
+    "candidate_id": "setup-no_entry-20241029",
+    "rule": "free_trade_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-ft-005",
+    "candidate_id": "setup-no_sweep-20240925",
+    "rule": "free_trade_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-ft-006",
+    "candidate_id": "setup-valid-20240229",
+    "rule": "free_trade_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-ft-007",
+    "candidate_id": "setup-low_rr-20240112",
+    "rule": "free_trade_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-ft-008",
+    "candidate_id": "setup-valid-20230720",
+    "rule": "free_trade_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-ft-009",
+    "candidate_id": "setup-no_shift-20230605",
+    "rule": "free_trade_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-ft-010",
+    "candidate_id": "setup-no_shift-20251117",
+    "rule": "free_trade_setup",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  }
+]

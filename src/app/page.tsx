@@ -64,9 +64,9 @@ const LOOP = [
 
 const HOW = [
   {
-    name: "Hand-built practice charts",
+    name: "Hand-built and real practice charts",
     detail:
-      "Every chart is constructed around one written definition, with deliberate near-misses, and graded by the same explicit rule every time. Real historical scenarios are still being reviewed and aren't part of practice yet.",
+      "Every chart is built around one written definition, with deliberate near-misses, and graded by the same explicit rule every time. Alongside the hand-built ones, a growing set of charts are real historical NQ price action, each one checked by hand against the same rules before it's used.",
   },
   {
     name: "Adaptive practice",

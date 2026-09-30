@@ -1,0 +1,368 @@
+{
+  "exercise_id": "real-guided-014",
+  "instrument": "NQ (real data)",
+  "timeframe": "5m",
+  "difficulty": 2,
+  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A valid bearish setup at about 2.3:1, clearing the 2:1 minimum.",
+  "concept": "GuidedEntry",
+  "answer_type": "guided",
+  "answerLabel": "a valid trade setup",
+  "prompt": "Work through the setup: bias, entry, stop, and target.",
+  "answer": {
+    "bias": "bearish",
+    "entry": {
+      "anchor": 19704.75,
+      "price_low": 19697.5,
+      "price_high": 19712.0,
+      "minor_margin": 7.25
+    },
+    "stop": {
+      "invalidation_price": 19720.75,
+      "reasonable_buffer": 14.5
+    },
+    "target": {
+      "anchor": 19660.75,
+      "price_low": 19646.25,
+      "price_high": 19675.25,
+      "minor_margin": 14.5
+    },
+    "min_rr": 2.0,
+    "is_valid_setup": true,
+    "step_explanations": {
+      "bias": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] Price swept the previous swing high at 19,685 (to 19,720.75), taking the buy-side liquidity there, then a candle body closed below 19,672.5: a bearish Market Structure Shift. Bias is bearish.",
+      "entry": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] The move that broke structure left a Fair Value Gap between 19,703 and 19,706.5. Entry sits at its middle, about 19,704.75.",
+      "stop": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] The idea is wrong if price goes back above the setup high at 19,720.75. The stop sits just beyond it, about 19,723.75.",
+      "target": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] The nearest untaken sell-side liquidity is the swing low at 19,660.75."
+    },
+    "overall_explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A valid bearish setup at about 2.3:1, clearing the 2:1 minimum."
+  },
+  "provenance": {
+    "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
+    "symbol": "NQ",
+    "date_range": {
+      "start": "2024-02-07T07:00:00-05:00",
+      "end": "2024-02-07T09:50:00-05:00"
+    },
+    "trading_date": "2024-02-07",
+    "session": "ny_am",
+    "context_start": "07:00",
+    "timeframe": "5m",
+    "detection_rule": "guided_setup",
+    "curriculum_versions": {
+      "guided_entry": 2,
+      "mss": 1,
+      "fvg": 1,
+      "fvg_respect": 1,
+      "order_block": 1,
+      "liquidity": 1,
+      "detection_parameters": 1
+    },
+    "candidate_id": "setup-valid-20240207",
+    "detection_params": {
+      "rules": [
+        "fvg",
+        "equal_highs",
+        "equal_lows",
+        "mss",
+        "order_block",
+        "dealing_range",
+        "ny_am"
+      ],
+      "swing_lookback": 2,
+      "equal_tolerance_pct": 0.05,
+      "fvg_min_range_mult": 0.25,
+      "range_window": 100,
+      "ob_displacement_mult": 2.0,
+      "ob_max_leg": 3
+    },
+    "detection_notes": "valid bearish setup, R:R 2.32",
+    "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
+    "built_at": "2026-09-30T18:52:15+00:00",
+    "human_reviewed": false,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "review_notes": null
+  },
+  "candles": [
+    {
+      "time": "07:00",
+      "timestamp": "2024-02-07T07:00:00-05:00",
+      "open": 19622.25,
+      "high": 19622.75,
+      "low": 19603.25,
+      "close": 19607.25
+    },
+    {
+      "time": "07:05",
+      "timestamp": "2024-02-07T07:05:00-05:00",
+      "open": 19608.25,
+      "high": 19615.0,
+      "low": 19606.5,
+      "close": 19609.25
+    },
+    {
+      "time": "07:10",
+      "timestamp": "2024-02-07T07:10:00-05:00",
+      "open": 19608.75,
+      "high": 19615.75,
+      "low": 19608.5,
+      "close": 19614.25
+    },
+    {
+      "time": "07:15",
+      "timestamp": "2024-02-07T07:15:00-05:00",
+      "open": 19614.25,
+      "high": 19614.5,
+      "low": 19604.0,
+      "close": 19607.25
+    },
+    {
+      "time": "07:20",
+      "timestamp": "2024-02-07T07:20:00-05:00",
+      "open": 19607.5,
+      "high": 19609.5,
+      "low": 19594.0,
+      "close": 19598.5
+    },
+    {
+      "time": "07:25",
+      "timestamp": "2024-02-07T07:25:00-05:00",
+      "open": 19598.5,
+      "high": 19617.0,
+      "low": 19595.25,
+      "close": 19616.75
+    },
+    {
+      "time": "07:30",
+      "timestamp": "2024-02-07T07:30:00-05:00",
+      "open": 19616.25,
+      "high": 19623.5,
+      "low": 19615.25,
+      "close": 19623.5
+    },
+    {
+      "time": "07:35",
+      "timestamp": "2024-02-07T07:35:00-05:00",
+      "open": 19623.25,
+      "high": 19629.0,
+      "low": 19622.0,
+      "close": 19626.0
+    },
+    {
+      "time": "07:40",
+      "timestamp": "2024-02-07T07:40:00-05:00",
+      "open": 19626.25,
+      "high": 19640.5,
+      "low": 19625.25,
+      "close": 19635.75
+    },
+    {
+      "time": "07:45",
+      "timestamp": "2024-02-07T07:45:00-05:00",
+      "open": 19635.75,
+      "high": 19648.0,
+      "low": 19635.75,
+      "close": 19647.5
+    },
+    {
+      "time": "07:50",
+      "timestamp": "2024-02-07T07:50:00-05:00",
+      "open": 19647.25,
+      "high": 19652.5,
+      "low": 19646.25,
+      "close": 19649.75
+    },
+    {
+      "time": "07:55",
+      "timestamp": "2024-02-07T07:55:00-05:00",
+      "open": 19649.25,
+      "high": 19652.0,
+      "low": 19645.0,
+      "close": 19650.5
+    },
+    {
+      "time": "08:00",
+      "timestamp": "2024-02-07T08:00:00-05:00",
+      "open": 19650.5,
+      "high": 19664.0,
+      "low": 19646.75,
+      "close": 19662.5
+    },
+    {
+      "time": "08:05",
+      "timestamp": "2024-02-07T08:05:00-05:00",
+      "open": 19663.0,
+      "high": 19671.25,
+      "low": 19661.5,
+      "close": 19669.25
+    },
+    {
+      "time": "08:10",
+      "timestamp": "2024-02-07T08:10:00-05:00",
+      "open": 19669.0,
+      "high": 19673.25,
+      "low": 19666.25,
+      "close": 19672.0
+    },
+    {
+      "time": "08:15",
+      "timestamp": "2024-02-07T08:15:00-05:00",
+      "open": 19672.25,
+      "high": 19677.0,
+      "low": 19671.5,
+      "close": 19671.75
+    },
+    {
+      "time": "08:20",
+      "timestamp": "2024-02-07T08:20:00-05:00",
+      "open": 19672.0,
+      "high": 19672.75,
+      "low": 19660.75,
+      "close": 19663.0
+    },
+    {
+      "time": "08:25",
+      "timestamp": "2024-02-07T08:25:00-05:00",
+      "open": 19662.75,
+      "high": 19679.25,
+      "low": 19661.25,
+      "close": 19676.5
+    },
+    {
+      "time": "08:30",
+      "timestamp": "2024-02-07T08:30:00-05:00",
+      "open": 19676.75,
+      "high": 19687.75,
+      "low": 19672.75,
+      "close": 19673.25
+    },
+    {
+      "time": "08:35",
+      "timestamp": "2024-02-07T08:35:00-05:00",
+      "open": 19673.25,
+      "high": 19682.75,
+      "low": 19668.5,
+      "close": 19675.25
+    },
+    {
+      "time": "08:40",
+      "timestamp": "2024-02-07T08:40:00-05:00",
+      "open": 19675.5,
+      "high": 19683.0,
+      "low": 19673.75,
+      "close": 19682.5
+    },
+    {
+      "time": "08:45",
+      "timestamp": "2024-02-07T08:45:00-05:00",
+      "open": 19682.75,
+      "high": 19685.0,
+      "low": 19676.25,
+      "close": 19680.25
+    },
+    {
+      "time": "08:50",
+      "timestamp": "2024-02-07T08:50:00-05:00",
+      "open": 19681.0,
+      "high": 19682.0,
+      "low": 19672.5,
+      "close": 19673.75
+    },
+    {
+      "time": "08:55",
+      "timestamp": "2024-02-07T08:55:00-05:00",
+      "open": 19673.5,
+      "high": 19680.5,
+      "low": 19672.5,
+      "close": 19677.0
+    },
+    {
+      "time": "09:00",
+      "timestamp": "2024-02-07T09:00:00-05:00",
+      "open": 19677.0,
+      "high": 19695.5,
+      "low": 19675.5,
+      "close": 19690.5
+    },
+    {
+      "time": "09:05",
+      "timestamp": "2024-02-07T09:05:00-05:00",
+      "open": 19690.5,
+      "high": 19701.0,
+      "low": 19690.25,
+      "close": 19700.0
+    },
+    {
+      "time": "09:10",
+      "timestamp": "2024-02-07T09:10:00-05:00",
+      "open": 19699.75,
+      "high": 19704.0,
+      "low": 19696.25,
+      "close": 19699.25
+    },
+    {
+      "time": "09:15",
+      "timestamp": "2024-02-07T09:15:00-05:00",
+      "open": 19699.0,
+      "high": 19703.75,
+      "low": 19696.5,
+      "close": 19701.25
+    },
+    {
+      "time": "09:20",
+      "timestamp": "2024-02-07T09:20:00-05:00",
+      "open": 19700.75,
+      "high": 19713.0,
+      "low": 19700.5,
+      "close": 19711.75
+    },
+    {
+      "time": "09:25",
+      "timestamp": "2024-02-07T09:25:00-05:00",
+      "open": 19711.75,
+      "high": 19720.75,
+      "low": 19706.5,
+      "close": 19715.0
+    },
+    {
+      "time": "09:30",
+      "timestamp": "2024-02-07T09:30:00-05:00",
+      "open": 19714.75,
+      "high": 19719.5,
+      "low": 19685.5,
+      "close": 19691.5
+    },
+    {
+      "time": "09:35",
+      "timestamp": "2024-02-07T09:35:00-05:00",
+      "open": 19691.75,
+      "high": 19703.0,
+      "low": 19666.75,
+      "close": 19670.25
+    },
+    {
+      "time": "09:40",
+      "timestamp": "2024-02-07T09:40:00-05:00",
+      "open": 19669.75,
+      "high": 19686.0,
+      "low": 19664.25,
+      "close": 19672.5
+    },
+    {
+      "time": "09:45",
+      "timestamp": "2024-02-07T09:45:00-05:00",
+      "open": 19672.75,
+      "high": 19702.75,
+      "low": 19660.75,
+      "close": 19698.25
+    },
+    {
+      "time": "09:50",
+      "timestamp": "2024-02-07T09:50:00-05:00",
+      "open": 19698.5,
+      "high": 19709.5,
+      "low": 19680.25,
+      "close": 19680.5
+    }
+  ]
+}

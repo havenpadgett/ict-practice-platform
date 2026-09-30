@@ -22,6 +22,11 @@ import realFt007 from "./real-ft-007.json";
 import realFt008 from "./real-ft-008.json";
 import realFt009 from "./real-ft-009.json";
 import realFt010 from "./real-ft-010.json";
+import realFt011 from "./real-ft-011.json";
+import realFt012 from "./real-ft-012.json";
+import realFt013 from "./real-ft-013.json";
+import realFt014 from "./real-ft-014.json";
+import realFt015 from "./real-ft-015.json";
 import realFvg001 from "./real-fvg-001.json";
 import realFvg002 from "./real-fvg-002.json";
 import realFvg003 from "./real-fvg-003.json";
@@ -32,6 +37,11 @@ import realFvg007 from "./real-fvg-007.json";
 import realFvg008 from "./real-fvg-008.json";
 import realFvg009 from "./real-fvg-009.json";
 import realFvg010 from "./real-fvg-010.json";
+import realFvg011 from "./real-fvg-011.json";
+import realFvg012 from "./real-fvg-012.json";
+import realFvg013 from "./real-fvg-013.json";
+import realFvg014 from "./real-fvg-014.json";
+import realFvg015 from "./real-fvg-015.json";
 import realGuided001 from "./real-guided-001.json";
 import realGuided002 from "./real-guided-002.json";
 import realGuided003 from "./real-guided-003.json";
@@ -42,6 +52,11 @@ import realGuided007 from "./real-guided-007.json";
 import realGuided008 from "./real-guided-008.json";
 import realGuided009 from "./real-guided-009.json";
 import realGuided010 from "./real-guided-010.json";
+import realGuided011 from "./real-guided-011.json";
+import realGuided012 from "./real-guided-012.json";
+import realGuided013 from "./real-guided-013.json";
+import realGuided014 from "./real-guided-014.json";
+import realGuided015 from "./real-guided-015.json";
 import realLiq001 from "./real-liq-001.json";
 import realLiq002 from "./real-liq-002.json";
 import realLiq003 from "./real-liq-003.json";
@@ -52,6 +67,11 @@ import realLiq007 from "./real-liq-007.json";
 import realLiq008 from "./real-liq-008.json";
 import realLiq009 from "./real-liq-009.json";
 import realLiq010 from "./real-liq-010.json";
+import realLiq011 from "./real-liq-011.json";
+import realLiq012 from "./real-liq-012.json";
+import realLiq013 from "./real-liq-013.json";
+import realLiq014 from "./real-liq-014.json";
+import realLiq015 from "./real-liq-015.json";
 import realMss001 from "./real-mss-001.json";
 import realMss002 from "./real-mss-002.json";
 import realMss003 from "./real-mss-003.json";
@@ -62,6 +82,25 @@ import realMss007 from "./real-mss-007.json";
 import realMss008 from "./real-mss-008.json";
 import realMss009 from "./real-mss-009.json";
 import realMss010 from "./real-mss-010.json";
+import realMss011 from "./real-mss-011.json";
+import realMss012 from "./real-mss-012.json";
+import realMss013 from "./real-mss-013.json";
+import realMss014 from "./real-mss-014.json";
+import realMss015 from "./real-mss-015.json";
+import realOb001 from "./real-ob-001.json";
+import realOb002 from "./real-ob-002.json";
+import realOb003 from "./real-ob-003.json";
+import realOb004 from "./real-ob-004.json";
+import realOb005 from "./real-ob-005.json";
+import realOb006 from "./real-ob-006.json";
+import realOb007 from "./real-ob-007.json";
+import realOb008 from "./real-ob-008.json";
+import realTliq001 from "./real-tliq-001.json";
+import realTliq002 from "./real-tliq-002.json";
+import realTliq003 from "./real-tliq-003.json";
+import realTliq004 from "./real-tliq-004.json";
+import realTliq005 from "./real-tliq-005.json";
+import realTliq006 from "./real-tliq-006.json";
 
 const registered: unknown[] = [
   realFt001,
@@ -74,6 +113,11 @@ const registered: unknown[] = [
   realFt008,
   realFt009,
   realFt010,
+  realFt011,
+  realFt012,
+  realFt013,
+  realFt014,
+  realFt015,
   realFvg001,
   realFvg002,
   realFvg003,
@@ -84,6 +128,11 @@ const registered: unknown[] = [
   realFvg008,
   realFvg009,
   realFvg010,
+  realFvg011,
+  realFvg012,
+  realFvg013,
+  realFvg014,
+  realFvg015,
   realGuided001,
   realGuided002,
   realGuided003,
@@ -94,6 +143,11 @@ const registered: unknown[] = [
   realGuided008,
   realGuided009,
   realGuided010,
+  realGuided011,
+  realGuided012,
+  realGuided013,
+  realGuided014,
+  realGuided015,
   realLiq001,
   realLiq002,
   realLiq003,
@@ -104,6 +158,11 @@ const registered: unknown[] = [
   realLiq008,
   realLiq009,
   realLiq010,
+  realLiq011,
+  realLiq012,
+  realLiq013,
+  realLiq014,
+  realLiq015,
   realMss001,
   realMss002,
   realMss003,
@@ -114,6 +173,25 @@ const registered: unknown[] = [
   realMss008,
   realMss009,
   realMss010,
+  realMss011,
+  realMss012,
+  realMss013,
+  realMss014,
+  realMss015,
+  realOb001,
+  realOb002,
+  realOb003,
+  realOb004,
+  realOb005,
+  realOb006,
+  realOb007,
+  realOb008,
+  realTliq001,
+  realTliq002,
+  realTliq003,
+  realTliq004,
+  realTliq005,
+  realTliq006,
 ];
 
 export type RealScenario = Exercise & { provenance: ScenarioProvenance };

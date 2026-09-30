@@ -1,0 +1,459 @@
+{
+  "exercise_id": "real-guided-012",
+  "instrument": "NQ (real data)",
+  "timeframe": "5m",
+  "difficulty": 1,
+  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] Bias is unclear, so there is no trade.",
+  "concept": "GuidedEntry",
+  "answer_type": "guided",
+  "answerLabel": "a valid trade setup",
+  "prompt": "Work through the setup: bias, entry, stop, and target.",
+  "answer": {
+    "bias": "unclear",
+    "entry": null,
+    "stop": null,
+    "target": null,
+    "min_rr": 2.0,
+    "is_valid_setup": false,
+    "step_explanations": {
+      "bias": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] No Market Structure Shift happens inside the session: no candle body closes beyond the most recent swing against the trend. Bias is unclear.",
+      "entry": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] With no clear bias there's no direction to look for an entry in.",
+      "stop": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] No entry means no stop.",
+      "target": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] No entry means no target."
+    },
+    "overall_explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] Bias is unclear, so there is no trade."
+  },
+  "provenance": {
+    "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
+    "symbol": "NQ",
+    "date_range": {
+      "start": "2023-10-20T07:00:00-04:00",
+      "end": "2023-10-20T10:55:00-04:00"
+    },
+    "trading_date": "2023-10-20",
+    "session": "ny_am",
+    "context_start": "07:00",
+    "timeframe": "5m",
+    "detection_rule": "guided_setup",
+    "curriculum_versions": {
+      "guided_entry": 2,
+      "mss": 1,
+      "fvg": 1,
+      "fvg_respect": 1,
+      "order_block": 1,
+      "liquidity": 1,
+      "detection_parameters": 1
+    },
+    "candidate_id": "setup-no_shift-20231020",
+    "detection_params": {
+      "rules": [
+        "fvg",
+        "equal_highs",
+        "equal_lows",
+        "mss",
+        "order_block",
+        "dealing_range",
+        "ny_am"
+      ],
+      "swing_lookback": 2,
+      "equal_tolerance_pct": 0.05,
+      "fvg_min_range_mult": 0.25,
+      "range_window": 100,
+      "ob_displacement_mult": 2.0,
+      "ob_max_leg": 3
+    },
+    "detection_notes": "no Market Structure Shift breaks inside the session",
+    "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
+    "built_at": "2026-09-30T18:52:15+00:00",
+    "human_reviewed": false,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "review_notes": null
+  },
+  "candles": [
+    {
+      "time": "07:00",
+      "timestamp": "2023-10-20T07:00:00-04:00",
+      "open": 16985.5,
+      "high": 16988.25,
+      "low": 16975.25,
+      "close": 16978.75
+    },
+    {
+      "time": "07:05",
+      "timestamp": "2023-10-20T07:05:00-04:00",
+      "open": 16979.0,
+      "high": 16999.5,
+      "low": 16978.25,
+      "close": 16996.25
+    },
+    {
+      "time": "07:10",
+      "timestamp": "2023-10-20T07:10:00-04:00",
+      "open": 16996.0,
+      "high": 17008.5,
+      "low": 16994.75,
+      "close": 17003.25
+    },
+    {
+      "time": "07:15",
+      "timestamp": "2023-10-20T07:15:00-04:00",
+      "open": 17003.25,
+      "high": 17008.0,
+      "low": 17000.5,
+      "close": 17005.25
+    },
+    {
+      "time": "07:20",
+      "timestamp": "2023-10-20T07:20:00-04:00",
+      "open": 17004.75,
+      "high": 17007.25,
+      "low": 16998.25,
+      "close": 17004.0
+    },
+    {
+      "time": "07:25",
+      "timestamp": "2023-10-20T07:25:00-04:00",
+      "open": 17004.0,
+      "high": 17006.0,
+      "low": 16995.25,
+      "close": 17001.0
+    },
+    {
+      "time": "07:30",
+      "timestamp": "2023-10-20T07:30:00-04:00",
+      "open": 17002.0,
+      "high": 17002.75,
+      "low": 16997.25,
+      "close": 17000.0
+    },
+    {
+      "time": "07:35",
+      "timestamp": "2023-10-20T07:35:00-04:00",
+      "open": 17000.0,
+      "high": 17004.0,
+      "low": 16996.0,
+      "close": 17002.0
+    },
+    {
+      "time": "07:40",
+      "timestamp": "2023-10-20T07:40:00-04:00",
+      "open": 17001.75,
+      "high": 17004.5,
+      "low": 16988.25,
+      "close": 16995.0
+    },
+    {
+      "time": "07:45",
+      "timestamp": "2023-10-20T07:45:00-04:00",
+      "open": 16995.0,
+      "high": 17004.25,
+      "low": 16992.25,
+      "close": 16997.75
+    },
+    {
+      "time": "07:50",
+      "timestamp": "2023-10-20T07:50:00-04:00",
+      "open": 16997.5,
+      "high": 17010.75,
+      "low": 16993.75,
+      "close": 17010.5
+    },
+    {
+      "time": "07:55",
+      "timestamp": "2023-10-20T07:55:00-04:00",
+      "open": 17010.5,
+      "high": 17021.5,
+      "low": 17009.75,
+      "close": 17014.5
+    },
+    {
+      "time": "08:00",
+      "timestamp": "2023-10-20T08:00:00-04:00",
+      "open": 17014.0,
+      "high": 17016.25,
+      "low": 17000.0,
+      "close": 17003.25
+    },
+    {
+      "time": "08:05",
+      "timestamp": "2023-10-20T08:05:00-04:00",
+      "open": 17004.0,
+      "high": 17004.0,
+      "low": 16993.75,
+      "close": 16996.75
+    },
+    {
+      "time": "08:10",
+      "timestamp": "2023-10-20T08:10:00-04:00",
+      "open": 16996.75,
+      "high": 16999.75,
+      "low": 16982.75,
+      "close": 16985.0
+    },
+    {
+      "time": "08:15",
+      "timestamp": "2023-10-20T08:15:00-04:00",
+      "open": 16984.75,
+      "high": 16986.25,
+      "low": 16976.25,
+      "close": 16979.75
+    },
+    {
+      "time": "08:20",
+      "timestamp": "2023-10-20T08:20:00-04:00",
+      "open": 16979.25,
+      "high": 16981.75,
+      "low": 16963.25,
+      "close": 16963.25
+    },
+    {
+      "time": "08:25",
+      "timestamp": "2023-10-20T08:25:00-04:00",
+      "open": 16963.75,
+      "high": 16969.0,
+      "low": 16955.5,
+      "close": 16961.75
+    },
+    {
+      "time": "08:30",
+      "timestamp": "2023-10-20T08:30:00-04:00",
+      "open": 16962.0,
+      "high": 16977.0,
+      "low": 16961.5,
+      "close": 16973.5
+    },
+    {
+      "time": "08:35",
+      "timestamp": "2023-10-20T08:35:00-04:00",
+      "open": 16973.75,
+      "high": 16980.25,
+      "low": 16967.75,
+      "close": 16977.0
+    },
+    {
+      "time": "08:40",
+      "timestamp": "2023-10-20T08:40:00-04:00",
+      "open": 16977.25,
+      "high": 16984.75,
+      "low": 16974.0,
+      "close": 16975.0
+    },
+    {
+      "time": "08:45",
+      "timestamp": "2023-10-20T08:45:00-04:00",
+      "open": 16975.0,
+      "high": 16983.25,
+      "low": 16973.25,
+      "close": 16977.0
+    },
+    {
+      "time": "08:50",
+      "timestamp": "2023-10-20T08:50:00-04:00",
+      "open": 16976.5,
+      "high": 16979.75,
+      "low": 16971.0,
+      "close": 16973.0
+    },
+    {
+      "time": "08:55",
+      "timestamp": "2023-10-20T08:55:00-04:00",
+      "open": 16973.25,
+      "high": 16983.75,
+      "low": 16970.75,
+      "close": 16977.25
+    },
+    {
+      "time": "09:00",
+      "timestamp": "2023-10-20T09:00:00-04:00",
+      "open": 16977.25,
+      "high": 16987.5,
+      "low": 16974.25,
+      "close": 16981.75
+    },
+    {
+      "time": "09:05",
+      "timestamp": "2023-10-20T09:05:00-04:00",
+      "open": 16982.0,
+      "high": 16986.0,
+      "low": 16976.5,
+      "close": 16981.5
+    },
+    {
+      "time": "09:10",
+      "timestamp": "2023-10-20T09:10:00-04:00",
+      "open": 16981.5,
+      "high": 16988.0,
+      "low": 16978.0,
+      "close": 16985.0
+    },
+    {
+      "time": "09:15",
+      "timestamp": "2023-10-20T09:15:00-04:00",
+      "open": 16985.0,
+      "high": 16997.0,
+      "low": 16982.25,
+      "close": 16994.75
+    },
+    {
+      "time": "09:20",
+      "timestamp": "2023-10-20T09:20:00-04:00",
+      "open": 16994.25,
+      "high": 17004.5,
+      "low": 16988.5,
+      "close": 16998.5
+    },
+    {
+      "time": "09:25",
+      "timestamp": "2023-10-20T09:25:00-04:00",
+      "open": 16999.75,
+      "high": 17023.5,
+      "low": 16987.75,
+      "close": 17013.75
+    },
+    {
+      "time": "09:30",
+      "timestamp": "2023-10-20T09:30:00-04:00",
+      "open": 17013.5,
+      "high": 17014.75,
+      "low": 16961.75,
+      "close": 16972.0
+    },
+    {
+      "time": "09:35",
+      "timestamp": "2023-10-20T09:35:00-04:00",
+      "open": 16972.0,
+      "high": 17006.75,
+      "low": 16963.5,
+      "close": 17001.25
+    },
+    {
+      "time": "09:40",
+      "timestamp": "2023-10-20T09:40:00-04:00",
+      "open": 17002.0,
+      "high": 17036.5,
+      "low": 16998.25,
+      "close": 17010.0
+    },
+    {
+      "time": "09:45",
+      "timestamp": "2023-10-20T09:45:00-04:00",
+      "open": 17010.5,
+      "high": 17037.0,
+      "low": 16995.75,
+      "close": 17020.75
+    },
+    {
+      "time": "09:50",
+      "timestamp": "2023-10-20T09:50:00-04:00",
+      "open": 17020.25,
+      "high": 17022.25,
+      "low": 16982.5,
+      "close": 17009.0
+    },
+    {
+      "time": "09:55",
+      "timestamp": "2023-10-20T09:55:00-04:00",
+      "open": 17008.75,
+      "high": 17019.75,
+      "low": 16988.25,
+      "close": 16988.5
+    },
+    {
+      "time": "10:00",
+      "timestamp": "2023-10-20T10:00:00-04:00",
+      "open": 16988.25,
+      "high": 17012.25,
+      "low": 16975.75,
+      "close": 16994.0
+    },
+    {
+      "time": "10:05",
+      "timestamp": "2023-10-20T10:05:00-04:00",
+      "open": 16993.25,
+      "high": 17006.75,
+      "low": 16964.75,
+      "close": 16978.25
+    },
+    {
+      "time": "10:10",
+      "timestamp": "2023-10-20T10:10:00-04:00",
+      "open": 16978.25,
+      "high": 16982.5,
+      "low": 16933.25,
+      "close": 16934.25
+    },
+    {
+      "time": "10:15",
+      "timestamp": "2023-10-20T10:15:00-04:00",
+      "open": 16934.5,
+      "high": 16964.0,
+      "low": 16930.5,
+      "close": 16947.75
+    },
+    {
+      "time": "10:20",
+      "timestamp": "2023-10-20T10:20:00-04:00",
+      "open": 16947.5,
+      "high": 16950.75,
+      "low": 16923.75,
+      "close": 16931.75
+    },
+    {
+      "time": "10:25",
+      "timestamp": "2023-10-20T10:25:00-04:00",
+      "open": 16931.5,
+      "high": 16934.5,
+      "low": 16911.25,
+      "close": 16916.75
+    },
+    {
+      "time": "10:30",
+      "timestamp": "2023-10-20T10:30:00-04:00",
+      "open": 16916.25,
+      "high": 16924.5,
+      "low": 16889.0,
+      "close": 16921.25
+    },
+    {
+      "time": "10:35",
+      "timestamp": "2023-10-20T10:35:00-04:00",
+      "open": 16921.5,
+      "high": 16926.5,
+      "low": 16890.5,
+      "close": 16892.5
+    },
+    {
+      "time": "10:40",
+      "timestamp": "2023-10-20T10:40:00-04:00",
+      "open": 16892.25,
+      "high": 16900.25,
+      "low": 16879.5,
+      "close": 16881.25
+    },
+    {
+      "time": "10:45",
+      "timestamp": "2023-10-20T10:45:00-04:00",
+      "open": 16881.0,
+      "high": 16887.5,
+      "low": 16866.25,
+      "close": 16882.0
+    },
+    {
+      "time": "10:50",
+      "timestamp": "2023-10-20T10:50:00-04:00",
+      "open": 16882.0,
+      "high": 16883.5,
+      "low": 16853.5,
+      "close": 16855.5
+    },
+    {
+      "time": "10:55",
+      "timestamp": "2023-10-20T10:55:00-04:00",
+      "open": 16855.75,
+      "high": 16856.5,
+      "low": 16833.0,
+      "close": 16833.75
+    }
+  ]
+}

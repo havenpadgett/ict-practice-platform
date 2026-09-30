@@ -3,7 +3,7 @@
   "instrument": "NQ (real data)",
   "timeframe": "5m",
   "difficulty": 3,
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] Every step lines up, but the nearest buy-side liquidity is too close: about 1.6:1, below 2:1. No trade.",
+  "explanation": "No trade. The direction, entry, stop, and target are valid, but the potential reward is too small compared with the risk. Wait for a setup with better risk-to-reward.",
   "concept": "GuidedEntry",
   "answer_type": "guided",
   "answerLabel": "a valid trade setup",
@@ -23,18 +23,18 @@
     "target": {
       "anchor": 22932.75,
       "price_low": 22919.5,
-      "price_high": 22946.0,
+      "price_high": 22946,
       "minor_margin": 13.25
     },
-    "min_rr": 2.0,
+    "min_rr": 2,
     "is_valid_setup": false,
     "step_explanations": {
-      "bias": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] Price swept the previous swing low at 22,854 (to 22,822.75), taking the sell-side liquidity there, then a candle body closed above 22,897: a bullish Market Structure Shift. Bias is bullish.",
-      "entry": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] The move that broke structure left a Fair Value Gap between 22,857.25 and 22,869.75. Entry sits at its middle, about 22,863.5.",
-      "stop": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] The idea is wrong if price goes back below the setup low at 22,822.75. The stop sits just beyond it, about 22,820.",
-      "target": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] The nearest untaken buy-side liquidity is the swing high at 22,932.75."
+      "bias": "Bullish bias. Price swept sell-side liquidity below the lows and then reversed upward, signaling bullish intent.",
+      "entry": "The marked level is the correct area to look for a long entry after the bullish confirmation.",
+      "stop": "Place the stop below the swept low. A move back below this low would invalidate the bullish setup.",
+      "target": "Target the buy-side liquidity resting above the previous highs at the marked level."
     },
-    "overall_explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] Every step lines up, but the nearest buy-side liquidity is too close: about 1.6:1, below 2:1. No trade."
+    "overall_explanation": "No trade. The direction, entry, stop, and target are valid, but the potential reward is too small compared with the risk. Wait for a setup with better risk-to-reward."
   },
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
@@ -72,15 +72,15 @@
       "equal_tolerance_pct": 0.05,
       "fvg_min_range_mult": 0.25,
       "range_window": 100,
-      "ob_displacement_mult": 2.0,
+      "ob_displacement_mult": 2,
       "ob_max_leg": 3
     },
     "detection_notes": "best R:R from the entry is 1.59, below 2",
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-25T03:37:28+00:00",
-    "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "human_reviewed": true,
+    "reviewed_by": "lpshaven@gmail.com",
+    "reviewed_at": "2026-09-30",
     "review_notes": null
   },
   "candles": [
@@ -95,32 +95,32 @@
     {
       "time": "07:05",
       "timestamp": "2024-12-12T07:05:00-05:00",
-      "open": 22917.0,
-      "high": 22927.0,
-      "low": 22916.0,
-      "close": 22924.0
+      "open": 22917,
+      "high": 22927,
+      "low": 22916,
+      "close": 22924
     },
     {
       "time": "07:10",
       "timestamp": "2024-12-12T07:10:00-05:00",
       "open": 22923.5,
-      "high": 22930.0,
+      "high": 22930,
       "low": 22922.75,
-      "close": 22925.0
+      "close": 22925
     },
     {
       "time": "07:15",
       "timestamp": "2024-12-12T07:15:00-05:00",
-      "open": 22925.0,
-      "high": 22926.0,
+      "open": 22925,
+      "high": 22926,
       "low": 22918.75,
-      "close": 22923.0
+      "close": 22923
     },
     {
       "time": "07:20",
       "timestamp": "2024-12-12T07:20:00-05:00",
       "open": 22923.5,
-      "high": 22925.0,
+      "high": 22925,
       "low": 22920.25,
       "close": 22922.5
     },
@@ -143,10 +143,10 @@
     {
       "time": "07:35",
       "timestamp": "2024-12-12T07:35:00-05:00",
-      "open": 22909.0,
-      "high": 22912.0,
+      "open": 22909,
+      "high": 22912,
       "low": 22902.25,
-      "close": 22910.0
+      "close": 22910
     },
     {
       "time": "07:40",
@@ -160,7 +160,7 @@
       "time": "07:45",
       "timestamp": "2024-12-12T07:45:00-05:00",
       "open": 22900.75,
-      "high": 22908.0,
+      "high": 22908,
       "low": 22899.25,
       "close": 22905.25
     },
@@ -169,7 +169,7 @@
       "timestamp": "2024-12-12T07:50:00-05:00",
       "open": 22904.75,
       "high": 22905.75,
-      "low": 22891.0,
+      "low": 22891,
       "close": 22894.5
     },
     {
@@ -193,24 +193,24 @@
       "timestamp": "2024-12-12T08:05:00-05:00",
       "open": 22887.25,
       "high": 22907.5,
-      "low": 22887.0,
-      "close": 22905.0
+      "low": 22887,
+      "close": 22905
     },
     {
       "time": "08:10",
       "timestamp": "2024-12-12T08:10:00-05:00",
       "open": 22904.5,
-      "high": 22912.0,
+      "high": 22912,
       "low": 22901.25,
       "close": 22909.25
     },
     {
       "time": "08:15",
       "timestamp": "2024-12-12T08:15:00-05:00",
-      "open": 22909.0,
-      "high": 22915.0,
-      "low": 22907.0,
-      "close": 22912.0
+      "open": 22909,
+      "high": 22915,
+      "low": 22907,
+      "close": 22912
     },
     {
       "time": "08:20",
@@ -225,13 +225,13 @@
       "timestamp": "2024-12-12T08:25:00-05:00",
       "open": 22913.25,
       "high": 22915.25,
-      "low": 22903.0,
+      "low": 22903,
       "close": 22909.75
     },
     {
       "time": "08:30",
       "timestamp": "2024-12-12T08:30:00-05:00",
-      "open": 22908.0,
+      "open": 22908,
       "high": 22932.75,
       "low": 22875.25,
       "close": 22876.75
@@ -249,22 +249,22 @@
       "timestamp": "2024-12-12T08:40:00-05:00",
       "open": 22868.75,
       "high": 22891.25,
-      "low": 22860.0,
+      "low": 22860,
       "close": 22886.25
     },
     {
       "time": "08:45",
       "timestamp": "2024-12-12T08:45:00-05:00",
       "open": 22886.5,
-      "high": 22894.0,
+      "high": 22894,
       "low": 22877.25,
       "close": 22880.25
     },
     {
       "time": "08:50",
       "timestamp": "2024-12-12T08:50:00-05:00",
-      "open": 22880.0,
-      "high": 22885.0,
+      "open": 22880,
+      "high": 22885,
       "low": 22869.75,
       "close": 22878.25
     },
@@ -274,7 +274,7 @@
       "open": 22878.25,
       "high": 22882.75,
       "low": 22864.75,
-      "close": 22882.0
+      "close": 22882
     },
     {
       "time": "09:00",
@@ -289,7 +289,7 @@
       "timestamp": "2024-12-12T09:05:00-05:00",
       "open": 22880.5,
       "high": 22897.25,
-      "low": 22878.0,
+      "low": 22878,
       "close": 22892.25
     },
     {
@@ -303,9 +303,9 @@
     {
       "time": "09:15",
       "timestamp": "2024-12-12T09:15:00-05:00",
-      "open": 22878.0,
-      "high": 22888.0,
-      "low": 22871.0,
+      "open": 22878,
+      "high": 22888,
+      "low": 22871,
       "close": 22880.75
     },
     {
@@ -320,7 +320,7 @@
       "time": "09:25",
       "timestamp": "2024-12-12T09:25:00-05:00",
       "open": 22882.25,
-      "high": 22897.0,
+      "high": 22897,
       "low": 22878.75,
       "close": 22891.5
     },
@@ -329,7 +329,7 @@
       "timestamp": "2024-12-12T09:30:00-05:00",
       "open": 22891.75,
       "high": 22894.75,
-      "low": 22854.0,
+      "low": 22854,
       "close": 22875.25
     },
     {
@@ -337,22 +337,22 @@
       "timestamp": "2024-12-12T09:35:00-05:00",
       "open": 22875.25,
       "high": 22889.25,
-      "low": 22855.0,
+      "low": 22855,
       "close": 22881.25
     },
     {
       "time": "09:40",
       "timestamp": "2024-12-12T09:40:00-05:00",
-      "open": 22881.0,
+      "open": 22881,
       "high": 22890.25,
       "low": 22861.75,
-      "close": 22886.0
+      "close": 22886
     },
     {
       "time": "09:45",
       "timestamp": "2024-12-12T09:45:00-05:00",
       "open": 22885.5,
-      "high": 22887.0,
+      "high": 22887,
       "low": 22863.5,
       "close": 22868.75
     },
@@ -367,7 +367,7 @@
     {
       "time": "09:55",
       "timestamp": "2024-12-12T09:55:00-05:00",
-      "open": 22868.0,
+      "open": 22868,
       "high": 22886.25,
       "low": 22861.5,
       "close": 22880.5
@@ -401,8 +401,8 @@
       "timestamp": "2024-12-12T10:15:00-05:00",
       "open": 22847.5,
       "high": 22881.5,
-      "low": 22826.0,
-      "close": 22879.0
+      "low": 22826,
+      "close": 22879
     },
     {
       "time": "10:20",
@@ -415,9 +415,9 @@
     {
       "time": "10:25",
       "timestamp": "2024-12-12T10:25:00-05:00",
-      "open": 22893.0,
+      "open": 22893,
       "high": 22917.25,
-      "low": 22887.0,
+      "low": 22887,
       "close": 22905.5
     },
     {
@@ -426,7 +426,7 @@
       "open": 22905.5,
       "high": 22909.25,
       "low": 22887.5,
-      "close": 22889.0
+      "close": 22889
     },
     {
       "time": "10:35",
@@ -434,7 +434,7 @@
       "open": 22889.5,
       "high": 22921.25,
       "low": 22888.25,
-      "close": 22915.0
+      "close": 22915
     }
   ]
 }

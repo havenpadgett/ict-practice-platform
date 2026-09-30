@@ -21,7 +21,7 @@
     19,
     21
   ],
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bullish Fair Value Gap: the first candle's high and the third candle's low leave the range 22927.5-22942.5 untraded.",
+  "explanation": "This is a bullish Fair Value Gap. Price moved up quickly and left an imbalance in the highlighted area.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
     "symbol": "NQ",
@@ -56,9 +56,9 @@
     "detection_notes": "candle 1 high 22927.5 < candle 3 low 22942.5",
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-25T03:20:53+00:00",
-    "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "human_reviewed": true,
+    "reviewed_by": "lpshaven@gmail.com",
+    "reviewed_at": "2026-09-30",
     "review_notes": null
   },
   "candles": [
@@ -66,24 +66,24 @@
       "time": "09:30",
       "timestamp": "2024-12-26T09:30:00-05:00",
       "open": 22873.5,
-      "high": 22920.0,
-      "low": 22868.0,
+      "high": 22920,
+      "low": 22868,
       "close": 22895.5
     },
     {
       "time": "09:45",
       "timestamp": "2024-12-26T09:45:00-05:00",
       "open": 22895.25,
-      "high": 22904.0,
+      "high": 22904,
       "low": 22782.25,
       "close": 22869.75
     },
     {
       "time": "10:00",
       "timestamp": "2024-12-26T10:00:00-05:00",
-      "open": 22869.0,
+      "open": 22869,
       "high": 22892.5,
-      "low": 22840.0,
+      "low": 22840,
       "close": 22860.5
     },
     {
@@ -92,20 +92,20 @@
       "open": 22860.5,
       "high": 22904.75,
       "low": 22842.75,
-      "close": 22903.0
+      "close": 22903
     },
     {
       "time": "10:30",
       "timestamp": "2024-12-26T10:30:00-05:00",
-      "open": 22903.0,
-      "high": 22923.0,
+      "open": 22903,
+      "high": 22923,
       "low": 22885.25,
-      "close": 22887.0
+      "close": 22887
     },
     {
       "time": "10:45",
       "timestamp": "2024-12-26T10:45:00-05:00",
-      "open": 22887.0,
+      "open": 22887,
       "high": 22921.5,
       "low": 22880.25,
       "close": 22918.25
@@ -113,8 +113,8 @@
     {
       "time": "11:00",
       "timestamp": "2024-12-26T11:00:00-05:00",
-      "open": 22919.0,
-      "high": 22930.0,
+      "open": 22919,
+      "high": 22930,
       "low": 22905.5,
       "close": 22924.25
     },
@@ -129,7 +129,7 @@
     {
       "time": "11:30",
       "timestamp": "2024-12-26T11:30:00-05:00",
-      "open": 22904.0,
+      "open": 22904,
       "high": 22948.25,
       "low": 22901.25,
       "close": 22944.75
@@ -148,7 +148,7 @@
       "open": 22951.75,
       "high": 22969.25,
       "low": 22944.5,
-      "close": 22967.0
+      "close": 22967
     },
     {
       "time": "12:15",
@@ -161,8 +161,8 @@
     {
       "time": "12:30",
       "timestamp": "2024-12-26T12:30:00-05:00",
-      "open": 22939.0,
-      "high": 22965.0,
+      "open": 22939,
+      "high": 22965,
       "low": 22935.25,
       "close": 22941.25
     },
@@ -194,7 +194,7 @@
       "time": "13:30",
       "timestamp": "2024-12-26T13:30:00-05:00",
       "open": 22948.25,
-      "high": 22953.0,
+      "high": 22953,
       "low": 22906.75,
       "close": 22918.75
     },
@@ -204,7 +204,7 @@
       "open": 22919.25,
       "high": 22945.75,
       "low": 22917.5,
-      "close": 22929.0
+      "close": 22929
     },
     {
       "time": "14:00",
@@ -212,7 +212,7 @@
       "open": 22928.75,
       "high": 22934.75,
       "low": 22906.25,
-      "close": 22916.0
+      "close": 22916
     },
     {
       "time": "14:15",
@@ -225,7 +225,7 @@
     {
       "time": "14:30",
       "timestamp": "2024-12-26T14:30:00-05:00",
-      "open": 22920.0,
+      "open": 22920,
       "high": 22949.25,
       "low": 22914.25,
       "close": 22942.5
@@ -244,7 +244,7 @@
       "open": 22956.5,
       "high": 22969.75,
       "low": 22940.5,
-      "close": 22942.0
+      "close": 22942
     },
     {
       "time": "15:15",
