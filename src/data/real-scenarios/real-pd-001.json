@@ -1,0 +1,228 @@
+{
+  "exercise_id": "real-pd-001",
+  "concept": "PremiumDiscount",
+  "answer_type": "choice",
+  "answerLabel": "Premium vs. Discount",
+  "prompt": "The dashed lines mark the dealing range's swing high and swing low. Is current price (the last candle's close) in premium or discount?",
+  "options": [
+    {
+      "value": "premium",
+      "label": "Premium"
+    },
+    {
+      "value": "discount",
+      "label": "Discount"
+    },
+    {
+      "value": "equilibrium",
+      "label": "At equilibrium (neither)"
+    }
+  ],
+  "instrument": "NQ (real data)",
+  "timeframe": "5m",
+  "difficulty": 2,
+  "answer": {
+    "correct_choice": "discount",
+    "dealing_range": {
+      "high": 15063.75,
+      "low": 14951.25,
+      "high_index": 13,
+      "low_index": 5
+    }
+  },
+  "setup_span": [
+    0,
+    17
+  ],
+  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] bullish leg 14951.2-15063.8; last close 14973.2 at 20% of the range -> discount.",
+  "provenance": {
+    "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
+    "symbol": "NQ",
+    "date_range": {
+      "start": "2023-02-17T09:30:00-05:00",
+      "end": "2023-02-17T10:55:00-05:00"
+    },
+    "trading_date": "2023-02-17",
+    "session": "ny_am",
+    "context_start": null,
+    "timeframe": "5m",
+    "detection_rule": "dealing_range",
+    "curriculum_versions": {
+      "premium_discount": 1,
+      "mss": 2
+    },
+    "candidate_id": "dealing_range-discount-20230217T1055",
+    "detection_params": {
+      "rules": [
+        "fvg",
+        "ifvg",
+        "equal_highs",
+        "equal_lows",
+        "mss",
+        "order_block",
+        "dealing_range",
+        "ny_am"
+      ],
+      "swing_lookback": 2,
+      "equal_tolerance_pct": 0.05,
+      "fvg_min_range_mult": 0.25,
+      "range_window": 100,
+      "ob_displacement_mult": 2.0,
+      "ob_max_leg": 3,
+      "mss_min_swing_mult": 0.25
+    },
+    "detection_notes": "bullish leg 14951.2-15063.8; last close 14973.2 at 20% of the range -> discount",
+    "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
+    "built_at": "2026-09-30T19:37:23+00:00",
+    "human_reviewed": false,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "review_notes": null
+  },
+  "candles": [
+    {
+      "time": "09:30",
+      "timestamp": "2023-02-17T09:30:00-05:00",
+      "open": 15044.5,
+      "high": 15072.0,
+      "low": 15028.0,
+      "close": 15069.75
+    },
+    {
+      "time": "09:35",
+      "timestamp": "2023-02-17T09:35:00-05:00",
+      "open": 15070.0,
+      "high": 15078.75,
+      "low": 15016.0,
+      "close": 15016.75
+    },
+    {
+      "time": "09:40",
+      "timestamp": "2023-02-17T09:40:00-05:00",
+      "open": 15017.25,
+      "high": 15031.25,
+      "low": 15001.25,
+      "close": 15005.0
+    },
+    {
+      "time": "09:45",
+      "timestamp": "2023-02-17T09:45:00-05:00",
+      "open": 15005.5,
+      "high": 15005.5,
+      "low": 14967.0,
+      "close": 14972.25
+    },
+    {
+      "time": "09:50",
+      "timestamp": "2023-02-17T09:50:00-05:00",
+      "open": 14972.5,
+      "high": 14985.25,
+      "low": 14952.25,
+      "close": 14958.25
+    },
+    {
+      "time": "09:55",
+      "timestamp": "2023-02-17T09:55:00-05:00",
+      "open": 14958.25,
+      "high": 14985.25,
+      "low": 14951.25,
+      "close": 14984.5
+    },
+    {
+      "time": "10:00",
+      "timestamp": "2023-02-17T10:00:00-05:00",
+      "open": 14984.0,
+      "high": 15017.75,
+      "low": 14979.25,
+      "close": 15009.25
+    },
+    {
+      "time": "10:05",
+      "timestamp": "2023-02-17T10:05:00-05:00",
+      "open": 15008.75,
+      "high": 15013.0,
+      "low": 14986.0,
+      "close": 14993.0
+    },
+    {
+      "time": "10:10",
+      "timestamp": "2023-02-17T10:10:00-05:00",
+      "open": 14992.5,
+      "high": 15025.25,
+      "low": 14983.75,
+      "close": 15007.75
+    },
+    {
+      "time": "10:15",
+      "timestamp": "2023-02-17T10:15:00-05:00",
+      "open": 15007.5,
+      "high": 15048.5,
+      "low": 14995.5,
+      "close": 15040.5
+    },
+    {
+      "time": "10:20",
+      "timestamp": "2023-02-17T10:20:00-05:00",
+      "open": 15040.25,
+      "high": 15057.25,
+      "low": 15017.75,
+      "close": 15018.75
+    },
+    {
+      "time": "10:25",
+      "timestamp": "2023-02-17T10:25:00-05:00",
+      "open": 15018.5,
+      "high": 15027.75,
+      "low": 15003.0,
+      "close": 15007.25
+    },
+    {
+      "time": "10:30",
+      "timestamp": "2023-02-17T10:30:00-05:00",
+      "open": 15007.5,
+      "high": 15035.0,
+      "low": 15003.0,
+      "close": 15030.0
+    },
+    {
+      "time": "10:35",
+      "timestamp": "2023-02-17T10:35:00-05:00",
+      "open": 15029.25,
+      "high": 15063.75,
+      "low": 15014.75,
+      "close": 15023.5
+    },
+    {
+      "time": "10:40",
+      "timestamp": "2023-02-17T10:40:00-05:00",
+      "open": 15023.0,
+      "high": 15025.0,
+      "low": 14989.25,
+      "close": 14991.5
+    },
+    {
+      "time": "10:45",
+      "timestamp": "2023-02-17T10:45:00-05:00",
+      "open": 14991.0,
+      "high": 15004.75,
+      "low": 14977.75,
+      "close": 14993.5
+    },
+    {
+      "time": "10:50",
+      "timestamp": "2023-02-17T10:50:00-05:00",
+      "open": 14993.0,
+      "high": 14996.75,
+      "low": 14974.25,
+      "close": 14984.25
+    },
+    {
+      "time": "10:55",
+      "timestamp": "2023-02-17T10:55:00-05:00",
+      "open": 14984.5,
+      "high": 14993.25,
+      "low": 14970.25,
+      "close": 14973.25
+    }
+  ]
+}

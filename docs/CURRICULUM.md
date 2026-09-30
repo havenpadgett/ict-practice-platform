@@ -43,9 +43,29 @@ The workflow is in [CURRICULUM-REVIEW.md](CURRICULUM-REVIEW.md).
 **A Market Structure Shift** is when that sequence breaks against the prevailing direction — in an uptrend, price fails to make a new higher high and then breaks below the most recent higher low (mirrored for a downtrend: price fails to make a new lower low and then breaks above the most recent lower high).
 
 - **Confirmation:** a candle body closes beyond the swing point, not just a wick through it. Often accompanied by a strong displacement move, which frequently leaves an FVG.
-- **Weak or invalid:** only a wick through the level; a break of a minor internal swing rather than a structural one; an immediate reversal back through the level.
+- **Weak or invalid:** only a wick through the level; a break of a minor internal swing rather than a structural one (see **Minimum structure** below); an immediate reversal back through the level.
 - **Not an MSS:** a break in the same direction as the trend — that is continuation, not a shift.
 - **Terminology:** this project uses MSS. Do not introduce BOS or CHoCH terminology.
+
+### Minimum structure (AI-DRAFTED, 2026-09-30 — pending Haven's review)
+
+**The gap this closes:** `detect_mss` reads "higher high" / "higher low" as a strict price comparison between the two most recent lookback-2 fractal swings, with no minimum move. A fractal only needs to be higher than its two neighbours on each side, so a one- or two-point wiggle inside normal noise qualifies exactly the same as a genuine trend leg. `real-mss-007` (flagged ambiguous 2026-09-30) was exactly this: the bearish break itself was clean, but the "uptrend" it broke was a swing high +3.75 and a swing low +2.5 above the previous ones — 0.33x and 0.22x the session's median bar range, not a real higher high/higher low a trader would draw.
+
+**The requirement:** a swing only counts toward "higher high" / "higher low" (or the downtrend mirror) if it moved **at least 0.25× the trailing median bar range** beyond the previous swing of the same type. Below that, the pair doesn't establish or continue a trend, and no MSS is read from it. `scripts/detect.py --mss-min-swing-mult` (default 0.25, matching the FVG floor's use of the same multiple — see Detection Parameters below). Nothing else about MSS changed: swing lookback 2, structure context, and body-close confirmation are the same.
+
+**Why 0.25× and not a bar-count or a strict-alternation rule:** three candidates were tested against the full Dec 2022–Dec 2025 dataset (5m NY AM +07:00 context, 15m RTH):
+
+| Candidate | What it requires | 5m NY AM MSS (baseline 435) | 15m RTH MSS (baseline 161) | Fixes `real-mss-007`? |
+|---|---|---|---|---|
+| **Minimum swing magnitude** (chosen) | each new same-type swing moves >= mult x median bar range past the last one | 340 @ 0.25x · 255 @ 0.5x · 166 @ 1.0x | 104 @ 0.25x · 71 @ 0.5x · 34 @ 1.0x | **Yes**, already at 0.25x (0.33x/0.22x both below) |
+| Minimum bars between swings | consecutive same-type swings >= N bars apart, closer ones collapse to the more extreme | 435 @ N=3 · 399 @ N=5 · 260 @ N=8 | 161 @ N=3 · 110 @ N=5 · 41 @ N=8 | Only at N>=5 (≈25 min on 5m, 75 min on 15m — the same bar range varies too much by volatility to fix at one N) |
+| Prevailing-trend sequence (strict alternation: highs and lows must alternate in time, collapsing repeats to the more extreme) | 391 | 128 | **No** — `real-mss-007`'s swings already alternate; the problem is size, not order |
+
+Minimum swing magnitude is the only one of the three that actually fixes the case it was written for, at the mildest threshold tested. Min-bars needs a threshold well past what fixes the flagged case, and — like the 10-point FVG floor and 15-point equal-highs tolerance superseded in Detection Parameters below — a fixed bar count doesn't scale with volatility or timeframe (5 bars is 25 minutes on 5m data and 75 minutes on 15m). Alternation is orthogonal to the actual problem: `real-mss-007`'s swings never had an ordering issue, only a magnitude one. 0.25x reuses the FVG minimum's exact multiple and reasoning (below that, the move isn't legibly different from noise), so MSS, FVG, and Order Blocks now share one scale-with-volatility idiom instead of three.
+
+**Scope:** this requirement changes how `detect_mss` reads "higher high" / "higher low" only. It does not change the underlying lookback-2 fractal swing points themselves — Order Blocks' structure break and the dealing range's swings (Premium and Discount, below) still read the raw fractal list, unfiltered by this rule.
+
+**Existing real scenarios:** re-run against the tightened rule, 6 of the 15 `real-mss-*` scenarios built before 2026-09-30 no longer qualify (`real-mss-004`, `-007`, `-008`, `-009`, `-011`, `-012` — see the Ambiguous Log in docs/SCENARIO-VALIDATION.md for each one's specific swing move). They were flagged `review_status: "ambiguous"` and pulled from practice rather than deleted, pending Haven's confirmation.
 
 **Structure context on session charts (AI-DRAFTED, 2026-09-24 — pending Haven's review).** When a chart covers only the NY AM session (9:30–11:00 ET), the trend and swing points are read from **07:00 ET** onward. The break that confirms the MSS must still happen inside the session. Real NY AM scenarios therefore show the 07:00–9:30 bars as context. Nothing else changed: swing lookback 2 and the body-close confirmation are the same.
 
@@ -98,6 +118,27 @@ Swing highs (lows) count as equal when they are within **0.05% of the first touc
 | 0.12% | 301 / 255 (0.76) | 491 / 458 (1.29) |
 
 > Superseded (2026-09-24, same day): FVG minimum 10 points on 5m and equal tolerance 15 points (both HAVEN-VALIDATED from the Nov 2025 slice). An interim adaptive version (0.2×, 0.06%) calibrated to reproduce those point values in November 2025 was never committed.
+
+## Detection thresholds by difficulty tier
+
+**Provenance:** AI-DRAFTED (2026-09-30) — chosen by Claude under Haven's delegated authority; pending Haven's review.
+
+**Kept as a separate section on purpose:** this describes a difficulty-3-only detection pass layered on top of the FVG/Equal-highs-lows/Order-Blocks defaults above. It doesn't change what those defaults are or how existing difficulty-1/2 content was calibrated, so it's versioned separately from Detection Parameters (real data) — editing this section re-reviews difficulty-3 relaxed-profile content only, not every piece of real content those other defaults back.
+
+The multiples above are calibrated for **legibility** — a beginner has to be able to see the setup — which is a difficulty-1/2 concern. A difficulty-3 exercise is supposed to be hard to read: a real, valid setup sitting close to the floor of what still counts. Rather than lower the multiples project-wide (which would let difficulty-1/2 content drift toward noise too — the exact failure the Minimum structure section above and the original FVG/tolerance calibration were both written to prevent), `scripts/detect.py`'s CLI flags support a **difficulty-3-only relaxed profile**, run as a separate detection pass whose candidates are only ever built with `--difficulty 3`:
+
+| Parameter | Default (all tiers) | Relaxed (difficulty 3 only) |
+|---|---|---|
+| `--fvg-min-range-mult` | 0.25 | 0.15 |
+| `--equal-tolerance-pct` | 0.05% | 0.12% (the widest value tested in the table above) |
+| `--ob-displacement-mult` | 2.0 | 1.5 (the floor tested in Order Blocks, below) |
+| `--mss-min-swing-mult` | 0.25 | unchanged — not part of this profile |
+
+**The defaults in `detect.py` do not change** — a fresh `python3 scripts/detect.py <clean>` with no flags still uses 0.25 / 0.05% / 2.0, so every difficulty-1/2 real scenario and the main candidates files (`data/clean/nq_nyam_ctx.5m.candidates.json`, `nq_rth_full.15m.candidates.json`) are untouched. The relaxed profile is only ever invoked explicitly, into a separate candidates file, for a difficulty-3 batch.
+
+**Generating a batch means expecting rejections.** `build_scenario.py` still enforces the PRD's one-valid-answer rule — no other candidate of the same rule in the window, and (for FVG) no other visible gap at or above `--visible-gap-mult` (0.1× by default) anywhere in frame. At 0.15× FVG floor, almost every full-session window has a second gap somewhere between 0.1× and 0.15× that now counts as "visible" without being the target candidate — that's the mechanism, not a bug. A first batch attempt (22 relaxed FVG candidates on 5m NY AM, 16 on 15m RTH, one build attempt each, no retry) built **1 of 38**. A broader sweep across the full relaxed FVG pool (not spread-by-date, since spread sampling kept hitting the same failure) found enough clean windows to round the batch out. Equal highs/lows and Order Blocks rejected far less often at these settings (Equal highs/lows: 3/6 across both timeframes in the spread sample; Order Blocks: 5/7) since their ambiguity check only looks for *another candidate of the same rule*, not a second near-miss anywhere in frame. Across every rule and both timeframes, the first representative sweep built 12 of 54 attempts (78% rejected) — a non-zero, occasionally very high rejection rate is the expected behavior of this profile, not a sign it's broken.
+
+**First difficulty-3 batch** (2026-09-30, awaiting review): `real-fvg-016`–`021` (6), `real-liq-016`–`021` (6), `real-ob-009`–`013` (5) — 17 scenarios, all `difficulty: 3`, `provenance.detection_params` recording the relaxed multiples used.
 
 ## Fair Value Gap — Respected vs. Disrespected
 

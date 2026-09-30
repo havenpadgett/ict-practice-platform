@@ -50,6 +50,19 @@ export function ReviewChart({ exercise }: { exercise: Exercise }) {
       />
     );
   }
+  if (exercise.answer_type === "choice") {
+    const a = exercise.answer;
+    return (
+      <CandlestickChart
+        answerType="choice"
+        candles={exercise.candles}
+        interactive={false}
+        fvgZone={a.fvg_zone ?? null}
+        dealingRange={a.dealing_range ?? null}
+        showEquilibrium={true}
+      />
+    );
+  }
   if (exercise.answer_type === "free") {
     // Internal review only: the whole session, with the ideal levels.
     const a = exercise.answer;
@@ -72,5 +85,5 @@ export function ReviewChart({ exercise }: { exercise: Exercise }) {
       />
     );
   }
-  return <p className="text-sm text-muted">No chart preview for answer type {exercise.answer_type}.</p>;
+  return null;
 }

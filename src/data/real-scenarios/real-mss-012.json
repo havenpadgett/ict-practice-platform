@@ -59,7 +59,8 @@
     "human_reviewed": false,
     "reviewed_by": null,
     "reviewed_at": null,
-    "review_notes": null
+    "review_notes": "Auto-flagged 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, Market Structure Shift - Minimum structure; swing move >= 0.25x median bar range), the prior swing high only moved 0.20x median bar range beyond the previous swing high - too small to count as real structure (swing low moved 5.59x). Confirm whether the trend this MSS breaks was actually established.",
+    "review_status": "ambiguous"
   },
   "candles": [
     {

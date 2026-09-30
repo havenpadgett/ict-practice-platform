@@ -55,6 +55,29 @@ class FVG(unittest.TestCase):
         self.assertEqual(detect.detect_fvg(c, [1.0] * len(c)), [])
 
 
+class IFVG(unittest.TestCase):
+    def test_a_bullish_fvg_disrespected_by_a_body_close_is_an_ifvg(self):
+        # Bullish FVG at candles[0..2] (101-104), then a later candle's body
+        # closes below 101 - disrespected, now acting as resistance.
+        c = bars([(100, 101, 99, 100.5), (100.5, 110, 100.4, 109.5), (109.5, 112, 104, 111),
+                  (111, 111.5, 105, 108), (108, 108.5, 99, 99.5)])
+        found = detect.detect_ifvg(c, [0.0] * len(c))
+        self.assertEqual(len(found), 1)
+        f = found[0]
+        self.assertEqual((f["direction"], f["levels"]["price_low"], f["levels"]["price_high"], f["flip_index"]),
+                         ("bullish", 101, 104, 4))
+
+    def test_a_bullish_fvg_never_disrespected_is_not_an_ifvg(self):
+        c = bars([(100, 101, 99, 100.5), (100.5, 110, 100.4, 109.5), (109.5, 112, 104, 111),
+                  (111, 111.5, 105, 108), (108, 108.5, 104.5, 105)])
+        self.assertEqual(detect.detect_ifvg(c, [0.0] * len(c)), [])
+
+    def test_a_wick_beyond_the_boundary_without_a_body_close_does_not_flip_it(self):
+        c = bars([(100, 101, 99, 100.5), (100.5, 110, 100.4, 109.5), (109.5, 112, 104, 111),
+                  (111, 111.5, 105, 108), (108, 108.5, 98, 102)])
+        self.assertEqual(detect.detect_ifvg(c, [0.0] * len(c)), [])
+
+
 def uptrend_then(last):
     """Higher highs and higher lows (swing highs 104, 108; swing lows 101,
     105), followed by the `last` bars."""
@@ -83,6 +106,26 @@ class MSS(unittest.TestCase):
     def test_break_in_the_trend_direction_is_continuation_not_a_shift(self):
         c = uptrend_then([(106.8, 110, 106.6, 109.5)])  # closes above the 108 high
         self.assertEqual(self.run_mss(c), [])
+
+    def test_minimum_structure_rejects_a_two_bar_wiggle(self):
+        # Hand-picked swing indices (bypassing swing_highs/swing_lows, which
+        # aren't what's under test here): highs 101.00 @2 -> 101.05 @6
+        # (+0.05), lows 100.00 @4 -> 100.02 @7 (+0.02) - both "rising" by a
+        # few ticks, far below a 2.0-point typical bar range. Candle 10's
+        # body closes well below the tiny "higher low" at 100.02.
+        c = bars([
+            (100, 100.5, 99.5, 100), (100, 100.5, 99.8, 100.2), (100.2, 101.00, 100.0, 100.8),
+            (100.8, 100.9, 100.3, 100.5), (100.5, 100.6, 100.00, 100.3),
+            (100.3, 100.8, 100.1, 100.6), (100.6, 101.05, 100.4, 100.9), (100.9, 101.0, 100.02, 100.5),
+            (100.5, 100.8, 100.1, 100.6), (100.6, 100.8, 100.3, 100.7),
+            (100.7, 100.75, 99.0, 99.5),
+        ])
+        highs, lows = [2, 6], [4, 7]
+        med = [2.0] * len(c)  # typical bar range far bigger than the 0.05/0.02-point "higher high/low"
+        self.assertEqual(detect.detect_mss(c, highs, lows, 2, med, 0.25), [])
+        # The old, unfiltered rule (min_swing_mult=0, detect.py's pre-fix default) would have called this a shift.
+        found = detect.detect_mss(c, highs, lows, 2, med, 0.0)
+        self.assertEqual([(m["direction"], m["levels"]["price"]) for m in found], [("bearish", 100.02)])
 
 
 class EqualHighs(unittest.TestCase):

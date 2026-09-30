@@ -236,7 +236,7 @@
     "rule": "mss",
     "decision": "approved",
     "reason": null,
-    "note": null,
+    "note": "Superseded 2026-09-30: no longer qualifies under the tightened MSS minimum-structure rule - see the later ambiguous-log entry.",
     "reviewer": "lpshaven@gmail.com"
   },
   {
@@ -266,7 +266,7 @@
     "rule": "mss",
     "decision": "ambiguous",
     "reason": null,
-    "note": "The bearish break is clear, but the prior bullish structure is not well established. Confirm that the highlighted level is a valid higher low before labeling this a bearish Market Structure Shift.",
+    "note": "The bearish break is clear, but the prior bullish structure is not well established. Confirm that the highlighted level is a valid higher low before labeling this a bearish Market Structure Shift. Auto-confirmed 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, swing move >= 0.25x median bar range), both the prior swing high (0.33x) and swing low (0.22x) move too little to count as real structure - this is exactly the two-bar-wiggle case the rule was added to close.",
     "reviewer": "lpshaven@gmail.com"
   },
   {
@@ -276,7 +276,7 @@
     "rule": "mss",
     "decision": "approved",
     "reason": null,
-    "note": null,
+    "note": "Superseded 2026-09-30: no longer qualifies under the tightened MSS minimum-structure rule - see the later ambiguous-log entry.",
     "reviewer": "lpshaven@gmail.com"
   },
   {
@@ -286,7 +286,7 @@
     "rule": "mss",
     "decision": "approved",
     "reason": null,
-    "note": null,
+    "note": "Superseded 2026-09-30: no longer qualifies under the tightened MSS minimum-structure rule - see the later ambiguous-log entry.",
     "reviewer": "lpshaven@gmail.com"
   },
   {
@@ -498,5 +498,55 @@
     "reason": null,
     "note": null,
     "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-mss-004",
+    "candidate_id": "mss-bearish-20240415T0930",
+    "rule": "mss",
+    "decision": "ambiguous",
+    "reason": null,
+    "reviewer": "system (tightened MSS rule)",
+    "note": "Auto-flagged 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, Market Structure Shift - Minimum structure; swing move >= 0.25x median bar range), the prior swing high only moved 0.17x median bar range beyond the previous swing high - too small to count as real structure (swing low moved 0.89x). Confirm whether the trend this MSS breaks was actually established."
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-mss-008",
+    "candidate_id": "mss-bearish-20230613T1415",
+    "rule": "mss",
+    "decision": "ambiguous",
+    "reason": null,
+    "reviewer": "system (tightened MSS rule)",
+    "note": "Auto-flagged 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, Market Structure Shift - Minimum structure; swing move >= 0.25x median bar range), the prior swing high only moved 0.05x median bar range beyond the previous swing high - too small to count as real structure (swing low moved 0.75x). Confirm whether the trend this MSS breaks was actually established."
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-mss-009",
+    "candidate_id": "mss-bullish-20240328T1445",
+    "rule": "mss",
+    "decision": "ambiguous",
+    "reason": null,
+    "reviewer": "system (tightened MSS rule)",
+    "note": "Auto-flagged 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, Market Structure Shift - Minimum structure; swing move >= 0.25x median bar range), the prior swing high only moved 0.33x median bar range beyond the previous swing high - too small to count as real structure (swing low moved 0.88x). Confirm whether the trend this MSS breaks was actually established."
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-mss-011",
+    "candidate_id": "mss-bearish-20230824T0930",
+    "rule": "mss",
+    "decision": "ambiguous",
+    "reason": null,
+    "reviewer": "system (tightened MSS rule)",
+    "note": "Auto-flagged 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, Market Structure Shift - Minimum structure; swing move >= 0.25x median bar range), the prior swing low only moved 0.15x median bar range beyond the previous swing low - too small to count as real structure (swing high moved 0.34x). Confirm whether the trend this MSS breaks was actually established."
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-mss-012",
+    "candidate_id": "mss-bearish-20241004T0950",
+    "rule": "mss",
+    "decision": "ambiguous",
+    "reason": null,
+    "reviewer": "system (tightened MSS rule)",
+    "note": "Auto-flagged 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, Market Structure Shift - Minimum structure; swing move >= 0.25x median bar range), the prior swing high only moved 0.20x median bar range beyond the previous swing high - too small to count as real structure (swing low moved 5.59x). Confirm whether the trend this MSS breaks was actually established."
   }
 ]

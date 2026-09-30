@@ -613,7 +613,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-04-15",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-ft-002",
@@ -624,7 +624,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-06-16",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-ft-003",
@@ -635,7 +635,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-02-21",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-ft-004",
@@ -646,7 +646,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-10-29",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-ft-005",
@@ -657,7 +657,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-09-25",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-ft-006",
@@ -668,7 +668,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-02-29",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-ft-007",
@@ -679,7 +679,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-01-12",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-ft-008",
@@ -690,7 +690,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-07-20",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-ft-009",
@@ -701,7 +701,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-06-05",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-ft-010",
@@ -712,7 +712,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-11-17",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-ft-011",
@@ -935,6 +935,72 @@
   "practice_ready": false
  },
  {
+  "exercise_id": "real-fvg-016",
+  "concept": "FVG",
+  "answer_type": "zone",
+  "difficulty": 3,
+  "answerLabel": "Fair Value Gap",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2022-12-30",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-fvg-017",
+  "concept": "FVG",
+  "answer_type": "zone",
+  "difficulty": 3,
+  "answerLabel": "Fair Value Gap",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2023-02-24",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-fvg-018",
+  "concept": "FVG",
+  "answer_type": "zone",
+  "difficulty": 3,
+  "answerLabel": "Fair Value Gap",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2023-03-13",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-fvg-019",
+  "concept": "FVG",
+  "answer_type": "zone",
+  "difficulty": 3,
+  "answerLabel": "Fair Value Gap",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2022-12-27",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-fvg-020",
+  "concept": "FVG",
+  "answer_type": "zone",
+  "difficulty": 3,
+  "answerLabel": "Fair Value Gap",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2023-01-30",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-fvg-021",
+  "concept": "FVG",
+  "answer_type": "zone",
+  "difficulty": 3,
+  "answerLabel": "Fair Value Gap",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2024-09-23",
+  "practice_ready": false
+ },
+ {
   "exercise_id": "real-guided-001",
   "concept": "GuidedEntry",
   "answer_type": "guided",
@@ -943,7 +1009,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-05-21",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-guided-002",
@@ -954,7 +1020,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-01-07",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-guided-003",
@@ -965,7 +1031,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-11-22",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-guided-004",
@@ -976,7 +1042,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-12-12",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-guided-005",
@@ -987,7 +1053,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-05-29",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-guided-006",
@@ -998,7 +1064,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-08-05",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-guided-007",
@@ -1009,7 +1075,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-02-03",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-guided-008",
@@ -1020,7 +1086,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-12-20",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-guided-009",
@@ -1031,7 +1097,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-08-11",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-guided-010",
@@ -1042,7 +1108,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-04-19",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-guided-011",
@@ -1097,6 +1163,83 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-03-04",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ifvg-001",
+  "concept": "IFVG",
+  "answer_type": "zone",
+  "difficulty": 2,
+  "answerLabel": "Inverse Fair Value Gap",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2023-04-26",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ifvg-002",
+  "concept": "IFVG",
+  "answer_type": "zone",
+  "difficulty": 2,
+  "answerLabel": "Inverse Fair Value Gap",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2024-03-22",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ifvg-003",
+  "concept": "IFVG",
+  "answer_type": "zone",
+  "difficulty": 2,
+  "answerLabel": "Inverse Fair Value Gap",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2024-12-23",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ifvg-004",
+  "concept": "IFVG",
+  "answer_type": "zone",
+  "difficulty": 2,
+  "answerLabel": "Inverse Fair Value Gap",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2025-07-16",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ifvg-005",
+  "concept": "IFVG",
+  "answer_type": "zone",
+  "difficulty": 2,
+  "answerLabel": "Inverse Fair Value Gap",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2023-11-17",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ifvg-006",
+  "concept": "IFVG",
+  "answer_type": "zone",
+  "difficulty": 2,
+  "answerLabel": "Inverse Fair Value Gap",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2024-09-25",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ifvg-007",
+  "concept": "IFVG",
+  "answer_type": "zone",
+  "difficulty": 2,
+  "answerLabel": "Inverse Fair Value Gap",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2025-05-14",
   "practice_ready": false
  },
  {
@@ -1265,6 +1408,72 @@
   "practice_ready": false
  },
  {
+  "exercise_id": "real-liq-016",
+  "concept": "Liquidity",
+  "answer_type": "level",
+  "difficulty": 3,
+  "answerLabel": "Buy-Side Liquidity",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2023-11-14",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-liq-017",
+  "concept": "Liquidity",
+  "answer_type": "level",
+  "difficulty": 3,
+  "answerLabel": "Buy-Side Liquidity",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2024-07-10",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-liq-018",
+  "concept": "Liquidity",
+  "answer_type": "level",
+  "difficulty": 3,
+  "answerLabel": "Sell-Side Liquidity",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2023-01-04",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-liq-019",
+  "concept": "Liquidity",
+  "answer_type": "level",
+  "difficulty": 3,
+  "answerLabel": "Sell-Side Liquidity",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2024-03-19",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-liq-020",
+  "concept": "Liquidity",
+  "answer_type": "level",
+  "difficulty": 3,
+  "answerLabel": "Sell-Side Liquidity",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2025-06-05",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-liq-021",
+  "concept": "Liquidity",
+  "answer_type": "level",
+  "difficulty": 3,
+  "answerLabel": "Buy-Side Liquidity",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2024-05-29",
+  "practice_ready": false
+ },
+ {
   "exercise_id": "real-mss-001",
   "concept": "MSS",
   "answer_type": "level",
@@ -1273,7 +1482,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-05-25",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-mss-002",
@@ -1284,7 +1493,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-09-11",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-mss-003",
@@ -1295,7 +1504,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-03-15",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-mss-004",
@@ -1306,7 +1515,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-04-15",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-mss-005",
@@ -1317,7 +1526,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-12-10",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-mss-006",
@@ -1328,7 +1537,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-03-27",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-mss-007",
@@ -1350,7 +1559,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2023-06-13",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-mss-009",
@@ -1361,7 +1570,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2024-03-28",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-mss-010",
@@ -1372,7 +1581,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2025-08-27",
-  "practice_ready": true
+  "practice_ready": false
  },
  {
   "exercise_id": "real-mss-011",
@@ -1515,6 +1724,138 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2025-05-06",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ob-009",
+  "concept": "OrderBlock",
+  "answer_type": "zone",
+  "difficulty": 3,
+  "answerLabel": "Order Block",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2023-09-07",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ob-010",
+  "concept": "OrderBlock",
+  "answer_type": "zone",
+  "difficulty": 3,
+  "answerLabel": "Order Block",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2024-06-13",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ob-011",
+  "concept": "OrderBlock",
+  "answer_type": "zone",
+  "difficulty": 3,
+  "answerLabel": "Order Block",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2023-07-25",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ob-012",
+  "concept": "OrderBlock",
+  "answer_type": "zone",
+  "difficulty": 3,
+  "answerLabel": "Order Block",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2024-07-09",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-ob-013",
+  "concept": "OrderBlock",
+  "answer_type": "zone",
+  "difficulty": 3,
+  "answerLabel": "Order Block",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2025-10-10",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-pd-001",
+  "concept": "PremiumDiscount",
+  "answer_type": "choice",
+  "difficulty": 2,
+  "answerLabel": "Premium vs. Discount",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2023-02-17",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-pd-002",
+  "concept": "PremiumDiscount",
+  "answer_type": "choice",
+  "difficulty": 2,
+  "answerLabel": "Premium vs. Discount",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2024-02-13",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-pd-003",
+  "concept": "PremiumDiscount",
+  "answer_type": "choice",
+  "difficulty": 2,
+  "answerLabel": "Premium vs. Discount",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2024-07-08",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-pd-004",
+  "concept": "PremiumDiscount",
+  "answer_type": "choice",
+  "difficulty": 2,
+  "answerLabel": "Premium vs. Discount",
+  "timeframe": "5m",
+  "real": true,
+  "trading_date": "2025-11-24",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-pd-005",
+  "concept": "PremiumDiscount",
+  "answer_type": "choice",
+  "difficulty": 2,
+  "answerLabel": "Premium vs. Discount",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2023-10-30",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-pd-006",
+  "concept": "PremiumDiscount",
+  "answer_type": "choice",
+  "difficulty": 2,
+  "answerLabel": "Premium vs. Discount",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2024-03-21",
+  "practice_ready": false
+ },
+ {
+  "exercise_id": "real-pd-007",
+  "concept": "PremiumDiscount",
+  "answer_type": "choice",
+  "difficulty": 2,
+  "answerLabel": "Premium vs. Discount",
+  "timeframe": "15m",
+  "real": true,
+  "trading_date": "2025-09-17",
   "practice_ready": false
  },
  {

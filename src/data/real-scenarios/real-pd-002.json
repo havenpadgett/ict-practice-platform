@@ -1,0 +1,228 @@
+{
+  "exercise_id": "real-pd-002",
+  "concept": "PremiumDiscount",
+  "answer_type": "choice",
+  "answerLabel": "Premium vs. Discount",
+  "prompt": "The dashed lines mark the dealing range's swing high and swing low. Is current price (the last candle's close) in premium or discount?",
+  "options": [
+    {
+      "value": "premium",
+      "label": "Premium"
+    },
+    {
+      "value": "discount",
+      "label": "Discount"
+    },
+    {
+      "value": "equilibrium",
+      "label": "At equilibrium (neither)"
+    }
+  ],
+  "instrument": "NQ (real data)",
+  "timeframe": "5m",
+  "difficulty": 2,
+  "answer": {
+    "correct_choice": "premium",
+    "dealing_range": {
+      "high": 19733.0,
+      "low": 19572.25,
+      "high_index": 14,
+      "low_index": 9
+    }
+  },
+  "setup_span": [
+    0,
+    17
+  ],
+  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] bullish leg 19572.2-19733; last close 19667.8 at 59% of the range -> premium.",
+  "provenance": {
+    "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
+    "symbol": "NQ",
+    "date_range": {
+      "start": "2024-02-13T09:30:00-05:00",
+      "end": "2024-02-13T10:55:00-05:00"
+    },
+    "trading_date": "2024-02-13",
+    "session": "ny_am",
+    "context_start": null,
+    "timeframe": "5m",
+    "detection_rule": "dealing_range",
+    "curriculum_versions": {
+      "premium_discount": 1,
+      "mss": 2
+    },
+    "candidate_id": "dealing_range-premium-20240213T1055",
+    "detection_params": {
+      "rules": [
+        "fvg",
+        "ifvg",
+        "equal_highs",
+        "equal_lows",
+        "mss",
+        "order_block",
+        "dealing_range",
+        "ny_am"
+      ],
+      "swing_lookback": 2,
+      "equal_tolerance_pct": 0.05,
+      "fvg_min_range_mult": 0.25,
+      "range_window": 100,
+      "ob_displacement_mult": 2.0,
+      "ob_max_leg": 3,
+      "mss_min_swing_mult": 0.25
+    },
+    "detection_notes": "bullish leg 19572.2-19733; last close 19667.8 at 59% of the range -> premium",
+    "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
+    "built_at": "2026-09-30T19:37:23+00:00",
+    "human_reviewed": false,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "review_notes": null
+  },
+  "candles": [
+    {
+      "time": "09:30",
+      "timestamp": "2024-02-13T09:30:00-05:00",
+      "open": 19569.25,
+      "high": 19579.25,
+      "low": 19528.0,
+      "close": 19567.75
+    },
+    {
+      "time": "09:35",
+      "timestamp": "2024-02-13T09:35:00-05:00",
+      "open": 19568.0,
+      "high": 19607.25,
+      "low": 19562.5,
+      "close": 19599.0
+    },
+    {
+      "time": "09:40",
+      "timestamp": "2024-02-13T09:40:00-05:00",
+      "open": 19598.5,
+      "high": 19603.25,
+      "low": 19569.5,
+      "close": 19584.0
+    },
+    {
+      "time": "09:45",
+      "timestamp": "2024-02-13T09:45:00-05:00",
+      "open": 19584.25,
+      "high": 19606.25,
+      "low": 19579.75,
+      "close": 19586.75
+    },
+    {
+      "time": "09:50",
+      "timestamp": "2024-02-13T09:50:00-05:00",
+      "open": 19586.5,
+      "high": 19625.25,
+      "low": 19570.75,
+      "close": 19619.5
+    },
+    {
+      "time": "09:55",
+      "timestamp": "2024-02-13T09:55:00-05:00",
+      "open": 19619.75,
+      "high": 19625.25,
+      "low": 19599.25,
+      "close": 19615.75
+    },
+    {
+      "time": "10:00",
+      "timestamp": "2024-02-13T10:00:00-05:00",
+      "open": 19615.75,
+      "high": 19621.75,
+      "low": 19584.75,
+      "close": 19591.75
+    },
+    {
+      "time": "10:05",
+      "timestamp": "2024-02-13T10:05:00-05:00",
+      "open": 19591.25,
+      "high": 19617.0,
+      "low": 19589.75,
+      "close": 19593.25
+    },
+    {
+      "time": "10:10",
+      "timestamp": "2024-02-13T10:10:00-05:00",
+      "open": 19593.0,
+      "high": 19611.75,
+      "low": 19590.25,
+      "close": 19591.25
+    },
+    {
+      "time": "10:15",
+      "timestamp": "2024-02-13T10:15:00-05:00",
+      "open": 19591.5,
+      "high": 19618.5,
+      "low": 19572.25,
+      "close": 19616.5
+    },
+    {
+      "time": "10:20",
+      "timestamp": "2024-02-13T10:20:00-05:00",
+      "open": 19616.0,
+      "high": 19653.0,
+      "low": 19615.5,
+      "close": 19646.25
+    },
+    {
+      "time": "10:25",
+      "timestamp": "2024-02-13T10:25:00-05:00",
+      "open": 19646.25,
+      "high": 19684.0,
+      "low": 19645.75,
+      "close": 19683.5
+    },
+    {
+      "time": "10:30",
+      "timestamp": "2024-02-13T10:30:00-05:00",
+      "open": 19683.5,
+      "high": 19698.25,
+      "low": 19677.5,
+      "close": 19688.75
+    },
+    {
+      "time": "10:35",
+      "timestamp": "2024-02-13T10:35:00-05:00",
+      "open": 19689.0,
+      "high": 19722.5,
+      "low": 19683.75,
+      "close": 19719.5
+    },
+    {
+      "time": "10:40",
+      "timestamp": "2024-02-13T10:40:00-05:00",
+      "open": 19719.75,
+      "high": 19733.0,
+      "low": 19703.25,
+      "close": 19722.75
+    },
+    {
+      "time": "10:45",
+      "timestamp": "2024-02-13T10:45:00-05:00",
+      "open": 19723.5,
+      "high": 19731.0,
+      "low": 19708.5,
+      "close": 19714.25
+    },
+    {
+      "time": "10:50",
+      "timestamp": "2024-02-13T10:50:00-05:00",
+      "open": 19714.5,
+      "high": 19721.25,
+      "low": 19697.0,
+      "close": 19707.5
+    },
+    {
+      "time": "10:55",
+      "timestamp": "2024-02-13T10:55:00-05:00",
+      "open": 19707.25,
+      "high": 19710.25,
+      "low": 19666.5,
+      "close": 19667.75
+    }
+  ]
+}

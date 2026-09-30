@@ -1,0 +1,217 @@
+{
+  "exercise_id": "real-ifvg-002",
+  "concept": "IFVG",
+  "answer_type": "zone",
+  "answerLabel": "Inverse Fair Value Gap",
+  "prompt": "Identify the Inverse Fair Value Gap, if there is one.",
+  "noAnswerLabel": "No IFVG present",
+  "instrument": "NQ (real data)",
+  "timeframe": "5m",
+  "difficulty": 2,
+  "has_answer": true,
+  "answer": {
+    "type": "bullish",
+    "price_low": 20212.0,
+    "price_high": 20219.75,
+    "candle_start": 3,
+    "candle_end": 5,
+    "key_candle_index": 4
+  },
+  "setup_span": [
+    3,
+    14
+  ],
+  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bullish Fair Value Gap forms at 20212-20219.8, but a later candle's body closes below the lower boundary - disrespected, not just a wick through. The old zone flips: it now acts as resistance.",
+  "provenance": {
+    "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
+    "symbol": "NQ",
+    "date_range": {
+      "start": "2024-03-22T09:30:00-04:00",
+      "end": "2024-03-22T10:55:00-04:00"
+    },
+    "trading_date": "2024-03-22",
+    "session": "ny_am",
+    "context_start": null,
+    "timeframe": "5m",
+    "detection_rule": "ifvg",
+    "curriculum_versions": {
+      "ifvg": 1,
+      "fvg": 1,
+      "fvg_respect": 1,
+      "detection_parameters": 1
+    },
+    "candidate_id": "ifvg-bullish-20240322T1040",
+    "detection_params": {
+      "rules": [
+        "fvg",
+        "ifvg",
+        "equal_highs",
+        "equal_lows",
+        "mss",
+        "order_block",
+        "dealing_range",
+        "ny_am"
+      ],
+      "swing_lookback": 2,
+      "equal_tolerance_pct": 0.05,
+      "fvg_min_range_mult": 0.25,
+      "range_window": 100,
+      "ob_displacement_mult": 2.0,
+      "ob_max_leg": 3,
+      "mss_min_swing_mult": 0.25
+    },
+    "detection_notes": "bullish FVG 20212-20219.8 disrespected at body close 20201.8 - now acting as resistance",
+    "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
+    "built_at": "2026-09-30T19:36:22+00:00",
+    "human_reviewed": false,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "review_notes": null
+  },
+  "candles": [
+    {
+      "time": "09:30",
+      "timestamp": "2024-03-22T09:30:00-04:00",
+      "open": 20231.25,
+      "high": 20238.75,
+      "low": 20211.25,
+      "close": 20215.5
+    },
+    {
+      "time": "09:35",
+      "timestamp": "2024-03-22T09:35:00-04:00",
+      "open": 20216.5,
+      "high": 20234.25,
+      "low": 20214.0,
+      "close": 20224.5
+    },
+    {
+      "time": "09:40",
+      "timestamp": "2024-03-22T09:40:00-04:00",
+      "open": 20224.75,
+      "high": 20239.75,
+      "low": 20198.75,
+      "close": 20202.0
+    },
+    {
+      "time": "09:45",
+      "timestamp": "2024-03-22T09:45:00-04:00",
+      "open": 20202.25,
+      "high": 20212.0,
+      "low": 20193.75,
+      "close": 20197.5
+    },
+    {
+      "time": "09:50",
+      "timestamp": "2024-03-22T09:50:00-04:00",
+      "open": 20197.75,
+      "high": 20234.25,
+      "low": 20197.75,
+      "close": 20232.0
+    },
+    {
+      "time": "09:55",
+      "timestamp": "2024-03-22T09:55:00-04:00",
+      "open": 20232.0,
+      "high": 20237.0,
+      "low": 20219.75,
+      "close": 20224.5
+    },
+    {
+      "time": "10:00",
+      "timestamp": "2024-03-22T10:00:00-04:00",
+      "open": 20224.0,
+      "high": 20252.5,
+      "low": 20223.75,
+      "close": 20251.5
+    },
+    {
+      "time": "10:05",
+      "timestamp": "2024-03-22T10:05:00-04:00",
+      "open": 20251.25,
+      "high": 20258.75,
+      "low": 20231.5,
+      "close": 20235.0
+    },
+    {
+      "time": "10:10",
+      "timestamp": "2024-03-22T10:10:00-04:00",
+      "open": 20235.0,
+      "high": 20244.75,
+      "low": 20220.5,
+      "close": 20221.5
+    },
+    {
+      "time": "10:15",
+      "timestamp": "2024-03-22T10:15:00-04:00",
+      "open": 20221.5,
+      "high": 20237.75,
+      "low": 20210.75,
+      "close": 20235.25
+    },
+    {
+      "time": "10:20",
+      "timestamp": "2024-03-22T10:20:00-04:00",
+      "open": 20234.5,
+      "high": 20241.25,
+      "low": 20214.0,
+      "close": 20218.0
+    },
+    {
+      "time": "10:25",
+      "timestamp": "2024-03-22T10:25:00-04:00",
+      "open": 20218.0,
+      "high": 20227.75,
+      "low": 20203.75,
+      "close": 20226.5
+    },
+    {
+      "time": "10:30",
+      "timestamp": "2024-03-22T10:30:00-04:00",
+      "open": 20226.75,
+      "high": 20231.75,
+      "low": 20207.75,
+      "close": 20213.5
+    },
+    {
+      "time": "10:35",
+      "timestamp": "2024-03-22T10:35:00-04:00",
+      "open": 20213.75,
+      "high": 20216.0,
+      "low": 20202.75,
+      "close": 20212.0
+    },
+    {
+      "time": "10:40",
+      "timestamp": "2024-03-22T10:40:00-04:00",
+      "open": 20212.0,
+      "high": 20213.5,
+      "low": 20197.0,
+      "close": 20201.75
+    },
+    {
+      "time": "10:45",
+      "timestamp": "2024-03-22T10:45:00-04:00",
+      "open": 20201.5,
+      "high": 20216.5,
+      "low": 20199.25,
+      "close": 20214.75
+    },
+    {
+      "time": "10:50",
+      "timestamp": "2024-03-22T10:50:00-04:00",
+      "open": 20214.25,
+      "high": 20215.25,
+      "low": 20196.25,
+      "close": 20202.5
+    },
+    {
+      "time": "10:55",
+      "timestamp": "2024-03-22T10:55:00-04:00",
+      "open": 20202.5,
+      "high": 20211.0,
+      "low": 20198.0,
+      "close": 20206.5
+    }
+  ]
+}

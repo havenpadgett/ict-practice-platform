@@ -1,0 +1,276 @@
+{
+  "exercise_id": "real-ob-013",
+  "concept": "OrderBlock",
+  "answer_type": "zone",
+  "answerLabel": "Order Block",
+  "prompt": "Identify the Order Block, if there is one.",
+  "noAnswerLabel": "No Order Block present",
+  "instrument": "NQ (real data)",
+  "timeframe": "15m",
+  "difficulty": 3,
+  "has_answer": true,
+  "answer": {
+    "type": "bearish",
+    "price_low": 24899.25,
+    "price_high": 24948.0,
+    "candle_start": 18,
+    "candle_end": 18,
+    "key_candle_index": 18
+  },
+  "setup_span": [
+    12,
+    21
+  ],
+  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] last up-close candle before a 3-candle displacement of 99.5 points (2.3x median range) closing beyond the swing at 24860.5; untouched.",
+  "provenance": {
+    "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
+    "symbol": "NQ",
+    "date_range": {
+      "start": "2025-10-10T09:30:00-04:00",
+      "end": "2025-10-10T15:45:00-04:00"
+    },
+    "trading_date": "2025-10-10",
+    "session": "rth",
+    "context_start": null,
+    "timeframe": "15m",
+    "detection_rule": "order_block",
+    "curriculum_versions": {
+      "order_block": 1,
+      "mss": 2,
+      "detection_parameters": 1
+    },
+    "candidate_id": "order_block-bearish-20251010T1400",
+    "detection_params": {
+      "rules": [
+        "fvg",
+        "equal_highs",
+        "equal_lows",
+        "order_block"
+      ],
+      "swing_lookback": 2,
+      "equal_tolerance_pct": 0.12,
+      "fvg_min_range_mult": 0.15,
+      "range_window": 100,
+      "ob_displacement_mult": 1.5,
+      "ob_max_leg": 3,
+      "mss_min_swing_mult": 0.25
+    },
+    "detection_notes": "last up-close candle before a 3-candle displacement of 99.5 points (2.3x median range) closing beyond the swing at 24860.5; untouched",
+    "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
+    "built_at": "2026-09-30T19:32:21+00:00",
+    "human_reviewed": false,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "review_notes": null
+  },
+  "candles": [
+    {
+      "time": "09:30",
+      "timestamp": "2025-10-10T09:30:00-04:00",
+      "open": 25570.0,
+      "high": 25633.25,
+      "low": 25550.0,
+      "close": 25624.75
+    },
+    {
+      "time": "09:45",
+      "timestamp": "2025-10-10T09:45:00-04:00",
+      "open": 25625.0,
+      "high": 25644.5,
+      "low": 25582.0,
+      "close": 25612.0
+    },
+    {
+      "time": "10:00",
+      "timestamp": "2025-10-10T10:00:00-04:00",
+      "open": 25612.0,
+      "high": 25627.25,
+      "low": 25568.5,
+      "close": 25585.0
+    },
+    {
+      "time": "10:15",
+      "timestamp": "2025-10-10T10:15:00-04:00",
+      "open": 25585.0,
+      "high": 25611.0,
+      "low": 25559.75,
+      "close": 25591.5
+    },
+    {
+      "time": "10:30",
+      "timestamp": "2025-10-10T10:30:00-04:00",
+      "open": 25592.0,
+      "high": 25604.5,
+      "low": 25572.5,
+      "close": 25596.75
+    },
+    {
+      "time": "10:45",
+      "timestamp": "2025-10-10T10:45:00-04:00",
+      "open": 25595.75,
+      "high": 25613.25,
+      "low": 25384.25,
+      "close": 25451.0
+    },
+    {
+      "time": "11:00",
+      "timestamp": "2025-10-10T11:00:00-04:00",
+      "open": 25449.5,
+      "high": 25452.5,
+      "low": 25237.25,
+      "close": 25319.5
+    },
+    {
+      "time": "11:15",
+      "timestamp": "2025-10-10T11:15:00-04:00",
+      "open": 25318.75,
+      "high": 25334.5,
+      "low": 25059.0,
+      "close": 25078.75
+    },
+    {
+      "time": "11:30",
+      "timestamp": "2025-10-10T11:30:00-04:00",
+      "open": 25078.75,
+      "high": 25121.75,
+      "low": 24927.25,
+      "close": 25117.75
+    },
+    {
+      "time": "11:45",
+      "timestamp": "2025-10-10T11:45:00-04:00",
+      "open": 25117.75,
+      "high": 25164.75,
+      "low": 25028.75,
+      "close": 25083.5
+    },
+    {
+      "time": "12:00",
+      "timestamp": "2025-10-10T12:00:00-04:00",
+      "open": 25081.5,
+      "high": 25084.25,
+      "low": 25010.0,
+      "close": 25073.25
+    },
+    {
+      "time": "12:15",
+      "timestamp": "2025-10-10T12:15:00-04:00",
+      "open": 25073.75,
+      "high": 25104.5,
+      "low": 24999.5,
+      "close": 25044.75
+    },
+    {
+      "time": "12:30",
+      "timestamp": "2025-10-10T12:30:00-04:00",
+      "open": 25044.75,
+      "high": 25091.0,
+      "low": 24980.25,
+      "close": 24991.75
+    },
+    {
+      "time": "12:45",
+      "timestamp": "2025-10-10T12:45:00-04:00",
+      "open": 24991.0,
+      "high": 25016.25,
+      "low": 24904.0,
+      "close": 24914.5
+    },
+    {
+      "time": "13:00",
+      "timestamp": "2025-10-10T13:00:00-04:00",
+      "open": 24913.75,
+      "high": 24934.75,
+      "low": 24860.5,
+      "close": 24880.0
+    },
+    {
+      "time": "13:15",
+      "timestamp": "2025-10-10T13:15:00-04:00",
+      "open": 24881.25,
+      "high": 24977.5,
+      "low": 24872.5,
+      "close": 24970.0
+    },
+    {
+      "time": "13:30",
+      "timestamp": "2025-10-10T13:30:00-04:00",
+      "open": 24968.75,
+      "high": 25007.5,
+      "low": 24950.75,
+      "close": 24964.25
+    },
+    {
+      "time": "13:45",
+      "timestamp": "2025-10-10T13:45:00-04:00",
+      "open": 24964.5,
+      "high": 24972.25,
+      "low": 24902.5,
+      "close": 24936.5
+    },
+    {
+      "time": "14:00",
+      "timestamp": "2025-10-10T14:00:00-04:00",
+      "open": 24936.5,
+      "high": 24948.0,
+      "low": 24899.25,
+      "close": 24944.75
+    },
+    {
+      "time": "14:15",
+      "timestamp": "2025-10-10T14:15:00-04:00",
+      "open": 24944.25,
+      "high": 24975.0,
+      "low": 24910.0,
+      "close": 24923.75
+    },
+    {
+      "time": "14:30",
+      "timestamp": "2025-10-10T14:30:00-04:00",
+      "open": 24924.25,
+      "high": 24943.75,
+      "low": 24878.0,
+      "close": 24883.0
+    },
+    {
+      "time": "14:45",
+      "timestamp": "2025-10-10T14:45:00-04:00",
+      "open": 24883.75,
+      "high": 24915.5,
+      "low": 24828.5,
+      "close": 24844.75
+    },
+    {
+      "time": "15:00",
+      "timestamp": "2025-10-10T15:00:00-04:00",
+      "open": 24845.5,
+      "high": 24892.25,
+      "low": 24811.5,
+      "close": 24827.0
+    },
+    {
+      "time": "15:15",
+      "timestamp": "2025-10-10T15:15:00-04:00",
+      "open": 24825.75,
+      "high": 24846.75,
+      "low": 24768.5,
+      "close": 24788.0
+    },
+    {
+      "time": "15:30",
+      "timestamp": "2025-10-10T15:30:00-04:00",
+      "open": 24788.5,
+      "high": 24802.75,
+      "low": 24703.5,
+      "close": 24792.0
+    },
+    {
+      "time": "15:45",
+      "timestamp": "2025-10-10T15:45:00-04:00",
+      "open": 24792.25,
+      "high": 24813.25,
+      "low": 24640.75,
+      "close": 24658.25
+    }
+  ]
+}

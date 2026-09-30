@@ -10,6 +10,11 @@ disagree, the curriculum is right and this is a bug:
                       Gaps smaller than --fvg-min-range-mult x the median bar
                       range over the trailing --range-window session bars
                       (ending at candle 1) are ignored.
+  ifvg                Inverse FVG: an FVG (same floor as above) later
+                      disrespected by a candle body close beyond its far
+                      boundary, which flips it to the opposite kind of
+                      level. Zone = the original FVG's range; direction =
+                      the original FVG's direction.
   equal_highs/lows    Two or more swing highs (lows) within
                       --equal-tolerance-pct percent of price of each other,
                       with no price trading beyond the pool between them.
@@ -42,7 +47,7 @@ disagree, the curriculum is right and this is a bug:
   weekly_high/low     Prior trading week's high/low, as a level for the
                       following week.
 
-FVG, equal highs/lows, MSS and the swings they use are found within one
+FVG, IFVG, equal highs/lows, MSS and the swings they use are found within one
 session at a time (a trading day, 18:00 ET to 17:00 ET) - a setup never
 spans a session break, even when the data skips from one day's bars straight
 to the next (e.g. an NY AM-only slice). When the data carries structure
@@ -78,8 +83,9 @@ RANGE_WINDOW = 100
 EQUAL_TOLERANCE_PCT = 0.05
 OB_DISPLACEMENT_MULT = 2.0
 OB_MAX_LEG = 3
+MSS_MIN_SWING_MULT = 0.25
 
-ALL_RULES = ["fvg", "equal_highs", "equal_lows", "mss", "order_block", "dealing_range", "previous_day", "ny_am", "weekly"]
+ALL_RULES = ["fvg", "ifvg", "equal_highs", "equal_lows", "mss", "order_block", "dealing_range", "previous_day", "ny_am", "weekly"]
 
 
 def ts(candles: List[Candle], i: int) -> str:
@@ -153,6 +159,33 @@ def detect_fvg(candles: List[Candle], min_sizes: List[float]) -> List[Dict[str, 
     return out
 
 
+# ---- IFVG --------------------------------------------------------------------
+
+def detect_ifvg(candles: List[Candle], min_sizes: List[float]) -> List[Dict[str, Any]]:
+    """An IFVG is an FVG (docs/CURRICULUM.md) that later gets disrespected - a
+    candle body closes beyond its far boundary - and so flips to act as the
+    opposite kind of level. Same body-close-not-wicks rule as FVG
+    respected/disrespected and MSS. Zone = the original FVG's range;
+    `direction` is the original FVG's direction (the flip's meaning - support
+    after a bearish fail, resistance after a bullish one - follows from it)."""
+    out = []
+    for f in detect_fvg(candles, min_sizes):
+        lo, hi = f["levels"]["price_low"], f["levels"]["price_high"]
+        c3 = f["involved_indices"][2]
+        bullish = f["direction"] == "bullish"
+        flip = next((k for k in range(c3 + 1, len(candles))
+                    if (candles[k]["close"] < lo if bullish else candles[k]["close"] > hi)), None)
+        if flip is None:
+            continue
+        out.append(candidate("ifvg", f["direction"], cid("ifvg", candles, flip, f["direction"]), candles,
+                             f["involved_indices"] + [flip], flip,
+                             {"price_low": lo, "price_high": hi},
+                             f"{f['direction']} FVG {lo:g}-{hi:g} disrespected at body close {candles[flip]['close']:g} - "
+                             f"now acting as {'resistance' if bullish else 'support'}",
+                             {"fvg_candidate_id": f["id"], "flip_index": flip, "min_size": f["min_size"]}))
+    return out
+
+
 # ---- Swings ----------------------------------------------------------------
 
 def swing_highs(candles: List[Candle], n: int) -> List[int]:
@@ -211,7 +244,16 @@ def detect_equal(candles: List[Candle], swings: List[int], side: str, tol_pct: f
 
 # ---- MSS -------------------------------------------------------------------
 
-def detect_mss(candles: List[Candle], highs: List[int], lows: List[int], n: int) -> List[Dict[str, Any]]:
+def detect_mss(candles: List[Candle], highs: List[int], lows: List[int], n: int, med: Optional[List[float]] = None,
+               min_swing_mult: float = 0.0) -> List[Dict[str, Any]]:
+    """`med` is the trailing median bar range per bar (self-contained within
+    `candles` - see main()). A pair of same-type swings only counts toward
+    an uptrend/downtrend if each moved at least `min_swing_mult` x the
+    median bar range beyond the previous swing of that type - see
+    docs/CURRICULUM.md (Market Structure Shift, Minimum structure). A
+    lookback-2 fractal a point or two past the prior one is noise, not a
+    higher high/low; `min_swing_mult` = 0 recovers the old, unfiltered
+    behaviour."""
     out = []
     used_swings = set()
     for i in range(len(candles)):
@@ -221,8 +263,15 @@ def detect_mss(candles: List[Candle], highs: List[int], lows: List[int], n: int)
         if len(sh) < 2 or len(sl) < 2:
             continue
         close, prev_close = candles[i]["close"], candles[i - 1]["close"]
-        up = candles[sh[-1]]["high"] > candles[sh[-2]]["high"] and candles[sl[-1]]["low"] > candles[sl[-2]]["low"]
-        down = candles[sh[-1]]["high"] < candles[sh[-2]]["high"] and candles[sl[-1]]["low"] < candles[sl[-2]]["low"]
+        if min_swing_mult > 0 and med:
+            m = med[i] or (med[i - 1] if i > 0 else 0.0)
+            floor = min_swing_mult * m
+        else:
+            floor = 0.0
+        sig_h = abs(candles[sh[-1]]["high"] - candles[sh[-2]]["high"]) >= floor
+        sig_l = abs(candles[sl[-1]]["low"] - candles[sl[-2]]["low"]) >= floor
+        up = candles[sh[-1]]["high"] > candles[sh[-2]]["high"] and candles[sl[-1]]["low"] > candles[sl[-2]]["low"] and sig_h and sig_l
+        down = candles[sh[-1]]["high"] < candles[sh[-2]]["high"] and candles[sl[-1]]["low"] < candles[sl[-2]]["low"] and sig_h and sig_l
         if up and sl[-1] not in used_swings:
             level = candles[sl[-1]]["low"]
             if close < level <= prev_close:
@@ -250,7 +299,7 @@ def to_global(c: Dict[str, Any], offset: int) -> Dict[str, Any]:
     """Shift a candidate's session-relative indices to indices in the full series."""
     c["involved_indices"] = [i + offset for i in c["involved_indices"]]
     c["anchor_index"] += offset
-    for key in ("swing_index", "break_index", "high_index", "low_index", "ob_index", "mitigated_index", "invalidated_index"):
+    for key in ("swing_index", "break_index", "high_index", "low_index", "ob_index", "mitigated_index", "invalidated_index", "flip_index"):
         if c.get(key) is not None:
             c[key] += offset
     return c
@@ -413,6 +462,9 @@ def main(argv: Optional[List[str]] = None) -> int:
                     help=f"ignore gaps smaller than this multiple of the trailing median bar range (default {FVG_MIN_RANGE_MULT:g})")
     ap.add_argument("--ob-displacement-mult", type=float, default=OB_DISPLACEMENT_MULT,
                     help=f"order blocks: minimum displacement as a multiple of the trailing median bar range (default {OB_DISPLACEMENT_MULT:g})")
+    ap.add_argument("--mss-min-swing-mult", type=float, default=MSS_MIN_SWING_MULT,
+                    help="mss: a swing only continues/establishes a trend if it moved at least this multiple of the "
+                         f"trailing median bar range beyond the prior same-type swing (default {MSS_MIN_SWING_MULT:g}; 0 disables)")
     ap.add_argument("--range-window", type=int, default=RANGE_WINDOW,
                     help=f"bars in the trailing median bar range window (default {RANGE_WINDOW})")
     args = ap.parse_args(argv)
@@ -435,6 +487,12 @@ def main(argv: Optional[List[str]] = None) -> int:
         print(f"NOTE: skipped {', '.join(partial_rules)} - the data holds only the {session} session, not full days.")
     median_ranges = session_median_range(candles, args.range_window)
     fvg_min_sizes = [m * args.fvg_min_range_mult for m in median_ranges]
+    # Unlike median_ranges, not zeroed on context bars - MSS's significance
+    # check (below) needs a real value there too, and a plain trailing
+    # median (pooling recent bars regardless of session) avoids the noisy,
+    # too-small median a fresh per-day restart would give a session's first
+    # few bars.
+    mss_median_ranges = trailing_median_range(candles, args.range_window)
 
     found: List[Dict[str, Any]] = []
     swing_high_count = swing_low_count = 0
@@ -450,6 +508,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         in_core: List[Dict[str, Any]] = []
         if "fvg" in rules:
             in_core += detect_fvg(core, fvg_min_sizes[core_offset:core_offset + len(core)])
+        if "ifvg" in rules:
+            in_core += detect_ifvg(core, fvg_min_sizes[core_offset:core_offset + len(core)])
         if "equal_highs" in rules:
             in_core += detect_equal(core, highs, "highs", args.equal_tolerance_pct)
         if "equal_lows" in rules:
@@ -462,7 +522,8 @@ def main(argv: Optional[List[str]] = None) -> int:
             found += [to_global(c, offset) for c in detect_order_blocks(
                 day, day_highs, day_lows, n, median_ranges[offset:offset + len(day)], n_ctx, args.ob_displacement_mult)]
         if "mss" in rules:
-            for c in detect_mss(day, swing_highs(day, n), swing_lows(day, n), n):
+            day_med = mss_median_ranges[offset:offset + len(day)]
+            for c in detect_mss(day, swing_highs(day, n), swing_lows(day, n), n, day_med, args.mss_min_swing_mult):
                 if n_ctx:
                     # A break inside the context bars isn't a session setup,
                     # but stays listed so build_scenario can see it on a chart.
@@ -478,7 +539,8 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     params = {"rules": rules, "swing_lookback": n, "equal_tolerance_pct": args.equal_tolerance_pct,
               "fvg_min_range_mult": args.fvg_min_range_mult, "range_window": args.range_window,
-              "ob_displacement_mult": args.ob_displacement_mult, "ob_max_leg": OB_MAX_LEG}
+              "ob_displacement_mult": args.ob_displacement_mult, "ob_max_leg": OB_MAX_LEG,
+              "mss_min_swing_mult": args.mss_min_swing_mult}
     out_path = Path(args.output) if args.output else Path(args.clean).with_name(Path(args.clean).name.replace(".clean.json", "") + ".candidates.json")
     write_json(out_path, {
         "meta": {**data["meta"], "detection_params": params, "clean_file": Path(args.clean).name,

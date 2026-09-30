@@ -42,6 +42,12 @@ import realFvg012 from "./real-fvg-012.json";
 import realFvg013 from "./real-fvg-013.json";
 import realFvg014 from "./real-fvg-014.json";
 import realFvg015 from "./real-fvg-015.json";
+import realFvg016 from "./real-fvg-016.json";
+import realFvg017 from "./real-fvg-017.json";
+import realFvg018 from "./real-fvg-018.json";
+import realFvg019 from "./real-fvg-019.json";
+import realFvg020 from "./real-fvg-020.json";
+import realFvg021 from "./real-fvg-021.json";
 import realGuided001 from "./real-guided-001.json";
 import realGuided002 from "./real-guided-002.json";
 import realGuided003 from "./real-guided-003.json";
@@ -57,6 +63,13 @@ import realGuided012 from "./real-guided-012.json";
 import realGuided013 from "./real-guided-013.json";
 import realGuided014 from "./real-guided-014.json";
 import realGuided015 from "./real-guided-015.json";
+import realIfvg001 from "./real-ifvg-001.json";
+import realIfvg002 from "./real-ifvg-002.json";
+import realIfvg003 from "./real-ifvg-003.json";
+import realIfvg004 from "./real-ifvg-004.json";
+import realIfvg005 from "./real-ifvg-005.json";
+import realIfvg006 from "./real-ifvg-006.json";
+import realIfvg007 from "./real-ifvg-007.json";
 import realLiq001 from "./real-liq-001.json";
 import realLiq002 from "./real-liq-002.json";
 import realLiq003 from "./real-liq-003.json";
@@ -72,6 +85,12 @@ import realLiq012 from "./real-liq-012.json";
 import realLiq013 from "./real-liq-013.json";
 import realLiq014 from "./real-liq-014.json";
 import realLiq015 from "./real-liq-015.json";
+import realLiq016 from "./real-liq-016.json";
+import realLiq017 from "./real-liq-017.json";
+import realLiq018 from "./real-liq-018.json";
+import realLiq019 from "./real-liq-019.json";
+import realLiq020 from "./real-liq-020.json";
+import realLiq021 from "./real-liq-021.json";
 import realMss001 from "./real-mss-001.json";
 import realMss002 from "./real-mss-002.json";
 import realMss003 from "./real-mss-003.json";
@@ -95,6 +114,18 @@ import realOb005 from "./real-ob-005.json";
 import realOb006 from "./real-ob-006.json";
 import realOb007 from "./real-ob-007.json";
 import realOb008 from "./real-ob-008.json";
+import realOb009 from "./real-ob-009.json";
+import realOb010 from "./real-ob-010.json";
+import realOb011 from "./real-ob-011.json";
+import realOb012 from "./real-ob-012.json";
+import realOb013 from "./real-ob-013.json";
+import realPd001 from "./real-pd-001.json";
+import realPd002 from "./real-pd-002.json";
+import realPd003 from "./real-pd-003.json";
+import realPd004 from "./real-pd-004.json";
+import realPd005 from "./real-pd-005.json";
+import realPd006 from "./real-pd-006.json";
+import realPd007 from "./real-pd-007.json";
 import realTliq001 from "./real-tliq-001.json";
 import realTliq002 from "./real-tliq-002.json";
 import realTliq003 from "./real-tliq-003.json";
@@ -133,6 +164,12 @@ const registered: unknown[] = [
   realFvg013,
   realFvg014,
   realFvg015,
+  realFvg016,
+  realFvg017,
+  realFvg018,
+  realFvg019,
+  realFvg020,
+  realFvg021,
   realGuided001,
   realGuided002,
   realGuided003,
@@ -148,6 +185,13 @@ const registered: unknown[] = [
   realGuided013,
   realGuided014,
   realGuided015,
+  realIfvg001,
+  realIfvg002,
+  realIfvg003,
+  realIfvg004,
+  realIfvg005,
+  realIfvg006,
+  realIfvg007,
   realLiq001,
   realLiq002,
   realLiq003,
@@ -163,6 +207,12 @@ const registered: unknown[] = [
   realLiq013,
   realLiq014,
   realLiq015,
+  realLiq016,
+  realLiq017,
+  realLiq018,
+  realLiq019,
+  realLiq020,
+  realLiq021,
   realMss001,
   realMss002,
   realMss003,
@@ -186,6 +236,18 @@ const registered: unknown[] = [
   realOb006,
   realOb007,
   realOb008,
+  realOb009,
+  realOb010,
+  realOb011,
+  realOb012,
+  realOb013,
+  realPd001,
+  realPd002,
+  realPd003,
+  realPd004,
+  realPd005,
+  realPd006,
+  realPd007,
   realTliq001,
   realTliq002,
   realTliq003,
@@ -229,7 +291,7 @@ export function parseRealScenario(raw: unknown): RealScenario {
   const id = s.exercise_id;
   if (typeof id !== "string" || id.length === 0) fail(id, "missing exercise_id");
   if (!CONCEPT_LIST.includes(s.concept as (typeof CONCEPT_LIST)[number])) fail(id, `unknown concept ${String(s.concept)}`);
-  if (!["zone", "level", "guided", "free"].includes(s.answer_type as string)) {
+  if (!["zone", "level", "choice", "guided", "free"].includes(s.answer_type as string)) {
     fail(id, `unsupported answer_type ${String(s.answer_type)}`);
   }
   if (!Array.isArray(s.candles) || s.candles.length === 0) fail(id, "no candles");
@@ -250,6 +312,16 @@ export function parseRealScenario(raw: unknown): RealScenario {
     }
   }
   if (s.answer_type === "free" && typeof s.title !== "string") fail(id, "a Free Trade scenario needs a title");
+  if (s.answer_type === "choice") {
+    const options = s.options as { value?: unknown }[] | undefined;
+    if (!Array.isArray(options) || options.length < 2 || options.some((o) => typeof o.value !== "string")) {
+      fail(id, "a choice scenario needs at least two options with string values");
+    }
+    const a = s.answer as Record<string, unknown>;
+    if (typeof a.correct_choice !== "string" || !options.some((o) => o.value === a.correct_choice)) {
+      fail(id, "answer.correct_choice must match one of the options");
+    }
+  }
   if (s.setup_span !== undefined) {
     const span = s.setup_span as unknown[];
     const n = (s.candles as unknown[]).length;

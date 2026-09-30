@@ -45,7 +45,8 @@ def find_setup(day: List[Candle], n_ctx: int, med: List[float], params: Dict[str
     `kind` (valid | no_shift | no_sweep | no_entry | no_target | low_rr)
     and whatever levels were found along the way."""
     highs, lows = swing_highs(day, n), swing_lows(day, n)
-    shifts = [m for m in detect_mss(day, highs, lows, n) if m["break_index"] >= n_ctx]
+    shifts = [m for m in detect_mss(day, highs, lows, n, med, params.get("mss_min_swing_mult", 0.25))
+             if m["break_index"] >= n_ctx]
     if not shifts:
         return {"kind": "no_shift", "notes": "no Market Structure Shift breaks inside the session"}
     mss = shifts[0]

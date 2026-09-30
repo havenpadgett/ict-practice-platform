@@ -1,0 +1,228 @@
+{
+  "exercise_id": "real-pd-003",
+  "concept": "PremiumDiscount",
+  "answer_type": "choice",
+  "answerLabel": "Premium vs. Discount",
+  "prompt": "The dashed lines mark the dealing range's swing high and swing low. Is current price (the last candle's close) in premium or discount?",
+  "options": [
+    {
+      "value": "premium",
+      "label": "Premium"
+    },
+    {
+      "value": "discount",
+      "label": "Discount"
+    },
+    {
+      "value": "equilibrium",
+      "label": "At equilibrium (neither)"
+    }
+  ],
+  "instrument": "NQ (real data)",
+  "timeframe": "5m",
+  "difficulty": 2,
+  "answer": {
+    "correct_choice": "equilibrium",
+    "dealing_range": {
+      "high": 22066.25,
+      "low": 22021.0,
+      "high_index": 12,
+      "low_index": 13
+    }
+  },
+  "setup_span": [
+    0,
+    17
+  ],
+  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] bearish leg 22021-22066.2; last close 22042 at 46% of the range -> equilibrium.",
+  "provenance": {
+    "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
+    "symbol": "NQ",
+    "date_range": {
+      "start": "2024-07-08T09:30:00-04:00",
+      "end": "2024-07-08T10:55:00-04:00"
+    },
+    "trading_date": "2024-07-08",
+    "session": "ny_am",
+    "context_start": null,
+    "timeframe": "5m",
+    "detection_rule": "dealing_range",
+    "curriculum_versions": {
+      "premium_discount": 1,
+      "mss": 2
+    },
+    "candidate_id": "dealing_range-equilibrium-20240708T1055",
+    "detection_params": {
+      "rules": [
+        "fvg",
+        "ifvg",
+        "equal_highs",
+        "equal_lows",
+        "mss",
+        "order_block",
+        "dealing_range",
+        "ny_am"
+      ],
+      "swing_lookback": 2,
+      "equal_tolerance_pct": 0.05,
+      "fvg_min_range_mult": 0.25,
+      "range_window": 100,
+      "ob_displacement_mult": 2.0,
+      "ob_max_leg": 3,
+      "mss_min_swing_mult": 0.25
+    },
+    "detection_notes": "bearish leg 22021-22066.2; last close 22042 at 46% of the range -> equilibrium",
+    "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
+    "built_at": "2026-09-30T19:37:24+00:00",
+    "human_reviewed": false,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "review_notes": null
+  },
+  "candles": [
+    {
+      "time": "09:30",
+      "timestamp": "2024-07-08T09:30:00-04:00",
+      "open": 22065.5,
+      "high": 22077.75,
+      "low": 22048.25,
+      "close": 22057.0
+    },
+    {
+      "time": "09:35",
+      "timestamp": "2024-07-08T09:35:00-04:00",
+      "open": 22057.75,
+      "high": 22059.25,
+      "low": 22033.5,
+      "close": 22046.0
+    },
+    {
+      "time": "09:40",
+      "timestamp": "2024-07-08T09:40:00-04:00",
+      "open": 22046.25,
+      "high": 22060.5,
+      "low": 22041.0,
+      "close": 22056.0
+    },
+    {
+      "time": "09:45",
+      "timestamp": "2024-07-08T09:45:00-04:00",
+      "open": 22055.75,
+      "high": 22061.75,
+      "low": 22042.25,
+      "close": 22055.5
+    },
+    {
+      "time": "09:50",
+      "timestamp": "2024-07-08T09:50:00-04:00",
+      "open": 22055.75,
+      "high": 22086.5,
+      "low": 22052.75,
+      "close": 22059.0
+    },
+    {
+      "time": "09:55",
+      "timestamp": "2024-07-08T09:55:00-04:00",
+      "open": 22058.75,
+      "high": 22070.25,
+      "low": 22054.75,
+      "close": 22067.5
+    },
+    {
+      "time": "10:00",
+      "timestamp": "2024-07-08T10:00:00-04:00",
+      "open": 22068.0,
+      "high": 22069.0,
+      "low": 22029.75,
+      "close": 22055.75
+    },
+    {
+      "time": "10:05",
+      "timestamp": "2024-07-08T10:05:00-04:00",
+      "open": 22056.0,
+      "high": 22071.5,
+      "low": 22046.75,
+      "close": 22064.5
+    },
+    {
+      "time": "10:10",
+      "timestamp": "2024-07-08T10:10:00-04:00",
+      "open": 22064.0,
+      "high": 22075.25,
+      "low": 22056.75,
+      "close": 22068.25
+    },
+    {
+      "time": "10:15",
+      "timestamp": "2024-07-08T10:15:00-04:00",
+      "open": 22067.75,
+      "high": 22073.0,
+      "low": 22051.25,
+      "close": 22051.75
+    },
+    {
+      "time": "10:20",
+      "timestamp": "2024-07-08T10:20:00-04:00",
+      "open": 22051.75,
+      "high": 22053.0,
+      "low": 22032.5,
+      "close": 22051.25
+    },
+    {
+      "time": "10:25",
+      "timestamp": "2024-07-08T10:25:00-04:00",
+      "open": 22051.25,
+      "high": 22065.5,
+      "low": 22044.0,
+      "close": 22057.0
+    },
+    {
+      "time": "10:30",
+      "timestamp": "2024-07-08T10:30:00-04:00",
+      "open": 22057.0,
+      "high": 22066.25,
+      "low": 22044.0,
+      "close": 22051.75
+    },
+    {
+      "time": "10:35",
+      "timestamp": "2024-07-08T10:35:00-04:00",
+      "open": 22051.5,
+      "high": 22057.0,
+      "low": 22021.0,
+      "close": 22041.75
+    },
+    {
+      "time": "10:40",
+      "timestamp": "2024-07-08T10:40:00-04:00",
+      "open": 22041.5,
+      "high": 22046.5,
+      "low": 22027.0,
+      "close": 22034.5
+    },
+    {
+      "time": "10:45",
+      "timestamp": "2024-07-08T10:45:00-04:00",
+      "open": 22034.5,
+      "high": 22042.25,
+      "low": 22029.5,
+      "close": 22037.75
+    },
+    {
+      "time": "10:50",
+      "timestamp": "2024-07-08T10:50:00-04:00",
+      "open": 22037.5,
+      "high": 22040.0,
+      "low": 22028.5,
+      "close": 22038.0
+    },
+    {
+      "time": "10:55",
+      "timestamp": "2024-07-08T10:55:00-04:00",
+      "open": 22038.25,
+      "high": 22043.0,
+      "low": 22024.5,
+      "close": 22042.0
+    }
+  ]
+}

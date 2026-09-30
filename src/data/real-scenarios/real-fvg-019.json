@@ -1,0 +1,275 @@
+{
+  "exercise_id": "real-fvg-019",
+  "concept": "FVG",
+  "answer_type": "zone",
+  "answerLabel": "Fair Value Gap",
+  "prompt": "Identify the Fair Value Gap, if there is one.",
+  "noAnswerLabel": "No FVG present",
+  "instrument": "NQ (real data)",
+  "timeframe": "15m",
+  "difficulty": 3,
+  "has_answer": true,
+  "answer": {
+    "type": "bullish",
+    "price_low": 13598.25,
+    "price_high": 13612.75,
+    "candle_start": 2,
+    "candle_end": 4,
+    "key_candle_index": 3
+  },
+  "setup_span": [
+    2,
+    4
+  ],
+  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bullish Fair Value Gap: the first candle's high and the third candle's low leave the range 13598.2-13612.8 untraded.",
+  "provenance": {
+    "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
+    "symbol": "NQ",
+    "date_range": {
+      "start": "2022-12-27T09:30:00-05:00",
+      "end": "2022-12-27T15:45:00-05:00"
+    },
+    "trading_date": "2022-12-27",
+    "session": "rth",
+    "context_start": null,
+    "timeframe": "15m",
+    "detection_rule": "fvg",
+    "curriculum_versions": {
+      "fvg": 1,
+      "detection_parameters": 1
+    },
+    "candidate_id": "fvg-bullish-20221227T1015",
+    "detection_params": {
+      "rules": [
+        "fvg",
+        "equal_highs",
+        "equal_lows",
+        "order_block"
+      ],
+      "swing_lookback": 2,
+      "equal_tolerance_pct": 0.12,
+      "fvg_min_range_mult": 0.15,
+      "range_window": 100,
+      "ob_displacement_mult": 1.5,
+      "ob_max_leg": 3,
+      "mss_min_swing_mult": 0.25
+    },
+    "detection_notes": "candle 1 high 13598.2 < candle 3 low 13612.8",
+    "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
+    "built_at": "2026-09-30T19:32:17+00:00",
+    "human_reviewed": false,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "review_notes": null
+  },
+  "candles": [
+    {
+      "time": "09:30",
+      "timestamp": "2022-12-27T09:30:00-05:00",
+      "open": 13706.5,
+      "high": 13711.0,
+      "low": 13594.0,
+      "close": 13610.75
+    },
+    {
+      "time": "09:45",
+      "timestamp": "2022-12-27T09:45:00-05:00",
+      "open": 13610.75,
+      "high": 13610.75,
+      "low": 13559.75,
+      "close": 13585.25
+    },
+    {
+      "time": "10:00",
+      "timestamp": "2022-12-27T10:00:00-05:00",
+      "open": 13585.0,
+      "high": 13598.25,
+      "low": 13551.0,
+      "close": 13596.0
+    },
+    {
+      "time": "10:15",
+      "timestamp": "2022-12-27T10:15:00-05:00",
+      "open": 13595.5,
+      "high": 13659.0,
+      "low": 13579.0,
+      "close": 13641.5
+    },
+    {
+      "time": "10:30",
+      "timestamp": "2022-12-27T10:30:00-05:00",
+      "open": 13641.5,
+      "high": 13658.5,
+      "low": 13612.75,
+      "close": 13644.75
+    },
+    {
+      "time": "10:45",
+      "timestamp": "2022-12-27T10:45:00-05:00",
+      "open": 13645.25,
+      "high": 13672.75,
+      "low": 13618.25,
+      "close": 13627.5
+    },
+    {
+      "time": "11:00",
+      "timestamp": "2022-12-27T11:00:00-05:00",
+      "open": 13627.75,
+      "high": 13634.0,
+      "low": 13603.75,
+      "close": 13622.25
+    },
+    {
+      "time": "11:15",
+      "timestamp": "2022-12-27T11:15:00-05:00",
+      "open": 13622.25,
+      "high": 13638.0,
+      "low": 13608.5,
+      "close": 13635.0
+    },
+    {
+      "time": "11:30",
+      "timestamp": "2022-12-27T11:30:00-05:00",
+      "open": 13635.5,
+      "high": 13649.75,
+      "low": 13616.5,
+      "close": 13646.0
+    },
+    {
+      "time": "11:45",
+      "timestamp": "2022-12-27T11:45:00-05:00",
+      "open": 13645.75,
+      "high": 13652.0,
+      "low": 13617.5,
+      "close": 13619.75
+    },
+    {
+      "time": "12:00",
+      "timestamp": "2022-12-27T12:00:00-05:00",
+      "open": 13620.5,
+      "high": 13651.0,
+      "low": 13618.5,
+      "close": 13642.75
+    },
+    {
+      "time": "12:15",
+      "timestamp": "2022-12-27T12:15:00-05:00",
+      "open": 13643.25,
+      "high": 13643.75,
+      "low": 13609.0,
+      "close": 13610.25
+    },
+    {
+      "time": "12:30",
+      "timestamp": "2022-12-27T12:30:00-05:00",
+      "open": 13610.25,
+      "high": 13624.0,
+      "low": 13597.5,
+      "close": 13601.25
+    },
+    {
+      "time": "12:45",
+      "timestamp": "2022-12-27T12:45:00-05:00",
+      "open": 13601.5,
+      "high": 13609.75,
+      "low": 13583.0,
+      "close": 13605.75
+    },
+    {
+      "time": "13:00",
+      "timestamp": "2022-12-27T13:00:00-05:00",
+      "open": 13606.0,
+      "high": 13623.75,
+      "low": 13602.0,
+      "close": 13616.75
+    },
+    {
+      "time": "13:15",
+      "timestamp": "2022-12-27T13:15:00-05:00",
+      "open": 13616.75,
+      "high": 13621.0,
+      "low": 13594.0,
+      "close": 13595.75
+    },
+    {
+      "time": "13:30",
+      "timestamp": "2022-12-27T13:30:00-05:00",
+      "open": 13596.5,
+      "high": 13602.75,
+      "low": 13588.5,
+      "close": 13593.0
+    },
+    {
+      "time": "13:45",
+      "timestamp": "2022-12-27T13:45:00-05:00",
+      "open": 13593.0,
+      "high": 13596.25,
+      "low": 13566.75,
+      "close": 13573.5
+    },
+    {
+      "time": "14:00",
+      "timestamp": "2022-12-27T14:00:00-05:00",
+      "open": 13573.75,
+      "high": 13592.75,
+      "low": 13570.75,
+      "close": 13582.5
+    },
+    {
+      "time": "14:15",
+      "timestamp": "2022-12-27T14:15:00-05:00",
+      "open": 13582.75,
+      "high": 13583.25,
+      "low": 13560.75,
+      "close": 13564.25
+    },
+    {
+      "time": "14:30",
+      "timestamp": "2022-12-27T14:30:00-05:00",
+      "open": 13564.25,
+      "high": 13574.75,
+      "low": 13554.75,
+      "close": 13564.25
+    },
+    {
+      "time": "14:45",
+      "timestamp": "2022-12-27T14:45:00-05:00",
+      "open": 13563.75,
+      "high": 13588.75,
+      "low": 13563.5,
+      "close": 13578.25
+    },
+    {
+      "time": "15:00",
+      "timestamp": "2022-12-27T15:00:00-05:00",
+      "open": 13578.5,
+      "high": 13593.25,
+      "low": 13567.25,
+      "close": 13589.5
+    },
+    {
+      "time": "15:15",
+      "timestamp": "2022-12-27T15:15:00-05:00",
+      "open": 13589.75,
+      "high": 13600.0,
+      "low": 13581.0,
+      "close": 13595.25
+    },
+    {
+      "time": "15:30",
+      "timestamp": "2022-12-27T15:30:00-05:00",
+      "open": 13595.5,
+      "high": 13613.75,
+      "low": 13593.0,
+      "close": 13597.5
+    },
+    {
+      "time": "15:45",
+      "timestamp": "2022-12-27T15:45:00-05:00",
+      "open": 13597.5,
+      "high": 13598.5,
+      "low": 13563.75,
+      "close": 13573.75
+    }
+  ]
+}

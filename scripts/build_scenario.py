@@ -71,6 +71,10 @@ def setup_span(cand: Dict[str, Any], start: int, end: int, lookback: int) -> Lis
     rule, inv = cand["rule"], cand["involved_indices"]
     if rule == "fvg":
         lo, hi = min(inv), max(inv)
+    elif rule == "ifvg":
+        # The original FVG's three candles plus the disrespect (flip) candle
+        # that confirms it - a beginner needs to see the flip, not just the gap.
+        lo, hi = min(inv[:3]), cand["flip_index"]
     elif rule in ("equal_highs", "equal_lows"):
         lo, hi = min(inv) - lookback, max(inv) + lookback
     elif rule == "mss":
@@ -107,6 +111,30 @@ def map_exercise(cand: Dict[str, Any], start: int) -> Dict[str, Any]:
                 f"{'high' if cand['direction'] == 'bullish' else 'low'} and the third candle's "
                 f"{'low' if cand['direction'] == 'bullish' else 'high'} leave the range "
                 f"{levels['price_low']:g}-{levels['price_high']:g} untraded."
+            ),
+        }
+    if rule == "ifvg":
+        k = cand["involved_indices"][1] - start
+        bullish = cand["direction"] == "bullish"
+        return {
+            "concept": "IFVG",
+            "answer_type": "zone",
+            "answerLabel": "Inverse Fair Value Gap",
+            "prompt": "Identify the Inverse Fair Value Gap, if there is one.",
+            "noAnswerLabel": "No IFVG present",
+            "answer": {
+                "type": cand["direction"],
+                "price_low": levels["price_low"],
+                "price_high": levels["price_high"],
+                "candle_start": k - 1,
+                "candle_end": k + 1,
+                "key_candle_index": k,
+            },
+            "explanation": (
+                f"{DRAFT_NOTE} A {cand['direction']} Fair Value Gap forms at {levels['price_low']:g}-{levels['price_high']:g}, "
+                f"but a later candle's body closes {'below' if bullish else 'above'} the "
+                f"{'lower' if bullish else 'upper'} boundary - disrespected, not just a wick through. "
+                f"The old zone flips: it now acts as {'resistance' if bullish else 'support'}."
             ),
         }
     if rule == "order_block":
@@ -155,6 +183,29 @@ def map_exercise(cand: Dict[str, Any], start: int) -> Dict[str, Any]:
                 f"{DRAFT_NOTE} A {cand['direction']} Market Structure Shift: a candle body closed beyond the swing "
                 f"at {levels['price']:g}, against the prevailing trend."
             ),
+        }
+    if rule == "dealing_range":
+        return {
+            "concept": "PremiumDiscount",
+            "answer_type": "choice",
+            "answerLabel": "Premium vs. Discount",
+            "prompt": "The dashed lines mark the dealing range's swing high and swing low. Is current price "
+                      "(the last candle's close) in premium or discount?",
+            "options": [
+                {"value": "premium", "label": "Premium"},
+                {"value": "discount", "label": "Discount"},
+                {"value": "equilibrium", "label": "At equilibrium (neither)"},
+            ],
+            "answer": {
+                "correct_choice": cand["direction"],
+                "dealing_range": {
+                    "high": levels["high"],
+                    "low": levels["low"],
+                    "high_index": cand["high_index"] - start,
+                    "low_index": cand["low_index"] - start,
+                },
+            },
+            "explanation": f"{DRAFT_NOTE} {cand['notes']}.",
         }
     if rule in TIME_RULES:
         label, prompt, no_answer = TIME_RULES[rule]
@@ -244,7 +295,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         and start <= min(c["involved_indices"]) and max(c["involved_indices"]) <= end
     ]
     problems: List[str] = []
-    if cand["rule"] == "fvg":
+    if cand["rule"] in ("fvg", "ifvg"):
         # Gaps under detection's minimum are still visible on the chart; a
         # beginner who marks one mustn't be marked wrong (CURRICULUM.md).
         med = session_median_range(candles, cands["meta"].get("detection_params", {}).get("range_window", 100))
@@ -276,17 +327,19 @@ def main(argv: Optional[List[str]] = None) -> int:
         tol = args.tolerance if args.tolerance is not None else max(2.0, round(median_range / 2 * 4) / 4)
         mapped["answer"]["tolerance"] = round_price(tol)
 
+    is_choice = mapped["answer_type"] == "choice"
     exercise = {
         "exercise_id": args.exercise_id,
         "concept": mapped["concept"],
         "answer_type": mapped["answer_type"],
         "answerLabel": mapped["answerLabel"],
         "prompt": mapped["prompt"],
-        "noAnswerLabel": mapped["noAnswerLabel"],
+        **({} if is_choice else {"noAnswerLabel": mapped["noAnswerLabel"]}),
+        **({"options": mapped["options"]} if is_choice else {}),
         "instrument": f"{meta['symbol']} (real data)",
         "timeframe": timeframe_label(meta["timeframe_minutes"]),
         "difficulty": args.difficulty,
-        "has_answer": True,
+        **({} if is_choice else {"has_answer": True}),
         "answer": mapped["answer"],
         "setup_span": setup_span(cand, start, end, cands["meta"].get("detection_params", {}).get("swing_lookback", 2)),
         "explanation": mapped["explanation"],

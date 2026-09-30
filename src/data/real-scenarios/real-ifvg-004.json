@@ -1,0 +1,217 @@
+{
+  "exercise_id": "real-ifvg-004",
+  "concept": "IFVG",
+  "answer_type": "zone",
+  "answerLabel": "Inverse Fair Value Gap",
+  "prompt": "Identify the Inverse Fair Value Gap, if there is one.",
+  "noAnswerLabel": "No IFVG present",
+  "instrument": "NQ (real data)",
+  "timeframe": "5m",
+  "difficulty": 2,
+  "has_answer": true,
+  "answer": {
+    "type": "bearish",
+    "price_low": 23479.75,
+    "price_high": 23490.5,
+    "candle_start": 3,
+    "candle_end": 5,
+    "key_candle_index": 4
+  },
+  "setup_span": [
+    3,
+    10
+  ],
+  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bearish Fair Value Gap forms at 23479.8-23490.5, but a later candle's body closes above the upper boundary - disrespected, not just a wick through. The old zone flips: it now acts as support.",
+  "provenance": {
+    "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
+    "symbol": "NQ",
+    "date_range": {
+      "start": "2025-07-16T09:30:00-04:00",
+      "end": "2025-07-16T10:55:00-04:00"
+    },
+    "trading_date": "2025-07-16",
+    "session": "ny_am",
+    "context_start": null,
+    "timeframe": "5m",
+    "detection_rule": "ifvg",
+    "curriculum_versions": {
+      "ifvg": 1,
+      "fvg": 1,
+      "fvg_respect": 1,
+      "detection_parameters": 1
+    },
+    "candidate_id": "ifvg-bearish-20250716T1020",
+    "detection_params": {
+      "rules": [
+        "fvg",
+        "ifvg",
+        "equal_highs",
+        "equal_lows",
+        "mss",
+        "order_block",
+        "dealing_range",
+        "ny_am"
+      ],
+      "swing_lookback": 2,
+      "equal_tolerance_pct": 0.05,
+      "fvg_min_range_mult": 0.25,
+      "range_window": 100,
+      "ob_displacement_mult": 2.0,
+      "ob_max_leg": 3,
+      "mss_min_swing_mult": 0.25
+    },
+    "detection_notes": "bearish FVG 23479.8-23490.5 disrespected at body close 23496 - now acting as support",
+    "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
+    "built_at": "2026-09-30T19:36:31+00:00",
+    "human_reviewed": false,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "review_notes": null
+  },
+  "candles": [
+    {
+      "time": "09:30",
+      "timestamp": "2025-07-16T09:30:00-04:00",
+      "open": 23568.25,
+      "high": 23583.5,
+      "low": 23514.0,
+      "close": 23521.0
+    },
+    {
+      "time": "09:35",
+      "timestamp": "2025-07-16T09:35:00-04:00",
+      "open": 23520.25,
+      "high": 23544.5,
+      "low": 23506.5,
+      "close": 23537.0
+    },
+    {
+      "time": "09:40",
+      "timestamp": "2025-07-16T09:40:00-04:00",
+      "open": 23537.5,
+      "high": 23538.0,
+      "low": 23494.75,
+      "close": 23506.75
+    },
+    {
+      "time": "09:45",
+      "timestamp": "2025-07-16T09:45:00-04:00",
+      "open": 23507.25,
+      "high": 23526.0,
+      "low": 23490.5,
+      "close": 23491.5
+    },
+    {
+      "time": "09:50",
+      "timestamp": "2025-07-16T09:50:00-04:00",
+      "open": 23491.5,
+      "high": 23493.25,
+      "low": 23457.0,
+      "close": 23459.25
+    },
+    {
+      "time": "09:55",
+      "timestamp": "2025-07-16T09:55:00-04:00",
+      "open": 23459.75,
+      "high": 23479.75,
+      "low": 23451.25,
+      "close": 23462.5
+    },
+    {
+      "time": "10:00",
+      "timestamp": "2025-07-16T10:00:00-04:00",
+      "open": 23462.5,
+      "high": 23479.5,
+      "low": 23453.5,
+      "close": 23465.0
+    },
+    {
+      "time": "10:05",
+      "timestamp": "2025-07-16T10:05:00-04:00",
+      "open": 23465.25,
+      "high": 23476.5,
+      "low": 23442.75,
+      "close": 23469.5
+    },
+    {
+      "time": "10:10",
+      "timestamp": "2025-07-16T10:10:00-04:00",
+      "open": 23469.25,
+      "high": 23498.0,
+      "low": 23466.0,
+      "close": 23469.5
+    },
+    {
+      "time": "10:15",
+      "timestamp": "2025-07-16T10:15:00-04:00",
+      "open": 23469.5,
+      "high": 23489.0,
+      "low": 23455.0,
+      "close": 23488.25
+    },
+    {
+      "time": "10:20",
+      "timestamp": "2025-07-16T10:20:00-04:00",
+      "open": 23486.25,
+      "high": 23504.75,
+      "low": 23474.75,
+      "close": 23496.0
+    },
+    {
+      "time": "10:25",
+      "timestamp": "2025-07-16T10:25:00-04:00",
+      "open": 23496.25,
+      "high": 23504.25,
+      "low": 23477.25,
+      "close": 23499.5
+    },
+    {
+      "time": "10:30",
+      "timestamp": "2025-07-16T10:30:00-04:00",
+      "open": 23499.0,
+      "high": 23525.5,
+      "low": 23495.75,
+      "close": 23508.0
+    },
+    {
+      "time": "10:35",
+      "timestamp": "2025-07-16T10:35:00-04:00",
+      "open": 23508.0,
+      "high": 23509.0,
+      "low": 23487.75,
+      "close": 23499.0
+    },
+    {
+      "time": "10:40",
+      "timestamp": "2025-07-16T10:40:00-04:00",
+      "open": 23499.5,
+      "high": 23511.5,
+      "low": 23482.5,
+      "close": 23496.75
+    },
+    {
+      "time": "10:45",
+      "timestamp": "2025-07-16T10:45:00-04:00",
+      "open": 23496.25,
+      "high": 23520.0,
+      "low": 23494.25,
+      "close": 23515.5
+    },
+    {
+      "time": "10:50",
+      "timestamp": "2025-07-16T10:50:00-04:00",
+      "open": 23515.25,
+      "high": 23527.75,
+      "low": 23461.25,
+      "close": 23471.5
+    },
+    {
+      "time": "10:55",
+      "timestamp": "2025-07-16T10:55:00-04:00",
+      "open": 23470.25,
+      "high": 23508.25,
+      "low": 23454.0,
+      "close": 23484.0
+    }
+  ]
+}

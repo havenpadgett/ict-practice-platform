@@ -53,10 +53,11 @@
     "detection_notes": "uptrend; body close 19963.8 below higher low 20022.5",
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-25T03:21:08+00:00",
-    "human_reviewed": true,
+    "human_reviewed": false,
     "reviewed_by": "lpshaven@gmail.com",
     "reviewed_at": "2026-09-30",
-    "review_notes": null
+    "review_notes": "Auto-flagged 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, Market Structure Shift - Minimum structure; swing move >= 0.25x median bar range), the prior swing high only moved 0.17x median bar range beyond the previous swing high - too small to count as real structure (swing low moved 0.89x). Confirm whether the trend this MSS breaks was actually established.",
+    "review_status": "ambiguous"
   },
   "candles": [
     {

@@ -56,7 +56,7 @@
     "human_reviewed": false,
     "reviewed_by": null,
     "reviewed_at": null,
-    "review_notes": "The bearish break is clear, but the prior bullish structure is not well established. Confirm that the highlighted level is a valid higher low before labeling this a bearish Market Structure Shift.",
+    "review_notes": "The bearish break is clear, but the prior bullish structure is not well established. Confirm that the highlighted level is a valid higher low before labeling this a bearish Market Structure Shift. Auto-confirmed 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, swing move >= 0.25x median bar range), both the prior swing high (0.33x) and swing low (0.22x) move too little to count as real structure - this is exactly the two-bar-wiggle case the rule was added to close.",
     "review_status": "ambiguous"
   },
   "candles": [

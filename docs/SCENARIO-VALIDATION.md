@@ -97,6 +97,29 @@ That's 26 more recognition scenarios (`real-fvg-011`…`015`, `real-liq-011`…`
 - One `pick_candidates.py` run (`mss --first 14 --seed 16`, not shown above) picked `mss-bearish-20230613T1415` — the exact same candidate already built as `real-mss-008`. Seeded random picks aren't checked against already-*built* scenarios, only against scenarios another *run in progress* would reuse, so an exact duplicate is possible by chance; this one was caught by hand (comparing every file's `provenance.candidate_id`) and rebuilt with `--seed 23` instead, which is what's shown above. Check for this before registering a future batch: `python3 -c "..."` comparing `candidate_id` across all `src/data/real-scenarios/real-<prefix>-*.json` files, same rule.
 - TimeLiquidity's default window for a `ny_am_high`/`ny_am_low` candidate is exactly the 18-bar NY AM session (`build_scenario.py`'s `--window session` excludes context bars for every rule except `mss`/`order_block`) — every one of these scenarios would otherwise be the same fixed length, which `tests/framing.test.ts` catches as a chart-size clustering regression. They were rebuilt with `--start <day>T07:00:00<offset> --end <day>T10:55:00<offset>` to include the same 07:00 context bars MSS/Order Block scenarios get, then hand-patched to `setup_span: [30, 47]` (the original 18 session bars, offset by the 30 context bars) — the context bars are legitimate extra distractor history (a pre-market spike that isn't part of the NY AM session, exactly CURRICULUM.md's own "a lower pre-market spike... is a different level" distractor), not part of what the answer needs, so framing can vary how much of it is shown without ever hiding the session itself.
 
+The third batch (2026-09-30, awaiting review) adds the first-ever real IFVG and Premium/Discount content, plus a first difficulty-3 batch built from a relaxed detection profile (docs/CURRICULUM.md → Detection thresholds by difficulty tier):
+
+```bash
+N=data/clean/nq_nyam_ctx.5m; R=data/clean/nq_rth_full.15m
+python3 scripts/pick_candidates.py $N.clean.json $N.candidates.json --rules ifvg --count 4 --prefix real-ifvg --first 1 --seed 41
+python3 scripts/pick_candidates.py $R.clean.json $R.candidates.json --rules ifvg --count 3 --prefix real-ifvg --first 5 --seed 42
+python3 scripts/pick_candidates.py $N.clean.json $N.candidates.json --rules dealing_range --count 4 --prefix real-pd --first 1 --seed 43
+python3 scripts/pick_candidates.py $R.clean.json $R.candidates.json --rules dealing_range --count 3 --prefix real-pd --first 5 --seed 44
+```
+
+That's 14 scenarios (`real-ifvg-001`…`007`, `real-pd-001`…`007`), all difficulty 2 (`pick_candidates.py`'s difficulty heuristic doesn't cover `ifvg`/`dealing_range` either — see the Order Block note above).
+
+**Difficulty-3 relaxed profile.** A separate detection pass, run only for this batch, with three thresholds pushed toward the legibility floor documented in Detection Parameters: `--fvg-min-range-mult 0.15 --equal-tolerance-pct 0.12 --ob-displacement-mult 1.5` (not `--mss-min-swing-mult`, which stays at its default 0.25 for every tier). The defaults `detect.py` ships with are unchanged — this is only ever invoked explicitly, into a separate candidates file:
+
+```bash
+python3 scripts/detect.py $N.clean.json -o /tmp/nyam_relaxed_d3.candidates.json \
+    --rules fvg,equal_highs,equal_lows,order_block --fvg-min-range-mult 0.15 --equal-tolerance-pct 0.12 --ob-displacement-mult 1.5
+python3 scripts/detect.py $R.clean.json -o /tmp/rth_relaxed_d3.candidates.json \
+    --rules fvg,equal_highs,equal_lows,order_block --fvg-min-range-mult 0.15 --equal-tolerance-pct 0.12 --ob-displacement-mult 1.5
+```
+
+Then `build_scenario.py --candidate <id> --exercise-id <id> --difficulty 3` per candidate, same as any other batch — `pick_candidates.py`'s retry-to-success behavior hides how often a relaxed candidate actually gets rejected, so this batch was built with one attempt per candidate instead, to get an honest rejection rate (see CURRICULUM.md for the numbers: FVG specifically was rejected in the large majority of attempts, since a whole-session window at this floor almost always has a second marginal gap). Result: `real-fvg-016`…`021` (6), `real-liq-016`…`021` (6), `real-ob-009`…`013` (5) — 17 scenarios, `provenance.detection_params` recording the relaxed multiples.
+
 ### Guided Entry and Free Trade batches
 
 `scripts/build_trade_scenarios.py` classifies every NY AM session with the setup finder in `scripts/setups.py` (see CURRICULUM.md, Guided Entry → Real-data scenarios). It builds a planned mix of valid and no-trade sessions, spread across the date range and never reusing a session another trade scenario already uses. `scripts/register_scenarios.py` then rewrites the import list in `src/data/real-scenarios/index.ts`.
@@ -339,11 +362,11 @@ Every candidate that reaches review gets a row: approvals and rejections alike. 
 | 2026-09-30 | real-mss-001 | mss-bearish-20230525T0930 | mss | approved | — | lpshaven@gmail.com | — |
 | 2026-09-30 | real-mss-002 | mss-bearish-20230911T0935 | mss | approved | — | lpshaven@gmail.com | — |
 | 2026-09-30 | real-mss-003 | mss-bullish-20240315T1035 | mss | approved | — | lpshaven@gmail.com | — |
-| 2026-09-30 | real-mss-004 | mss-bearish-20240415T0930 | mss | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-mss-004 | mss-bearish-20240415T0930 | mss | approved | — | lpshaven@gmail.com | Superseded 2026-09-30: no longer qualifies under the tightened MSS minimum-structure rule - see the later ambiguous-log entry. |
 | 2026-09-30 | real-mss-005 | mss-bearish-20241210T1050 | mss | approved | — | lpshaven@gmail.com | — |
 | 2026-09-30 | real-mss-006 | mss-bullish-20250327T0955 | mss | approved | — | lpshaven@gmail.com | — |
-| 2026-09-30 | real-mss-008 | mss-bearish-20230613T1415 | mss | approved | — | lpshaven@gmail.com | — |
-| 2026-09-30 | real-mss-009 | mss-bullish-20240328T1445 | mss | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-mss-008 | mss-bearish-20230613T1415 | mss | approved | — | lpshaven@gmail.com | Superseded 2026-09-30: no longer qualifies under the tightened MSS minimum-structure rule - see the later ambiguous-log entry. |
+| 2026-09-30 | real-mss-009 | mss-bullish-20240328T1445 | mss | approved | — | lpshaven@gmail.com | Superseded 2026-09-30: no longer qualifies under the tightened MSS minimum-structure rule - see the later ambiguous-log entry. |
 | 2026-09-30 | real-mss-010 | mss-bullish-20250827T1330 | mss | approved | — | lpshaven@gmail.com | — |
 | 2026-09-30 | real-guided-001 | setup-no_sweep-20240521 | guided_setup | approved | — | lpshaven@gmail.com | — |
 | 2026-09-30 | real-guided-002 | setup-no_entry-20250107 | guided_setup | approved | — | lpshaven@gmail.com | — |
@@ -374,5 +397,10 @@ Candidates flagged **ambiguous**: two reasonable traders would label the chart d
 <!-- ambiguous-log:start -->
 | Date | Exercise ID | Candidate ID | Rule | Decision | Reason | Reviewer | Notes |
 |---|---|---|---|---|---|---|---|
-| 2026-09-30 | real-mss-007 | mss-bearish-20250924T0930 | mss | ambiguous | — | lpshaven@gmail.com | The bearish break is clear, but the prior bullish structure is not well established. Confirm that the highlighted level is a valid higher low before labeling this a bearish Market Structure Shift. |
+| 2026-09-30 | real-mss-007 | mss-bearish-20250924T0930 | mss | ambiguous | — | lpshaven@gmail.com | The bearish break is clear, but the prior bullish structure is not well established. Confirm that the highlighted level is a valid higher low before labeling this a bearish Market Structure Shift. Auto-confirmed 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, swing move >= 0.25x median bar range), both the prior swing high (0.33x) and swing low (0.22x) move too little to count as real structure - this is exactly the two-bar-wiggle case the rule was added to close. |
+| 2026-09-30 | real-mss-004 | mss-bearish-20240415T0930 | mss | ambiguous | — | system (tightened MSS rule) | Auto-flagged 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, Market Structure Shift - Minimum structure; swing move >= 0.25x median bar range), the prior swing high only moved 0.17x median bar range beyond the previous swing high - too small to count as real structure (swing low moved 0.89x). Confirm whether the trend this MSS breaks was actually established. |
+| 2026-09-30 | real-mss-008 | mss-bearish-20230613T1415 | mss | ambiguous | — | system (tightened MSS rule) | Auto-flagged 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, Market Structure Shift - Minimum structure; swing move >= 0.25x median bar range), the prior swing high only moved 0.05x median bar range beyond the previous swing high - too small to count as real structure (swing low moved 0.75x). Confirm whether the trend this MSS breaks was actually established. |
+| 2026-09-30 | real-mss-009 | mss-bullish-20240328T1445 | mss | ambiguous | — | system (tightened MSS rule) | Auto-flagged 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, Market Structure Shift - Minimum structure; swing move >= 0.25x median bar range), the prior swing high only moved 0.33x median bar range beyond the previous swing high - too small to count as real structure (swing low moved 0.88x). Confirm whether the trend this MSS breaks was actually established. |
+| 2026-09-30 | real-mss-011 | mss-bearish-20230824T0930 | mss | ambiguous | — | system (tightened MSS rule) | Auto-flagged 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, Market Structure Shift - Minimum structure; swing move >= 0.25x median bar range), the prior swing low only moved 0.15x median bar range beyond the previous swing low - too small to count as real structure (swing high moved 0.34x). Confirm whether the trend this MSS breaks was actually established. |
+| 2026-09-30 | real-mss-012 | mss-bearish-20241004T0950 | mss | ambiguous | — | system (tightened MSS rule) | Auto-flagged 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, Market Structure Shift - Minimum structure; swing move >= 0.25x median bar range), the prior swing high only moved 0.20x median bar range beyond the previous swing high - too small to count as real structure (swing low moved 5.59x). Confirm whether the trend this MSS breaks was actually established. |
 <!-- ambiguous-log:end -->

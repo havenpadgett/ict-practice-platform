@@ -13,8 +13,8 @@
     },
     "mss": {
       "section": "Market Structure Shift (MSS)",
-      "version": 1,
-      "sha256": "441c5b3db6950410168d1c0d4599ec7fcdb090618e300698c6484ebf9814e660"
+      "version": 2,
+      "sha256": "fa47c2ab9f352a54c1ba8a8ccc76b4abf54fcd925b6a6b43945c6e2e793baac6"
     },
     "detection_parameters": {
       "section": "Detection Parameters (real data)",
@@ -22,7 +22,7 @@
       "sha256": "c82ee909128b7487135dad07afa67280d6513d364c580300a67981750c77b527"
     },
     "fvg_respect": {
-      "section": "Fair Value Gap — Respected vs. Disrespected",
+      "section": "Fair Value Gap \u2014 Respected vs. Disrespected",
       "version": 1,
       "sha256": "e5eb256047a4e0f9c890f13f40fcd04c80884eee25338354651cea0d74da3fb5"
     },
@@ -52,9 +52,14 @@
       "sha256": "62e218107f3e95fd5544a1ec204ee2241445930455ca4e6748a2eb77f641b8b1"
     },
     "time_levels": {
-      "section": "Liquidity — Time-Based Levels",
+      "section": "Liquidity \u2014 Time-Based Levels",
       "version": 1,
       "sha256": "59ce50f973e557257be9d676801450d487cfb037f8d507884e1329b889a5ccc8"
+    },
+    "detection_parameters_d3": {
+      "section": "Detection thresholds by difficulty tier",
+      "version": 1,
+      "sha256": "c0d1fbfc10f02b45a9b893654bc0cd16e9ab742053cf3795f2f0a87c6397dc15"
     }
   },
   "rules": {
@@ -103,6 +108,12 @@
       "fvg_respect",
       "order_block",
       "liquidity",
+      "detection_parameters"
+    ],
+    "ifvg": [
+      "ifvg",
+      "fvg",
+      "fvg_respect",
       "detection_parameters"
     ]
   },

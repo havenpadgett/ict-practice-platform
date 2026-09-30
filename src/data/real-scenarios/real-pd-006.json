@@ -1,0 +1,292 @@
+{
+  "exercise_id": "real-pd-006",
+  "concept": "PremiumDiscount",
+  "answer_type": "choice",
+  "answerLabel": "Premium vs. Discount",
+  "prompt": "The dashed lines mark the dealing range's swing high and swing low. Is current price (the last candle's close) in premium or discount?",
+  "options": [
+    {
+      "value": "premium",
+      "label": "Premium"
+    },
+    {
+      "value": "discount",
+      "label": "Discount"
+    },
+    {
+      "value": "equilibrium",
+      "label": "At equilibrium (neither)"
+    }
+  ],
+  "instrument": "NQ (real data)",
+  "timeframe": "15m",
+  "difficulty": 2,
+  "answer": {
+    "correct_choice": "discount",
+    "dealing_range": {
+      "high": 20401.25,
+      "low": 20246.25,
+      "high_index": 12,
+      "low_index": 20
+    }
+  },
+  "setup_span": [
+    0,
+    25
+  ],
+  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] bearish leg 20246.2-20401.2; last close 20252.5 at 4% of the range -> discount.",
+  "provenance": {
+    "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
+    "symbol": "NQ",
+    "date_range": {
+      "start": "2024-03-21T09:30:00-04:00",
+      "end": "2024-03-21T15:45:00-04:00"
+    },
+    "trading_date": "2024-03-21",
+    "session": "rth",
+    "context_start": null,
+    "timeframe": "15m",
+    "detection_rule": "dealing_range",
+    "curriculum_versions": {
+      "premium_discount": 1,
+      "mss": 2
+    },
+    "candidate_id": "dealing_range-discount-20240321T1545",
+    "detection_params": {
+      "rules": [
+        "fvg",
+        "ifvg",
+        "equal_highs",
+        "equal_lows",
+        "mss",
+        "order_block",
+        "dealing_range",
+        "ny_am"
+      ],
+      "swing_lookback": 2,
+      "equal_tolerance_pct": 0.05,
+      "fvg_min_range_mult": 0.25,
+      "range_window": 100,
+      "ob_displacement_mult": 2.0,
+      "ob_max_leg": 3,
+      "mss_min_swing_mult": 0.25
+    },
+    "detection_notes": "bearish leg 20246.2-20401.2; last close 20252.5 at 4% of the range -> discount",
+    "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
+    "built_at": "2026-09-30T19:37:25+00:00",
+    "human_reviewed": false,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "review_notes": null
+  },
+  "candles": [
+    {
+      "time": "09:30",
+      "timestamp": "2024-03-21T09:30:00-04:00",
+      "open": 20381.5,
+      "high": 20402.75,
+      "low": 20349.0,
+      "close": 20369.5
+    },
+    {
+      "time": "09:45",
+      "timestamp": "2024-03-21T09:45:00-04:00",
+      "open": 20366.25,
+      "high": 20383.25,
+      "low": 20319.75,
+      "close": 20342.0
+    },
+    {
+      "time": "10:00",
+      "timestamp": "2024-03-21T10:00:00-04:00",
+      "open": 20341.75,
+      "high": 20361.75,
+      "low": 20324.75,
+      "close": 20339.25
+    },
+    {
+      "time": "10:15",
+      "timestamp": "2024-03-21T10:15:00-04:00",
+      "open": 20340.0,
+      "high": 20381.25,
+      "low": 20334.25,
+      "close": 20352.75
+    },
+    {
+      "time": "10:30",
+      "timestamp": "2024-03-21T10:30:00-04:00",
+      "open": 20353.0,
+      "high": 20356.5,
+      "low": 20314.0,
+      "close": 20342.5
+    },
+    {
+      "time": "10:45",
+      "timestamp": "2024-03-21T10:45:00-04:00",
+      "open": 20342.25,
+      "high": 20362.75,
+      "low": 20331.5,
+      "close": 20337.25
+    },
+    {
+      "time": "11:00",
+      "timestamp": "2024-03-21T11:00:00-04:00",
+      "open": 20337.5,
+      "high": 20358.25,
+      "low": 20311.25,
+      "close": 20336.75
+    },
+    {
+      "time": "11:15",
+      "timestamp": "2024-03-21T11:15:00-04:00",
+      "open": 20336.75,
+      "high": 20353.75,
+      "low": 20318.75,
+      "close": 20349.25
+    },
+    {
+      "time": "11:30",
+      "timestamp": "2024-03-21T11:30:00-04:00",
+      "open": 20349.25,
+      "high": 20380.75,
+      "low": 20344.0,
+      "close": 20376.25
+    },
+    {
+      "time": "11:45",
+      "timestamp": "2024-03-21T11:45:00-04:00",
+      "open": 20376.25,
+      "high": 20394.75,
+      "low": 20370.5,
+      "close": 20375.5
+    },
+    {
+      "time": "12:00",
+      "timestamp": "2024-03-21T12:00:00-04:00",
+      "open": 20375.75,
+      "high": 20390.25,
+      "low": 20368.75,
+      "close": 20386.0
+    },
+    {
+      "time": "12:15",
+      "timestamp": "2024-03-21T12:15:00-04:00",
+      "open": 20386.0,
+      "high": 20400.75,
+      "low": 20380.5,
+      "close": 20397.25
+    },
+    {
+      "time": "12:30",
+      "timestamp": "2024-03-21T12:30:00-04:00",
+      "open": 20397.25,
+      "high": 20401.25,
+      "low": 20375.25,
+      "close": 20376.75
+    },
+    {
+      "time": "12:45",
+      "timestamp": "2024-03-21T12:45:00-04:00",
+      "open": 20376.75,
+      "high": 20389.5,
+      "low": 20371.5,
+      "close": 20383.0
+    },
+    {
+      "time": "13:00",
+      "timestamp": "2024-03-21T13:00:00-04:00",
+      "open": 20382.75,
+      "high": 20383.5,
+      "low": 20355.75,
+      "close": 20369.5
+    },
+    {
+      "time": "13:15",
+      "timestamp": "2024-03-21T13:15:00-04:00",
+      "open": 20369.5,
+      "high": 20370.0,
+      "low": 20349.75,
+      "close": 20357.0
+    },
+    {
+      "time": "13:30",
+      "timestamp": "2024-03-21T13:30:00-04:00",
+      "open": 20357.0,
+      "high": 20358.0,
+      "low": 20339.75,
+      "close": 20356.25
+    },
+    {
+      "time": "13:45",
+      "timestamp": "2024-03-21T13:45:00-04:00",
+      "open": 20357.0,
+      "high": 20358.0,
+      "low": 20306.0,
+      "close": 20312.5
+    },
+    {
+      "time": "14:00",
+      "timestamp": "2024-03-21T14:00:00-04:00",
+      "open": 20312.25,
+      "high": 20317.25,
+      "low": 20278.0,
+      "close": 20292.0
+    },
+    {
+      "time": "14:15",
+      "timestamp": "2024-03-21T14:15:00-04:00",
+      "open": 20291.5,
+      "high": 20311.75,
+      "low": 20283.5,
+      "close": 20310.0
+    },
+    {
+      "time": "14:30",
+      "timestamp": "2024-03-21T14:30:00-04:00",
+      "open": 20310.25,
+      "high": 20310.5,
+      "low": 20246.25,
+      "close": 20270.25
+    },
+    {
+      "time": "14:45",
+      "timestamp": "2024-03-21T14:45:00-04:00",
+      "open": 20270.25,
+      "high": 20289.0,
+      "low": 20250.25,
+      "close": 20267.25
+    },
+    {
+      "time": "15:00",
+      "timestamp": "2024-03-21T15:00:00-04:00",
+      "open": 20267.25,
+      "high": 20288.0,
+      "low": 20251.75,
+      "close": 20280.0
+    },
+    {
+      "time": "15:15",
+      "timestamp": "2024-03-21T15:15:00-04:00",
+      "open": 20280.75,
+      "high": 20291.5,
+      "low": 20268.0,
+      "close": 20280.25
+    },
+    {
+      "time": "15:30",
+      "timestamp": "2024-03-21T15:30:00-04:00",
+      "open": 20280.25,
+      "high": 20295.5,
+      "low": 20257.75,
+      "close": 20284.25
+    },
+    {
+      "time": "15:45",
+      "timestamp": "2024-03-21T15:45:00-04:00",
+      "open": 20284.5,
+      "high": 20286.75,
+      "low": 20246.5,
+      "close": 20252.5
+    }
+  ]
+}
