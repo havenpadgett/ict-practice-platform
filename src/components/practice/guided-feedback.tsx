@@ -1,4 +1,6 @@
 import { GlossaryText } from "@/components/glossary/glossary-text";
+import { useExperience } from "@/contexts/experience-context";
+import { behavior } from "@/lib/experience";
 import { CheckRow, Verdict } from "@/components/verdict";
 import type { GuidedGradeResult, GuidedStepId } from "@/lib/guided-grading";
 
@@ -30,6 +32,9 @@ export function GuidedFeedback({
   /** A share action for the chart (src/components/share-button.tsx). */
   share?: React.ReactNode;
 }) {
+  const { level } = useExperience();
+  const full = behavior(level).fullFeedback;
+  const quick = behavior(level).quickAdvance;
   return (
     <div className="card" role="status" aria-live="polite">
       <Verdict verdict={result.verdict} label={OVERALL_LABEL[result.verdict]} />
@@ -42,7 +47,8 @@ export function GuidedFeedback({
       <ul className="mt-3 space-y-4">
         {result.steps.map((step) => (
           <CheckRow key={step.step} verdict={step.verdict} label={STEP_LABELS[step.step]}>
-            {step.explanation}
+            {/* Experienced: a step that was right is just its verdict. */}
+            {full || step.verdict !== "correct" ? step.explanation : undefined}
           </CheckRow>
         ))}
       </ul>
@@ -54,13 +60,25 @@ export function GuidedFeedback({
         </p>
       )}
 
-      <p className="mt-3 text-sm text-muted">
-        <GlossaryText text={result.explanation} />
-      </p>
+      {full ? (
+        <p className="mt-3 text-sm text-muted">
+          <GlossaryText text={result.explanation} />
+        </p>
+      ) : (
+        <details className="mt-3">
+          <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm text-muted underline underline-offset-4 hover:text-foreground">
+            Explanation
+          </summary>
+          <p className="text-sm text-muted">
+            <GlossaryText text={result.explanation} />
+          </p>
+        </details>
+      )}
 
       <div className="mt-6 border-t border-line pt-5">
-        <button type="button" onClick={onNext} className="btn-primary">
+        <button type="button" onClick={onNext} className="btn-primary" autoFocus={quick} aria-keyshortcuts={quick ? "N" : undefined}>
           {nextLabel}
+          {quick && <kbd className="ml-1 font-mono text-[11px] opacity-70">N</kbd>}
         </button>
       </div>
       {share && <div className="mt-3">{share}</div>}

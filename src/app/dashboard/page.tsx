@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MigrationPrompt } from "@/components/auth/migration-prompt";
 import { DailyCard } from "@/components/daily/daily-card";
+import { OnboardingPrompt } from "@/components/experience/onboarding-prompt";
 import { ErrorBanner } from "@/components/error-banner";
 import { LoadingState } from "@/components/loading-state";
 import { RecommendedSession } from "@/components/recommended-session";
@@ -90,6 +91,10 @@ export default function DashboardPage() {
   return (
     <div className="page">
       <DashboardHeader streak={streak} weekCount={attempts ? attemptsSince(attempts, 7).length : null} />
+
+      <div className="mt-6 empty:hidden">
+        <OnboardingPrompt />
+      </div>
 
       {showMigrationPrompt && (
         <div className="mt-6">

@@ -1,3 +1,4 @@
+import { GlossaryText } from "@/components/glossary/glossary-text";
 import type { GuidedLevelField } from "@/components/practice/candlestick-chart";
 import { ManualEntry } from "@/components/practice/manual-entry";
 
@@ -22,6 +23,7 @@ export function GuidedLevelControls({
   liveRR,
   minRR,
   guidance,
+  hint,
   onManualPrice,
 }: {
   step: GuidedLevelField;
@@ -37,10 +39,17 @@ export function GuidedLevelControls({
   minRR: number;
   /** Beginner-only hints (risk distance, the 2R level). */
   guidance?: string | null;
+  /** Beginner-only line on what this step asks for. */
+  hint?: string;
 }) {
   return (
     <div>
       <p className="text-sm text-muted">{STEP_COPY[step]}</p>
+      {hint && (
+        <p className="mt-2 text-sm text-muted">
+          <GlossaryText text={hint} />
+        </p>
+      )}
       {guidance && <p className="mt-2 text-sm text-foreground">{guidance}</p>}
 
       {step === "target" && liveRR !== null && (

@@ -216,6 +216,11 @@ h4 {
     background: none;
     border: 0;
   }
+  /* Experienced learners keep the definitions but not the underline until
+   * they point at a term or tab to it (src/lib/experience.ts). */
+  [data-experience="experienced"] .term:not(:hover):not(:focus-visible) {
+    text-decoration-color: transparent;
+  }
 
   /* ---- Status text ---------------------------------------------------- */
   .text-error {

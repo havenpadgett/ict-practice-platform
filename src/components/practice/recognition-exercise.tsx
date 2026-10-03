@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { CandlestickChart } from "@/components/practice/candlestick-chart";
+import { ConceptHint } from "@/components/concept-hint";
 import { ChoiceControls } from "@/components/practice/choice-controls";
 import { ChartFrame, ExerciseLayout } from "@/components/practice/exercise-layout";
 import { ExerciseControls } from "@/components/practice/exercise-controls";
@@ -158,19 +159,23 @@ export function RecognitionExercise({
     );
   } else if (exercise.answer_type === "choice") {
     controls = (
-      <ChoiceControls
-        options={exercise.options}
-        selected={userChoice}
-        onSelect={onUserChoiceChange}
-        onSubmit={onSubmit}
-        canSubmit={canSubmit}
-        confidence={confidence}
-        onConfidenceChange={onConfidenceChange}
-      />
+      <>
+        <ConceptHint concept={exercise.concept} />
+        <ChoiceControls
+          options={exercise.options}
+          selected={userChoice}
+          onSelect={onUserChoiceChange}
+          onSubmit={onSubmit}
+          canSubmit={canSubmit}
+          confidence={confidence}
+          onConfidenceChange={onConfidenceChange}
+        />
+      </>
     );
   } else {
     controls = (
       <>
+        <ConceptHint concept={exercise.concept} />
         <ExerciseControls
           hint={
             exercise.answer_type === "zone"

@@ -18,6 +18,7 @@ import { ShareButton } from "@/components/share-button";
 import { gradeFreeTradeScenario, gradeGuided, gradeRecognition, loadSessionExercises } from "@/app/practice/actions";
 import { getExerciseMeta } from "@/data/catalog";
 import type { ZoneAnswer } from "@/data/exercises";
+import { useQuickAdvance } from "@/hooks/use-quick-advance";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { DASHBOARD_COLUMNS, fetchAttempts, insertAttempt, nextAttemptNumber, type DbAttempt, type NewAttempt } from "@/lib/attempts";
 import { canShare, challengePath } from "@/lib/challenge";
@@ -400,6 +401,17 @@ export default function PracticePage() {
     setLengthPickerConcept(null);
     setShowPicker(true);
   }
+
+  // Experienced learners: N or Enter moves on once feedback is showing
+  // (src/hooks/use-quick-advance.ts). handleNext is hoisted from below.
+  const advanceRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    advanceRef.current = handleNext;
+  });
+  useQuickAdvance(
+    !showPicker && lengthPickerConcept === null && session !== null && !session.completed && (result !== null || flowGraded),
+    () => advanceRef.current(),
+  );
 
   if (authLoading || !user) {
     return (

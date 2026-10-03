@@ -4,6 +4,7 @@ import { DemoBanner } from "@/components/demo-banner";
 import { GlossaryScope } from "@/components/glossary/term";
 import { TopNav } from "@/components/top-nav";
 import { AuthProvider } from "@/contexts/auth-context";
+import { ExperienceProvider } from "@/contexts/experience-context";
 import { SITE_DESCRIPTION, SITE_NAME, siteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -55,10 +56,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         <DemoBanner />
         <AuthProvider>
-          <TopNav />
-          <main id="main" className="flex flex-1 flex-col">
-            <GlossaryScope>{children}</GlossaryScope>
-          </main>
+          <ExperienceProvider>
+            <TopNav />
+            <main id="main" className="flex flex-1 flex-col">
+              <GlossaryScope>{children}</GlossaryScope>
+            </main>
+          </ExperienceProvider>
         </AuthProvider>
       </body>
     </html>

@@ -8,6 +8,7 @@
 
 import type { Candle } from "@/data/exercises";
 import { isGuidedAnswer, isNum, isUserAnswer } from "@/lib/answer-validation";
+import { firstSentence } from "@/lib/first-sentence";
 import { shareableExercise } from "@/lib/challenge-source";
 import type { CardMarks } from "@/lib/card/chart";
 import { CONCEPT_LIST, conceptDisplayName, conceptShortName, DIFFICULTY_LABELS, type Concept } from "@/lib/concepts";
@@ -112,19 +113,6 @@ export function parseCardRequest(raw: unknown): CardRequest | null {
     return { kind: "session", session: r.session as SessionKind, correct, answered, concepts, featured };
   }
   return null;
-}
-
-/** The opening sentences of a piece of feedback, up to ~170 characters: enough to say why, short enough to read on a card. */
-function firstSentence(text: string, max = 170): string {
-  const clean = text.replace(/^Right\s*[—-]\s*/, "").trim();
-  const sentences = clean.match(/[^.!?]+[.!?]+(\s|$)/g)?.map((x) => x.trim()) ?? [clean];
-  let out = sentences[0] ?? clean;
-  for (const next of sentences.slice(1)) {
-    if (`${out} ${next}`.length > max) break;
-    out = `${out} ${next}`;
-    break; // two sentences at most
-  }
-  return out.length > max ? `${out.slice(0, max - 1).trimEnd()}…` : out;
 }
 
 const RECOGNITION_WORD: Record<Verdict3, string> = { correct: "Correct", could_improve: "Could improve", incorrect: "Incorrect" };

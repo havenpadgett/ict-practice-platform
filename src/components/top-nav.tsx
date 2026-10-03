@@ -57,6 +57,9 @@ function AccountMenu({ email, onSignOut }: { email: string; onSignOut: () => voi
             <p className="mt-0.5 truncate text-sm text-foreground">{email}</p>
           </div>
           <div className="border-t border-line pt-1.5">
+            <Link href="/settings" onClick={close} className={MENU_ITEM}>
+              Settings
+            </Link>
             <button
               type="button"
               onClick={() => {

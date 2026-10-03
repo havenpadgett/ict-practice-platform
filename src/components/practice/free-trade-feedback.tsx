@@ -1,4 +1,6 @@
 import { GlossaryText } from "@/components/glossary/glossary-text";
+import { useExperience } from "@/contexts/experience-context";
+import { behavior } from "@/lib/experience";
 import { CheckRow, Verdict } from "@/components/verdict";
 import type { FreeTradeGradeResult, FreeTradeOutcome } from "@/lib/free-trade-grading";
 
@@ -32,6 +34,8 @@ export function FreeTradeFeedback({
   nextLabel: string;
 }) {
   const shownChecks = result.checks.filter((c) => c.verdict !== null);
+  const { level } = useExperience();
+  const quick = behavior(level).quickAdvance;
 
   return (
     <div className="card" role="status" aria-live="polite">
@@ -66,8 +70,9 @@ export function FreeTradeFeedback({
       </p>
 
       <div className="mt-6 border-t border-line pt-5">
-        <button type="button" onClick={onNext} className="btn-primary">
+        <button type="button" onClick={onNext} className="btn-primary" autoFocus={quick} aria-keyshortcuts={quick ? "N" : undefined}>
           {nextLabel}
+          {quick && <kbd className="ml-1 font-mono text-[11px] opacity-70">N</kbd>}
         </button>
       </div>
     </div>

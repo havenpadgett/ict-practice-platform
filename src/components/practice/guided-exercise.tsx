@@ -8,6 +8,8 @@ import { GuidedFeedback } from "@/components/practice/guided-feedback";
 import { GuidedLevelControls } from "@/components/practice/guided-level-controls";
 import { GuidedStepper, type StepperItem } from "@/components/practice/guided-stepper";
 import { ConfidencePicker } from "@/components/confidence-picker";
+import { useExperience } from "@/contexts/experience-context";
+import { behavior } from "@/lib/experience";
 import type { GuidedBias } from "@/data/exercises";
 import type { Confidence } from "@/lib/confidence";
 import { computeAchievedRR, type GuidedGradeResult, type GuidedUserAnswer } from "@/lib/guided-grading";
@@ -51,6 +53,13 @@ function readGraded(g: unknown): GuidedGradeResponse | null {
     ? (g as GuidedGradeResponse)
     : null;
 }
+
+/** What each placement step asks for, from the Guided Entry curriculum. Beginners only. */
+const STEP_HINT = {
+  entry: "An entry sits at a level, never in open space: an unmitigated Fair Value Gap, an Inverse Fair Value Gap, or a retest of the broken structure.",
+  stop: "A stop goes beyond the level that would prove the idea wrong, such as the swing low that formed the setup for a long. Not a fixed distance.",
+  target: "A target is the next opposing liquidity: buy-side liquidity above for a long, sell-side liquidity below for a short. The minimum risk-to-reward is 2:1.",
+} as const;
 
 const STEP_LABEL: Record<Step, string> = { bias: "Bias", entry: "Entry", stop: "Stop", target: "Target", done: "Done" };
 const BIAS_LABEL: Record<GuidedBias, string> = { bullish: "Bullish", bearish: "Bearish", unclear: "Unclear" };
@@ -169,9 +178,12 @@ export function GuidedExercise({
   const interactive = step !== "done" && !grading && pending === null;
   const activeField = step === "entry" || step === "stop" || step === "target" ? step : null;
 
-  // Beginner charts only (difficulty 1): risk distance once the stop is
-  // placed, and the 2R target drawn faintly. Harder charts get neither.
-  const beginner = exercise.difficulty === 1 && (bias === "bullish" || bias === "bearish");
+  // Beginners only: risk distance once the stop is placed, the 2R target
+  // drawn faintly, and a line on what each step asks for. Experienced
+  // learners get none of it (src/lib/experience.ts).
+  const { level: experience } = useExperience();
+  const hints = behavior(experience).guidedHints;
+  const beginner = hints && (bias === "bullish" || bias === "bearish");
   const risk = beginner && entry !== null && stop !== null ? (bias === "bullish" ? entry - stop : stop - entry) : null;
   const twoR = risk !== null && risk > 0 && entry !== null ? entry + (bias === "bullish" ? 1 : -1) * exercise.min_rr * risk : null;
   const guidance =
@@ -262,6 +274,7 @@ export function GuidedExercise({
             onNoTrade={() => finalize(false)}
             liveRR={null}
             minRR={exercise.min_rr}
+            hint={hints ? STEP_HINT.entry : undefined}
           />
         )}
         {!grading && !pending && step === "stop" && (
@@ -275,6 +288,7 @@ export function GuidedExercise({
             liveRR={null}
             minRR={exercise.min_rr}
             guidance={guidance}
+            hint={hints ? STEP_HINT.stop : undefined}
           />
         )}
         {!grading && !pending && step === "target" && (
@@ -288,6 +302,7 @@ export function GuidedExercise({
             liveRR={liveRR}
             minRR={exercise.min_rr}
             guidance={guidance}
+            hint={hints ? STEP_HINT.target : undefined}
           />
         )}
         {step === "done" && result && (

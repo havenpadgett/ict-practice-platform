@@ -6,6 +6,7 @@ import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { PasswordField } from "@/components/auth/password-field";
 import { authErrorMessage, MIN_PASSWORD_LENGTH } from "@/lib/auth-errors";
 import { GOOGLE_AUTH_ENABLED } from "@/lib/auth-flags";
+import { readExperience } from "@/lib/experience";
 import { safeNextPath } from "@/lib/safe-redirect";
 import { createClient } from "@/lib/supabase/client";
 
@@ -75,7 +76,8 @@ export function AuthForm() {
         const { data, error: signUpError } = await supabase.auth.signUp({ email: email.trim(), password });
         if (signUpError) throw signUpError;
         if (data.session) {
-          router.push(next);
+          // A new account is asked the one onboarding question first.
+          router.push(readExperience() === null ? `/welcome?next=${encodeURIComponent(next)}` : next);
           router.refresh();
         } else {
           setInfo(`We sent a confirmation link to ${email}. Open it, then log in here.`);
