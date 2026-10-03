@@ -86,6 +86,7 @@ function RecognitionChallenge({
         error={recorder.error}
         signedIn={recorder.signedIn}
         onRetrySave={() => void recorder.retry()}
+        daily={daily !== undefined}
         card={
           c.answered
             ? {
@@ -197,6 +198,7 @@ function GuidedChallenge({
                 error={recorder.error}
                 signedIn={recorder.signedIn}
                 onRetrySave={() => void recorder.retry()}
+                daily={daily !== undefined}
                 card={{
                   request: { kind: "result", exerciseId: exercise.exercise_id, answer: { mode: "guided", answer: graded }, ...(daily ? { daily } : {}) },
                   filename: `${exercise.exercise_id}-result.png`,

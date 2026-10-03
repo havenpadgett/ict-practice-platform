@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MigrationPrompt } from "@/components/auth/migration-prompt";
+import { DailyCard } from "@/components/daily/daily-card";
 import { ErrorBanner } from "@/components/error-banner";
 import { LoadingState } from "@/components/loading-state";
 import { RecommendedSession } from "@/components/recommended-session";
@@ -114,6 +115,7 @@ export default function DashboardPage() {
         // A brand-new account: no empty stat tiles, just where to begin.
         <div className="mt-8 space-y-6">
           <RecommendedSession recommendation={recommendSession(attempts)} />
+          <DailyCard />
           <p className="text-sm text-muted">
             Accuracy, streaks and per-concept progress appear here after your first session. Each exercise takes about a
             minute, and every answer comes with an explanation.
@@ -128,7 +130,7 @@ export default function DashboardPage() {
 
 function DashboardHeader({ streak, weekCount }: { streak: number | null; weekCount: number | null }) {
   const parts = [
-    streak ? `${streak}-day streak` : null,
+    streak ? `${streak}-day practice streak` : null,
     weekCount !== null ? `${weekCount} exercise${weekCount === 1 ? "" : "s"} this week` : null,
   ].filter(Boolean);
   return (
@@ -170,6 +172,7 @@ function DashboardContent({ attempts, streak }: { attempts: DbAttempt[]; streak:
     <div className="mt-8 space-y-section">
       <div className="space-y-4">
         <RecommendedSession recommendation={recommendation} />
+        <DailyCard />
         {mistakes.open > 0 && (
           <div className="flex flex-col gap-3 rounded-lg border border-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -209,7 +212,7 @@ function DashboardContent({ attempts, streak }: { attempts: DbAttempt[]; streak:
               detail:
                 week.length >= MIN_ATTEMPTS_FOR_ACCURACY ? `${Math.round((weekCorrect / week.length) * 100)}% correct` : "exercises answered",
             },
-            { label: "Streak", value: streak === null ? "—" : `${streak} day${streak === 1 ? "" : "s"}`, detail: "days practiced in a row" },
+            { label: "Practice streak", value: streak === null ? "—" : `${streak} day${streak === 1 ? "" : "s"}`, detail: "days practiced in a row" },
             { label: "Mistakes cleared", value: String(mistakes.cleared), detail: `${mistakes.open} still open` },
           ]}
         />

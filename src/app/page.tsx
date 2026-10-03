@@ -117,6 +117,9 @@ export default function Home() {
               <Link href="/try" className="btn-secondary">
                 Try 3 more charts
               </Link>
+              <Link href="/daily" className="btn-link">
+                Today&apos;s daily challenge
+              </Link>
             </div>
             <p className="mt-6 text-xs">
               For educational purposes only. Not financial advice, and not a trading system: this trains chart

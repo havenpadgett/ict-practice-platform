@@ -8,6 +8,8 @@
 import type { NewAttempt } from "@/lib/attempts";
 
 const KEY = "ict-practice:pending-results";
+/** Fired on window when a result is kept, so anything showing derived state (the daily streak) can refresh. */
+export const PENDING_CHANGED_EVENT = "ict:pending-changed";
 /** Enough for a long browsing session; the oldest go first. */
 const MAX = 50;
 
@@ -43,6 +45,7 @@ export function addPending(row: NewAttempt): void {
     const kept = loadPending().filter((p) => !(p.row.session_id === row.session_id && p.row.exercise_id === row.exercise_id));
     const next = [...kept, { row, answered_at: new Date().toISOString() }].slice(-MAX);
     window.localStorage.setItem(KEY, JSON.stringify(next));
+    window.dispatchEvent(new Event(PENDING_CHANGED_EVENT));
   } catch {
     // Storage full or blocked: the result is still on screen, just not kept.
   }

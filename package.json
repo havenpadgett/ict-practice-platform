@@ -17,7 +17,8 @@
     "backup": "vite-node --config vitest.config.ts scripts/backup.ts",
     "restore": "vite-node --config vitest.config.ts scripts/restore.ts --",
     "backup:status": "node --experimental-strip-types scripts/backup-status.ts",
-    "brand": "vite-node --config vitest.config.ts scripts/build-brand-assets.ts"
+    "brand": "vite-node --config vitest.config.ts scripts/build-brand-assets.ts",
+    "daily": "vite-node --config vitest.config.ts scripts/build-daily-schedule.ts --"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

@@ -19,6 +19,7 @@ export function ChallengeAfter({
   signedIn,
   onRetrySave,
   card,
+  daily = false,
 }: {
   concept: string;
   sharePath: string;
@@ -28,14 +29,17 @@ export function ChallengeAfter({
   onRetrySave: () => void;
   /** What to draw on the share card for this result; absent = no card. */
   card?: { request: CardRequest; filename: string; alt: string };
+  /** This is a daily challenge: the share wording says so. */
+  daily?: boolean;
 }) {
   return (
     <div className="mt-4 space-y-4">
       <div className="flex flex-wrap items-start gap-3">
         <ShareButton
           path={sharePath}
-          title={`${conceptShortName(concept)} chart challenge`}
-          text="Can you read this chart? Mark your answer and see how it compares."
+          title={daily ? "Daily chart challenge" : `${conceptShortName(concept)} chart challenge`}
+          text={daily ? "Today's chart is the same for everyone. Can you read it?" : "Can you read this chart? Mark your answer and see how it compares."}
+          label={daily ? "Share today's challenge" : undefined}
         />
         {card && <ShareCard request={card.request} filename={card.filename} alt={card.alt} label="Create result card" />}
       </div>
