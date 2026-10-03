@@ -1,48 +1,39 @@
 import { ImageResponse } from "next/og";
+import { BRAND_COLORS, markDataUri } from "@/lib/brand";
+import { SITE_NAME } from "@/lib/site";
 
-// The link preview for every page (Open Graph and Twitter). Colors mirror
-// the tokens in globals.css; a generated image can't read CSS variables.
+// The link preview for every page (Open Graph and Twitter). Colors come
+// from src/lib/brand.ts, which mirrors the tokens in globals.css; a
+// generated image can't read CSS variables.
 
-export const alt = "ICT Practice: graded practice for reading ICT concepts on NQ charts";
+export const alt = `${SITE_NAME}: graded practice for reading ICT concepts on NQ charts`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const CANDLES = [
-  { wick: [210, 430], body: [260, 380], color: "#e0625a" },
-  { wick: [150, 400], body: [190, 330], color: "#e0625a" },
-  { wick: [120, 360], body: [230, 330], color: "#2fb380" },
-  { wick: [60, 300], body: [90, 250], color: "#34d399" },
-  { wick: [80, 250], body: [110, 200], color: "#2fb380" },
-];
-
 export default function OpengraphImage() {
+  const c = BRAND_COLORS;
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", background: "#0d0e10", padding: 72 }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", background: c.background, padding: 72 }}>
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", flex: 1 }}>
-          <div style={{ display: "flex", fontSize: 26, letterSpacing: 4, color: "#9ca0a7", textTransform: "uppercase" }}>
-            ICT concepts · NQ futures · Practice
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <img src={markDataUri()} width={56} height={56} alt="" />
+            <div style={{ display: "flex", marginLeft: 18, fontSize: 32, color: c.foreground, fontWeight: 600 }}>{SITE_NAME}</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", fontSize: 64, lineHeight: 1.08, color: "#ededea", fontWeight: 700 }}>
-              Stop watching setups.
+            <div style={{ display: "flex", fontSize: 26, letterSpacing: 4, color: c.muted, textTransform: "uppercase", marginBottom: 28 }}>
+              ICT concepts · NQ futures · Practice
             </div>
-            <div style={{ display: "flex", fontSize: 64, lineHeight: 1.08, color: "#34d399", fontWeight: 700 }}>
-              Start spotting them.
-            </div>
-            <div style={{ display: "flex", marginTop: 28, fontSize: 30, color: "#9ca0a7", maxWidth: 620 }}>
+            <div style={{ display: "flex", fontSize: 68, lineHeight: 1.06, color: c.foreground, fontWeight: 700 }}>Stop watching setups.</div>
+            <div style={{ display: "flex", fontSize: 68, lineHeight: 1.06, color: c.accent, fontWeight: 700 }}>Start spotting them.</div>
+            <div style={{ display: "flex", marginTop: 28, fontSize: 30, color: c.muted, maxWidth: 640 }}>
               Mark the answer on the chart and get graded feedback that explains the rule.
             </div>
           </div>
-          <div style={{ display: "flex", fontSize: 28, color: "#ededea", fontWeight: 600 }}>ICT Practice</div>
+          <div style={{ display: "flex", fontSize: 22, color: c.muted }}>Educational use only. Not financial advice.</div>
         </div>
-        <div style={{ display: "flex", position: "relative", width: 330, height: 480, alignSelf: "center" }}>
-          {CANDLES.map((c, i) => (
-            <div key={i} style={{ display: "flex", position: "absolute", left: i * 64, top: 0, width: 44, height: 480 }}>
-              <div style={{ position: "absolute", left: 19, top: c.wick[0], width: 6, height: c.wick[1] - c.wick[0], background: c.color, borderRadius: 3 }} />
-              <div style={{ position: "absolute", left: 0, top: c.body[0], width: 44, height: c.body[1] - c.body[0], background: c.color, borderRadius: 6 }} />
-            </div>
-          ))}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 380 }}>
+          <img src={markDataUri()} width={340} height={340} alt="" />
         </div>
       </div>
     ),

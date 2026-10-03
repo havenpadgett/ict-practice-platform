@@ -16,7 +16,8 @@
     "curriculum": "vite-node --config vitest.config.ts scripts/curriculum-version.ts --",
     "backup": "vite-node --config vitest.config.ts scripts/backup.ts",
     "restore": "vite-node --config vitest.config.ts scripts/restore.ts --",
-    "backup:status": "node --experimental-strip-types scripts/backup-status.ts"
+    "backup:status": "node --experimental-strip-types scripts/backup-status.ts",
+    "brand": "vite-node --config vitest.config.ts scripts/build-brand-assets.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -35,6 +36,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "postgres": "^3.4.9",
+    "sharp": "^0.35.4",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.7"

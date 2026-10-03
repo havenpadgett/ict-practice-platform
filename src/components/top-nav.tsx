@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { BrandMark } from "@/components/brand-mark";
 import { Menu, MENU_ITEM } from "@/components/menu";
 import { AnalyticsIcon, ChevronDownIcon, DashboardIcon, MistakesIcon, PracticeIcon } from "@/components/nav/nav-icons";
 import { useAuth } from "@/contexts/auth-context";
@@ -16,20 +17,6 @@ const NAV_ITEMS = [
 
 function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
-}
-
-/** The favicon's three candles with the gap, drawn with the chart tokens. */
-function BrandMark() {
-  return (
-    <svg viewBox="0 0 32 32" width={22} height={22} aria-hidden className="shrink-0">
-      <rect x="7" y="9" width="1.5" height="15" rx=".75" className="fill-candle-down" />
-      <rect x="5" y="12" width="5.5" height="8" rx="1" className="fill-candle-down" />
-      <rect x="15.25" y="5" width="1.5" height="19" rx=".75" className="fill-accent" />
-      <rect x="13.25" y="8" width="5.5" height="12" rx="1" className="fill-accent" />
-      <rect x="23.5" y="11" width="1.5" height="14" rx=".75" className="fill-candle-up" />
-      <rect x="21.5" y="14" width="5.5" height="8" rx="1" className="fill-candle-up" />
-    </svg>
-  );
 }
 
 /** Small count next to "Mistakes". Hidden at zero. */
