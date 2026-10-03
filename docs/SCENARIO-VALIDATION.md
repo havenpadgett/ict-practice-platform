@@ -311,15 +311,17 @@ Rejection reasons (picked on `/review`, keys 1–5):
 
 | Rule | Awaiting | Reviewed | Approved | Rejected | Ambiguous | Rejection rate | Most common reason |
 |---|---|---|---|---|---|---|---|
-| equal_highs | 2 | 5 | 5 | 0 | 0 | 0% | — |
-| equal_lows | 3 | 5 | 5 | 0 | 0 | 0% | — |
+| dealing_range | 7 | 0 | 0 | 0 | 0 | — | — |
+| equal_highs | 0 | 10 | 10 | 0 | 0 | 0% | — |
+| equal_lows | 0 | 11 | 11 | 0 | 0 | 0% | — |
 | free_trade_setup | 5 | 10 | 10 | 0 | 0 | 0% | — |
-| fvg | 5 | 10 | 10 | 0 | 0 | 0% | — |
+| fvg | 0 | 21 | 21 | 0 | 0 | 0% | — |
 | guided_setup | 5 | 10 | 10 | 0 | 0 | 0% | — |
-| mss | 5 | 10 | 9 | 0 | 1 | 10% | — |
+| ifvg | 7 | 0 | 0 | 0 | 0 | — | — |
+| mss | 3 | 15 | 9 | 0 | 6 | 40% | — |
 | ny_am_high | 3 | 0 | 0 | 0 | 0 | — | — |
 | ny_am_low | 3 | 0 | 0 | 0 | 0 | — | — |
-| order_block | 8 | 0 | 0 | 0 | 0 | — | — |
+| order_block | 13 | 0 | 0 | 0 | 0 | — | — |
 
 | Reason | Rejections | Share | Rules |
 |---|---|---|---|
@@ -329,7 +331,7 @@ Rejection reasons (picked on `/review`, keys 1–5):
 | Doesn't match the definition | 0 | — | — |
 | Other | 0 | — | — |
 
-No rule is above the 30% line yet (needs at least 5 reviews to count).
+- **mss**: 40% of 15 reviewed were rejected or ambiguous — fix the rule before building more.
 <!-- rejection-summary:end -->
 
 ## Review Log
@@ -388,6 +390,28 @@ Every candidate that reaches review gets a row: approvals and rejections alike. 
 | 2026-09-30 | real-ft-008 | setup-valid-20230720 | free_trade_setup | approved | — | lpshaven@gmail.com | — |
 | 2026-09-30 | real-ft-009 | setup-no_shift-20230605 | free_trade_setup | approved | — | lpshaven@gmail.com | — |
 | 2026-09-30 | real-ft-010 | setup-no_shift-20251117 | free_trade_setup | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-011 | fvg-bearish-20230906T1000 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-012 | fvg-bearish-20240229T1010 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-013 | fvg-bullish-20250616T0950 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-014 | fvg-bullish-20231208T1000 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-015 | fvg-bearish-20241125T1200 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-016 | fvg-bullish-20221230T1015 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-017 | fvg-bearish-20230224T0940 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-018 | fvg-bullish-20230313T0945 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-019 | fvg-bullish-20221227T1015 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-020 | fvg-bearish-20230130T1015 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-fvg-021 | fvg-bearish-20240923T1200 | fvg | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-liq-011 | equal_highs-20231012T1025 | equal_highs | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-liq-014 | equal_highs-20240404T1245 | equal_highs | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-liq-016 | equal_highs-20231114T1045 | equal_highs | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-liq-017 | equal_highs-20240710T1010 | equal_highs | approved | — | lpshaven@gmail.com | — |
+| 2026-09-30 | real-liq-021 | equal_highs-20240529T1515 | equal_highs | approved | — | lpshaven@gmail.com | — |
+| 2026-10-03 | real-liq-012 | equal_lows-20241125T1035 | equal_lows | approved | — | lpshaven@gmail.com | — |
+| 2026-10-03 | real-liq-013 | equal_lows-20250521T1035 | equal_lows | approved | — | lpshaven@gmail.com | — |
+| 2026-10-03 | real-liq-015 | equal_lows-20250630T1430 | equal_lows | approved | — | lpshaven@gmail.com | — |
+| 2026-10-03 | real-liq-018 | equal_lows-20230104T1030 | equal_lows | approved | — | lpshaven@gmail.com | — |
+| 2026-10-03 | real-liq-019 | equal_lows-20240319T1030 | equal_lows | approved | — | lpshaven@gmail.com | — |
+| 2026-10-03 | real-liq-020 | equal_lows-20250605T1035 | equal_lows | approved | — | lpshaven@gmail.com | — |
 <!-- review-log:end -->
 
 ## Ambiguous Log

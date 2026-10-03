@@ -12,7 +12,7 @@
   "answer": {
     "type": "bearish",
     "price_low": 21278.5,
-    "price_high": 21292.0,
+    "price_high": 21292,
     "candle_start": 9,
     "candle_end": 11,
     "key_candle_index": 10
@@ -21,7 +21,7 @@
     9,
     11
   ],
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bearish Fair Value Gap: the first candle's low and the third candle's high leave the range 21278.5-21292 untraded.",
+  "explanation": "This is a bearish Fair Value Gap. Price moved down quickly and left an imbalance in the highlighted area.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
     "symbol": "NQ",
@@ -57,9 +57,9 @@
     "detection_notes": "candle 1 low 21292 > candle 3 high 21278.5",
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-30T19:32:18+00:00",
-    "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "human_reviewed": true,
+    "reviewed_by": "lpshaven@gmail.com",
+    "reviewed_at": "2026-09-30",
     "review_notes": null
   },
   "candles": [
@@ -75,16 +75,16 @@
       "time": "09:45",
       "timestamp": "2024-09-23T09:45:00-04:00",
       "open": 21258.25,
-      "high": 21303.0,
-      "low": 21235.0,
-      "close": 21264.0
+      "high": 21303,
+      "low": 21235,
+      "close": 21264
     },
     {
       "time": "10:00",
       "timestamp": "2024-09-23T10:00:00-04:00",
       "open": 21264.5,
       "high": 21301.25,
-      "low": 21242.0,
+      "low": 21242,
       "close": 21258.25
     },
     {
@@ -100,7 +100,7 @@
       "timestamp": "2024-09-23T10:30:00-04:00",
       "open": 21298.5,
       "high": 21304.75,
-      "low": 21255.0,
+      "low": 21255,
       "close": 21303.25
     },
     {
@@ -114,10 +114,10 @@
     {
       "time": "11:00",
       "timestamp": "2024-09-23T11:00:00-04:00",
-      "open": 21295.0,
+      "open": 21295,
       "high": 21296.5,
       "low": 21245.25,
-      "close": 21271.0
+      "close": 21271
     },
     {
       "time": "11:15",
@@ -125,14 +125,14 @@
       "open": 21270.75,
       "high": 21295.25,
       "low": 21251.5,
-      "close": 21292.0
+      "close": 21292
     },
     {
       "time": "11:30",
       "timestamp": "2024-09-23T11:30:00-04:00",
-      "open": 21292.0,
+      "open": 21292,
       "high": 21314.25,
-      "low": 21289.0,
+      "low": 21289,
       "close": 21304.75
     },
     {
@@ -140,14 +140,14 @@
       "timestamp": "2024-09-23T11:45:00-04:00",
       "open": 21304.5,
       "high": 21323.75,
-      "low": 21292.0,
+      "low": 21292,
       "close": 21303.25
     },
     {
       "time": "12:00",
       "timestamp": "2024-09-23T12:00:00-04:00",
       "open": 21303.25,
-      "high": 21306.0,
+      "high": 21306,
       "low": 21250.75,
       "close": 21262.75
     },
@@ -157,7 +157,7 @@
       "open": 21262.5,
       "high": 21278.5,
       "low": 21237.5,
-      "close": 21264.0
+      "close": 21264
     },
     {
       "time": "12:30",
@@ -181,7 +181,7 @@
       "open": 21243.75,
       "high": 21249.5,
       "low": 21216.75,
-      "close": 21236.0
+      "close": 21236
     },
     {
       "time": "13:15",
@@ -195,7 +195,7 @@
       "time": "13:30",
       "timestamp": "2024-09-23T13:30:00-04:00",
       "open": 21240.25,
-      "high": 21263.0,
+      "high": 21263,
       "low": 21229.25,
       "close": 21246.5
     },
@@ -219,41 +219,41 @@
       "time": "14:15",
       "timestamp": "2024-09-23T14:15:00-04:00",
       "open": 21268.75,
-      "high": 21282.0,
-      "low": 21255.0,
+      "high": 21282,
+      "low": 21255,
       "close": 21265.25
     },
     {
       "time": "14:30",
       "timestamp": "2024-09-23T14:30:00-04:00",
       "open": 21265.5,
-      "high": 21276.0,
-      "low": 21261.0,
-      "close": 21268.0
+      "high": 21276,
+      "low": 21261,
+      "close": 21268
     },
     {
       "time": "14:45",
       "timestamp": "2024-09-23T14:45:00-04:00",
       "open": 21269.25,
       "high": 21283.75,
-      "low": 21261.0,
+      "low": 21261,
       "close": 21279.25
     },
     {
       "time": "15:00",
       "timestamp": "2024-09-23T15:00:00-04:00",
-      "open": 21279.0,
-      "high": 21285.0,
-      "low": 21255.0,
+      "open": 21279,
+      "high": 21285,
+      "low": 21255,
       "close": 21258.5
     },
     {
       "time": "15:15",
       "timestamp": "2024-09-23T15:15:00-04:00",
       "open": 21258.25,
-      "high": 21282.0,
+      "high": 21282,
       "low": 21255.75,
-      "close": 21273.0
+      "close": 21273
     },
     {
       "time": "15:30",
@@ -268,7 +268,7 @@
       "timestamp": "2024-09-23T15:45:00-04:00",
       "open": 21258.25,
       "high": 21287.25,
-      "low": 21252.0,
+      "low": 21252,
       "close": 21274.5
     }
   ]

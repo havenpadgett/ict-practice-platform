@@ -21,7 +21,7 @@
     2,
     4
   ],
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bullish Fair Value Gap: the first candle's high and the third candle's low leave the range 13598.2-13612.8 untraded.",
+  "explanation": "This is a bullish Fair Value Gap. Price moved up quickly and left an imbalance in the highlighted area.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
     "symbol": "NQ",
@@ -57,9 +57,9 @@
     "detection_notes": "candle 1 high 13598.2 < candle 3 low 13612.8",
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-30T19:32:17+00:00",
-    "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "human_reviewed": true,
+    "reviewed_by": "lpshaven@gmail.com",
+    "reviewed_at": "2026-09-30",
     "review_notes": null
   },
   "candles": [
@@ -67,8 +67,8 @@
       "time": "09:30",
       "timestamp": "2022-12-27T09:30:00-05:00",
       "open": 13706.5,
-      "high": 13711.0,
-      "low": 13594.0,
+      "high": 13711,
+      "low": 13594,
       "close": 13610.75
     },
     {
@@ -82,17 +82,17 @@
     {
       "time": "10:00",
       "timestamp": "2022-12-27T10:00:00-05:00",
-      "open": 13585.0,
+      "open": 13585,
       "high": 13598.25,
-      "low": 13551.0,
-      "close": 13596.0
+      "low": 13551,
+      "close": 13596
     },
     {
       "time": "10:15",
       "timestamp": "2022-12-27T10:15:00-05:00",
       "open": 13595.5,
-      "high": 13659.0,
-      "low": 13579.0,
+      "high": 13659,
+      "low": 13579,
       "close": 13641.5
     },
     {
@@ -115,7 +115,7 @@
       "time": "11:00",
       "timestamp": "2022-12-27T11:00:00-05:00",
       "open": 13627.75,
-      "high": 13634.0,
+      "high": 13634,
       "low": 13603.75,
       "close": 13622.25
     },
@@ -123,9 +123,9 @@
       "time": "11:15",
       "timestamp": "2022-12-27T11:15:00-05:00",
       "open": 13622.25,
-      "high": 13638.0,
+      "high": 13638,
       "low": 13608.5,
-      "close": 13635.0
+      "close": 13635
     },
     {
       "time": "11:30",
@@ -133,13 +133,13 @@
       "open": 13635.5,
       "high": 13649.75,
       "low": 13616.5,
-      "close": 13646.0
+      "close": 13646
     },
     {
       "time": "11:45",
       "timestamp": "2022-12-27T11:45:00-05:00",
       "open": 13645.75,
-      "high": 13652.0,
+      "high": 13652,
       "low": 13617.5,
       "close": 13619.75
     },
@@ -147,7 +147,7 @@
       "time": "12:00",
       "timestamp": "2022-12-27T12:00:00-05:00",
       "open": 13620.5,
-      "high": 13651.0,
+      "high": 13651,
       "low": 13618.5,
       "close": 13642.75
     },
@@ -156,14 +156,14 @@
       "timestamp": "2022-12-27T12:15:00-05:00",
       "open": 13643.25,
       "high": 13643.75,
-      "low": 13609.0,
+      "low": 13609,
       "close": 13610.25
     },
     {
       "time": "12:30",
       "timestamp": "2022-12-27T12:30:00-05:00",
       "open": 13610.25,
-      "high": 13624.0,
+      "high": 13624,
       "low": 13597.5,
       "close": 13601.25
     },
@@ -172,23 +172,23 @@
       "timestamp": "2022-12-27T12:45:00-05:00",
       "open": 13601.5,
       "high": 13609.75,
-      "low": 13583.0,
+      "low": 13583,
       "close": 13605.75
     },
     {
       "time": "13:00",
       "timestamp": "2022-12-27T13:00:00-05:00",
-      "open": 13606.0,
+      "open": 13606,
       "high": 13623.75,
-      "low": 13602.0,
+      "low": 13602,
       "close": 13616.75
     },
     {
       "time": "13:15",
       "timestamp": "2022-12-27T13:15:00-05:00",
       "open": 13616.75,
-      "high": 13621.0,
-      "low": 13594.0,
+      "high": 13621,
+      "low": 13594,
       "close": 13595.75
     },
     {
@@ -197,12 +197,12 @@
       "open": 13596.5,
       "high": 13602.75,
       "low": 13588.5,
-      "close": 13593.0
+      "close": 13593
     },
     {
       "time": "13:45",
       "timestamp": "2022-12-27T13:45:00-05:00",
-      "open": 13593.0,
+      "open": 13593,
       "high": 13596.25,
       "low": 13566.75,
       "close": 13573.5
@@ -251,8 +251,8 @@
       "time": "15:15",
       "timestamp": "2022-12-27T15:15:00-05:00",
       "open": 13589.75,
-      "high": 13600.0,
-      "low": 13581.0,
+      "high": 13600,
+      "low": 13581,
       "close": 13595.25
     },
     {
@@ -260,7 +260,7 @@
       "timestamp": "2022-12-27T15:30:00-05:00",
       "open": 13595.5,
       "high": 13613.75,
-      "low": 13593.0,
+      "low": 13593,
       "close": 13597.5
     },
     {

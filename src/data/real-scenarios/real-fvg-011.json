@@ -21,7 +21,7 @@
     5,
     7
   ],
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bearish Fair Value Gap: the first candle's low and the third candle's high leave the range 17763.8-17829.8 untraded.",
+  "explanation": "This is a bearish Fair Value Gap. Price moved down aggressively and left a clear imbalance in the highlighted area.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
     "symbol": "NQ",
@@ -53,15 +53,15 @@
       "equal_tolerance_pct": 0.05,
       "fvg_min_range_mult": 0.25,
       "range_window": 100,
-      "ob_displacement_mult": 2.0,
+      "ob_displacement_mult": 2,
       "ob_max_leg": 3
     },
     "detection_notes": "candle 1 low 17829.8 > candle 3 high 17763.8",
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-30T18:49:27+00:00",
-    "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "human_reviewed": true,
+    "reviewed_by": "lpshaven@gmail.com",
+    "reviewed_at": "2026-09-30",
     "review_notes": null
   },
   "candles": [
@@ -84,15 +84,15 @@
     {
       "time": "09:40",
       "timestamp": "2023-09-06T09:40:00-04:00",
-      "open": 17821.0,
+      "open": 17821,
       "high": 17855.5,
       "low": 17810.5,
-      "close": 17844.0
+      "close": 17844
     },
     {
       "time": "09:45",
       "timestamp": "2023-09-06T09:45:00-04:00",
-      "open": 17843.0,
+      "open": 17843,
       "high": 17862.5,
       "low": 17818.5,
       "close": 17825.25
@@ -103,7 +103,7 @@
       "open": 17825.5,
       "high": 17860.5,
       "low": 17822.5,
-      "close": 17846.0
+      "close": 17846
     },
     {
       "time": "09:55",
@@ -111,12 +111,12 @@
       "open": 17845.75,
       "high": 17847.25,
       "low": 17829.75,
-      "close": 17831.0
+      "close": 17831
     },
     {
       "time": "10:00",
       "timestamp": "2023-09-06T10:00:00-04:00",
-      "open": 17831.0,
+      "open": 17831,
       "high": 17831.25,
       "low": 17758.25,
       "close": 17759.75
@@ -124,7 +124,7 @@
     {
       "time": "10:05",
       "timestamp": "2023-09-06T10:05:00-04:00",
-      "open": 17760.0,
+      "open": 17760,
       "high": 17763.75,
       "low": 17738.25,
       "close": 17757.75
@@ -135,21 +135,21 @@
       "open": 17758.25,
       "high": 17763.75,
       "low": 17733.75,
-      "close": 17741.0
+      "close": 17741
     },
     {
       "time": "10:15",
       "timestamp": "2023-09-06T10:15:00-04:00",
       "open": 17740.75,
-      "high": 17780.0,
+      "high": 17780,
       "low": 17739.25,
       "close": 17777.5
     },
     {
       "time": "10:20",
       "timestamp": "2023-09-06T10:20:00-04:00",
-      "open": 17778.0,
-      "high": 17781.0,
+      "open": 17778,
+      "high": 17781,
       "low": 17751.5,
       "close": 17752.75
     },
@@ -164,7 +164,7 @@
     {
       "time": "10:30",
       "timestamp": "2023-09-06T10:30:00-04:00",
-      "open": 17735.0,
+      "open": 17735,
       "high": 17754.5,
       "low": 17726.5,
       "close": 17753.75
@@ -180,8 +180,8 @@
     {
       "time": "10:40",
       "timestamp": "2023-09-06T10:40:00-04:00",
-      "open": 17764.0,
-      "high": 17771.0,
+      "open": 17764,
+      "high": 17771,
       "low": 17752.75,
       "close": 17754.5
     },
@@ -191,14 +191,14 @@
       "open": 17754.5,
       "high": 17763.5,
       "low": 17746.25,
-      "close": 17748.0
+      "close": 17748
     },
     {
       "time": "10:50",
       "timestamp": "2023-09-06T10:50:00-04:00",
-      "open": 17748.0,
+      "open": 17748,
       "high": 17758.25,
-      "low": 17724.0,
+      "low": 17724,
       "close": 17755.5
     },
     {

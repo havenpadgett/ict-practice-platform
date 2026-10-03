@@ -888,7 +888,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-09-06",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-012",
@@ -899,7 +899,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-02-29",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-013",
@@ -910,7 +910,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-06-16",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-014",
@@ -921,7 +921,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2023-12-08",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-015",
@@ -932,7 +932,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2024-11-25",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-016",
@@ -943,7 +943,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2022-12-30",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-017",
@@ -954,7 +954,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-02-24",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-018",
@@ -965,7 +965,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-03-13",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-019",
@@ -976,7 +976,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2022-12-27",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-020",
@@ -987,7 +987,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2023-01-30",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-fvg-021",
@@ -998,7 +998,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2024-09-23",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-001",
@@ -1361,7 +1361,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-10-12",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-012",
@@ -1372,7 +1372,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-11-25",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-013",
@@ -1383,7 +1383,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-05-21",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-014",
@@ -1394,7 +1394,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2024-04-04",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-015",
@@ -1405,7 +1405,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2025-06-30",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-016",
@@ -1416,7 +1416,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-11-14",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-017",
@@ -1427,7 +1427,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-07-10",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-018",
@@ -1438,7 +1438,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-01-04",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-019",
@@ -1449,7 +1449,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-03-19",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-020",
@@ -1460,7 +1460,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-06-05",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-021",
@@ -1471,7 +1471,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2024-05-29",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-mss-001",

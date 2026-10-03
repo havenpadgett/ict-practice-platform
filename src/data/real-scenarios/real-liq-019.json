@@ -18,7 +18,7 @@
     0,
     14
   ],
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] 2 lows land within 14.5 points of each other around 19754.2, stacking resting stops into one larger pool.",
+  "explanation": "This is Sell-Side Liquidity. Multiple lows formed around the same level, creating a pool of liquidity resting below them.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
     "symbol": "NQ",
@@ -54,16 +54,16 @@
     "detection_notes": "2 touches within 14.5 points (tolerance 0.12% = 23.70 points)",
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-30T19:32:19+00:00",
-    "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "human_reviewed": true,
+    "reviewed_by": "lpshaven@gmail.com",
+    "reviewed_at": "2026-10-03",
     "review_notes": null
   },
   "candles": [
     {
       "time": "09:30",
       "timestamp": "2024-03-19T09:30:00-04:00",
-      "open": 19837.0,
+      "open": 19837,
       "high": 19846.25,
       "low": 19796.75,
       "close": 19822.75
@@ -73,15 +73,15 @@
       "timestamp": "2024-03-19T09:35:00-04:00",
       "open": 19822.5,
       "high": 19822.5,
-      "low": 19771.0,
-      "close": 19772.0
+      "low": 19771,
+      "close": 19772
     },
     {
       "time": "09:40",
       "timestamp": "2024-03-19T09:40:00-04:00",
       "open": 19772.25,
       "high": 19773.25,
-      "low": 19747.0,
+      "low": 19747,
       "close": 19759.75
     },
     {
@@ -89,15 +89,15 @@
       "timestamp": "2024-03-19T09:45:00-04:00",
       "open": 19760.25,
       "high": 19774.5,
-      "low": 19751.0,
+      "low": 19751,
       "close": 19773.75
     },
     {
       "time": "09:50",
       "timestamp": "2024-03-19T09:50:00-04:00",
       "open": 19773.75,
-      "high": 19795.0,
-      "low": 19760.0,
+      "high": 19795,
+      "low": 19760,
       "close": 19775.75
     },
     {
@@ -111,7 +111,7 @@
     {
       "time": "10:00",
       "timestamp": "2024-03-19T10:00:00-04:00",
-      "open": 19784.0,
+      "open": 19784,
       "high": 19806.5,
       "low": 19777.5,
       "close": 19804.25
@@ -121,21 +121,21 @@
       "timestamp": "2024-03-19T10:05:00-04:00",
       "open": 19804.25,
       "high": 19820.5,
-      "low": 19796.0,
-      "close": 19801.0
+      "low": 19796,
+      "close": 19801
     },
     {
       "time": "10:10",
       "timestamp": "2024-03-19T10:10:00-04:00",
       "open": 19801.5,
       "high": 19809.25,
-      "low": 19787.0,
-      "close": 19797.0
+      "low": 19787,
+      "close": 19797
     },
     {
       "time": "10:15",
       "timestamp": "2024-03-19T10:15:00-04:00",
-      "open": 19797.0,
+      "open": 19797,
       "high": 19802.25,
       "low": 19771.25,
       "close": 19775.25
@@ -152,23 +152,23 @@
       "time": "10:25",
       "timestamp": "2024-03-19T10:25:00-04:00",
       "open": 19775.75,
-      "high": 19800.0,
-      "low": 19764.0,
-      "close": 19769.0
+      "high": 19800,
+      "low": 19764,
+      "close": 19769
     },
     {
       "time": "10:30",
       "timestamp": "2024-03-19T10:30:00-04:00",
-      "open": 19769.0,
-      "high": 19794.0,
+      "open": 19769,
+      "high": 19794,
       "low": 19761.5,
-      "close": 19787.0
+      "close": 19787
     },
     {
       "time": "10:35",
       "timestamp": "2024-03-19T10:35:00-04:00",
       "open": 19787.75,
-      "high": 19814.0,
+      "high": 19814,
       "low": 19783.25,
       "close": 19809.75
     },
@@ -177,7 +177,7 @@
       "timestamp": "2024-03-19T10:40:00-04:00",
       "open": 19809.25,
       "high": 19828.5,
-      "low": 19805.0,
+      "low": 19805,
       "close": 19823.75
     },
     {
@@ -186,12 +186,12 @@
       "open": 19823.25,
       "high": 19838.25,
       "low": 19816.5,
-      "close": 19835.0
+      "close": 19835
     },
     {
       "time": "10:50",
       "timestamp": "2024-03-19T10:50:00-04:00",
-      "open": 19835.0,
+      "open": 19835,
       "high": 19840.5,
       "low": 19812.5,
       "close": 19821.25

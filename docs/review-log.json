@@ -548,5 +548,225 @@
     "reason": null,
     "reviewer": "system (tightened MSS rule)",
     "note": "Auto-flagged 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, Market Structure Shift - Minimum structure; swing move >= 0.25x median bar range), the prior swing high only moved 0.20x median bar range beyond the previous swing high - too small to count as real structure (swing low moved 5.59x). Confirm whether the trend this MSS breaks was actually established."
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-011",
+    "candidate_id": "fvg-bearish-20230906T1000",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-012",
+    "candidate_id": "fvg-bearish-20240229T1010",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-013",
+    "candidate_id": "fvg-bullish-20250616T0950",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-014",
+    "candidate_id": "fvg-bullish-20231208T1000",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-015",
+    "candidate_id": "fvg-bearish-20241125T1200",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-016",
+    "candidate_id": "fvg-bullish-20221230T1015",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-017",
+    "candidate_id": "fvg-bearish-20230224T0940",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-018",
+    "candidate_id": "fvg-bullish-20230313T0945",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-019",
+    "candidate_id": "fvg-bullish-20221227T1015",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-020",
+    "candidate_id": "fvg-bearish-20230130T1015",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-fvg-021",
+    "candidate_id": "fvg-bearish-20240923T1200",
+    "rule": "fvg",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-liq-011",
+    "candidate_id": "equal_highs-20231012T1025",
+    "rule": "equal_highs",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-liq-014",
+    "candidate_id": "equal_highs-20240404T1245",
+    "rule": "equal_highs",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-liq-016",
+    "candidate_id": "equal_highs-20231114T1045",
+    "rule": "equal_highs",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-liq-017",
+    "candidate_id": "equal_highs-20240710T1010",
+    "rule": "equal_highs",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-09-30",
+    "exercise_id": "real-liq-021",
+    "candidate_id": "equal_highs-20240529T1515",
+    "rule": "equal_highs",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-10-03",
+    "exercise_id": "real-liq-012",
+    "candidate_id": "equal_lows-20241125T1035",
+    "rule": "equal_lows",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-10-03",
+    "exercise_id": "real-liq-013",
+    "candidate_id": "equal_lows-20250521T1035",
+    "rule": "equal_lows",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-10-03",
+    "exercise_id": "real-liq-015",
+    "candidate_id": "equal_lows-20250630T1430",
+    "rule": "equal_lows",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-10-03",
+    "exercise_id": "real-liq-018",
+    "candidate_id": "equal_lows-20230104T1030",
+    "rule": "equal_lows",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-10-03",
+    "exercise_id": "real-liq-019",
+    "candidate_id": "equal_lows-20240319T1030",
+    "rule": "equal_lows",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-10-03",
+    "exercise_id": "real-liq-020",
+    "candidate_id": "equal_lows-20250605T1035",
+    "rule": "equal_lows",
+    "decision": "approved",
+    "reason": null,
+    "note": null,
+    "reviewer": "lpshaven@gmail.com"
   }
 ]

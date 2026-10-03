@@ -18,7 +18,7 @@
     5,
     17
   ],
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] 2 highs land within 15.5 points of each other around 18046.2, stacking resting stops into one larger pool.",
+  "explanation": "This is Buy-Side Liquidity. Two highs formed around the same level, creating a pool of liquidity resting above them at the highlighted level.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
     "symbol": "NQ",
@@ -54,26 +54,26 @@
     "detection_notes": "2 touches within 15.5 points (tolerance 0.12% = 21.65 points)",
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-30T19:32:18+00:00",
-    "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "human_reviewed": true,
+    "reviewed_by": "lpshaven@gmail.com",
+    "reviewed_at": "2026-09-30",
     "review_notes": null
   },
   "candles": [
     {
       "time": "09:30",
       "timestamp": "2023-11-14T09:30:00-05:00",
-      "open": 17963.0,
-      "high": 17985.0,
+      "open": 17963,
+      "high": 17985,
       "low": 17941.25,
       "close": 17972.25
     },
     {
       "time": "09:35",
       "timestamp": "2023-11-14T09:35:00-05:00",
-      "open": 17972.0,
+      "open": 17972,
       "high": 17995.25,
-      "low": 17964.0,
+      "low": 17964,
       "close": 17985.75
     },
     {
@@ -97,13 +97,13 @@
       "timestamp": "2023-11-14T09:50:00-05:00",
       "open": 17984.75,
       "high": 18016.5,
-      "low": 17981.0,
+      "low": 17981,
       "close": 18000.5
     },
     {
       "time": "09:55",
       "timestamp": "2023-11-14T09:55:00-05:00",
-      "open": 18001.0,
+      "open": 18001,
       "high": 18018.5,
       "low": 17995.75,
       "close": 18013.5
@@ -111,7 +111,7 @@
     {
       "time": "10:00",
       "timestamp": "2023-11-14T10:00:00-05:00",
-      "open": 18013.0,
+      "open": 18013,
       "high": 18037.5,
       "low": 18011.25,
       "close": 18035.5
@@ -121,8 +121,8 @@
       "timestamp": "2023-11-14T10:05:00-05:00",
       "open": 18035.5,
       "high": 18038.5,
-      "low": 18004.0,
-      "close": 18011.0
+      "low": 18004,
+      "close": 18011
     },
     {
       "time": "10:10",
@@ -143,9 +143,9 @@
     {
       "time": "10:20",
       "timestamp": "2023-11-14T10:20:00-05:00",
-      "open": 18008.0,
+      "open": 18008,
       "high": 18022.25,
-      "low": 17999.0,
+      "low": 17999,
       "close": 18012.5
     },
     {
@@ -153,54 +153,54 @@
       "timestamp": "2023-11-14T10:25:00-05:00",
       "open": 18013.25,
       "high": 18038.5,
-      "low": 18008.0,
+      "low": 18008,
       "close": 18034.25
     },
     {
       "time": "10:30",
       "timestamp": "2023-11-14T10:30:00-05:00",
       "open": 18034.25,
-      "high": 18048.0,
-      "low": 18031.0,
-      "close": 18047.0
+      "high": 18048,
+      "low": 18031,
+      "close": 18047
     },
     {
       "time": "10:35",
       "timestamp": "2023-11-14T10:35:00-05:00",
-      "open": 18047.0,
+      "open": 18047,
       "high": 18050.75,
-      "low": 18031.0,
+      "low": 18031,
       "close": 18040.25
     },
     {
       "time": "10:40",
       "timestamp": "2023-11-14T10:40:00-05:00",
       "open": 18040.5,
-      "high": 18046.0,
+      "high": 18046,
       "low": 18032.75,
       "close": 18045.25
     },
     {
       "time": "10:45",
       "timestamp": "2023-11-14T10:45:00-05:00",
-      "open": 18045.0,
-      "high": 18054.0,
+      "open": 18045,
+      "high": 18054,
       "low": 18040.75,
-      "close": 18046.0
+      "close": 18046
     },
     {
       "time": "10:50",
       "timestamp": "2023-11-14T10:50:00-05:00",
       "open": 18046.25,
-      "high": 18047.0,
-      "low": 18033.0,
-      "close": 18035.0
+      "high": 18047,
+      "low": 18033,
+      "close": 18035
     },
     {
       "time": "10:55",
       "timestamp": "2023-11-14T10:55:00-05:00",
-      "open": 18035.0,
-      "high": 18036.0,
+      "open": 18035,
+      "high": 18036,
       "low": 18012.25,
       "close": 18018.75
     }

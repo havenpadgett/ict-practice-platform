@@ -18,7 +18,7 @@
     8,
     15
   ],
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] 2 highs land within 2 points of each other around 20259.5, stacking resting stops into one larger pool.",
+  "explanation": "This is Buy-Side Liquidity. Multiple highs formed around the same level, creating a pool of liquidity resting above them at the highlighted level.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
     "symbol": "NQ",
@@ -50,22 +50,22 @@
       "equal_tolerance_pct": 0.05,
       "fvg_min_range_mult": 0.25,
       "range_window": 100,
-      "ob_displacement_mult": 2.0,
+      "ob_displacement_mult": 2,
       "ob_max_leg": 3
     },
     "detection_notes": "2 touches within 2 points (tolerance 0.05% = 10.13 points)",
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-30T18:50:16+00:00",
-    "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "human_reviewed": true,
+    "reviewed_by": "lpshaven@gmail.com",
+    "reviewed_at": "2026-09-30",
     "review_notes": null
   },
   "candles": [
     {
       "time": "09:30",
       "timestamp": "2024-04-04T09:30:00-04:00",
-      "open": 20235.0,
+      "open": 20235,
       "high": 20261.75,
       "low": 20221.5,
       "close": 20231.5
@@ -89,7 +89,7 @@
     {
       "time": "10:15",
       "timestamp": "2024-04-04T10:15:00-04:00",
-      "open": 20212.0,
+      "open": 20212,
       "high": 20218.75,
       "low": 20180.5,
       "close": 20203.25
@@ -105,24 +105,24 @@
     {
       "time": "10:45",
       "timestamp": "2024-04-04T10:45:00-04:00",
-      "open": 20199.0,
-      "high": 20202.0,
-      "low": 20183.0,
+      "open": 20199,
+      "high": 20202,
+      "low": 20183,
       "close": 20194.25
     },
     {
       "time": "11:00",
       "timestamp": "2024-04-04T11:00:00-04:00",
       "open": 20194.25,
-      "high": 20203.0,
-      "low": 20176.0,
+      "high": 20203,
+      "low": 20176,
       "close": 20177.75
     },
     {
       "time": "11:15",
       "timestamp": "2024-04-04T11:15:00-04:00",
       "open": 20177.25,
-      "high": 20196.0,
+      "high": 20196,
       "low": 20173.5,
       "close": 20195.5
     },
@@ -131,7 +131,7 @@
       "timestamp": "2024-04-04T11:30:00-04:00",
       "open": 20195.75,
       "high": 20214.5,
-      "low": 20192.0,
+      "low": 20192,
       "close": 20213.5
     },
     {
@@ -147,7 +147,7 @@
       "timestamp": "2024-04-04T12:00:00-04:00",
       "open": 20228.5,
       "high": 20258.5,
-      "low": 20225.0,
+      "low": 20225,
       "close": 20242.75
     },
     {
@@ -163,8 +163,8 @@
       "timestamp": "2024-04-04T12:30:00-04:00",
       "open": 20247.5,
       "high": 20256.5,
-      "low": 20242.0,
-      "close": 20250.0
+      "low": 20242,
+      "close": 20250
     },
     {
       "time": "12:45",
@@ -185,7 +185,7 @@
     {
       "time": "13:15",
       "timestamp": "2024-04-04T13:15:00-04:00",
-      "open": 20245.0,
+      "open": 20245,
       "high": 20246.5,
       "low": 20234.25,
       "close": 20235.75
@@ -196,46 +196,46 @@
       "open": 20235.25,
       "high": 20238.5,
       "low": 20210.5,
-      "close": 20215.0
+      "close": 20215
     },
     {
       "time": "13:45",
       "timestamp": "2024-04-04T13:45:00-04:00",
-      "open": 20215.0,
-      "high": 20218.0,
+      "open": 20215,
+      "high": 20218,
       "low": 20181.25,
       "close": 20191.75
     },
     {
       "time": "14:00",
       "timestamp": "2024-04-04T14:00:00-04:00",
-      "open": 20192.0,
-      "high": 20192.0,
-      "low": 20108.0,
-      "close": 20110.0
+      "open": 20192,
+      "high": 20192,
+      "low": 20108,
+      "close": 20110
     },
     {
       "time": "14:15",
       "timestamp": "2024-04-04T14:15:00-04:00",
       "open": 20110.25,
-      "high": 20113.0,
-      "low": 20021.0,
+      "high": 20113,
+      "low": 20021,
       "close": 20027.75
     },
     {
       "time": "14:30",
       "timestamp": "2024-04-04T14:30:00-04:00",
       "open": 20027.5,
-      "high": 20028.0,
-      "low": 19933.0,
-      "close": 19939.0
+      "high": 20028,
+      "low": 19933,
+      "close": 19939
     },
     {
       "time": "14:45",
       "timestamp": "2024-04-04T14:45:00-04:00",
-      "open": 19939.0,
+      "open": 19939,
       "high": 19978.5,
-      "low": 19902.0,
+      "low": 19902,
       "close": 19920.5
     },
     {
@@ -265,9 +265,9 @@
     {
       "time": "15:45",
       "timestamp": "2024-04-04T15:45:00-04:00",
-      "open": 19796.0,
+      "open": 19796,
       "high": 19832.5,
-      "low": 19763.0,
+      "low": 19763,
       "close": 19769.25
     }
   ]

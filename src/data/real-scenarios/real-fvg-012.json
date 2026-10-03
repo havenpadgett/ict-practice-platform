@@ -11,7 +11,7 @@
   "has_answer": true,
   "answer": {
     "type": "bearish",
-    "price_low": 19956.0,
+    "price_low": 19956,
     "price_high": 19975.75,
     "candle_start": 7,
     "candle_end": 9,
@@ -21,7 +21,7 @@
     7,
     9
   ],
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bearish Fair Value Gap: the first candle's low and the third candle's high leave the range 19956-19975.8 untraded.",
+  "explanation": "This is a bearish Fair Value Gap. Price moved down sharply and left an imbalance in the highlighted area.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
     "symbol": "NQ",
@@ -53,15 +53,15 @@
       "equal_tolerance_pct": 0.05,
       "fvg_min_range_mult": 0.25,
       "range_window": 100,
-      "ob_displacement_mult": 2.0,
+      "ob_displacement_mult": 2,
       "ob_max_leg": 3
     },
     "detection_notes": "candle 1 low 19975.8 > candle 3 high 19956",
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-30T18:49:36+00:00",
-    "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "human_reviewed": true,
+    "reviewed_by": "lpshaven@gmail.com",
+    "reviewed_at": "2026-09-30",
     "review_notes": null
   },
   "candles": [
@@ -70,7 +70,7 @@
       "timestamp": "2024-02-29T09:30:00-05:00",
       "open": 19971.5,
       "high": 20008.25,
-      "low": 19962.0,
+      "low": 19962,
       "close": 20001.25
     },
     {
@@ -84,8 +84,8 @@
     {
       "time": "09:40",
       "timestamp": "2024-02-29T09:40:00-05:00",
-      "open": 19987.0,
-      "high": 19999.0,
+      "open": 19987,
+      "high": 19999,
       "low": 19972.25,
       "close": 19984.5
     },
@@ -110,7 +110,7 @@
       "timestamp": "2024-02-29T09:55:00-05:00",
       "open": 19995.5,
       "high": 20007.75,
-      "low": 19990.0,
+      "low": 19990,
       "close": 19994.75
     },
     {
@@ -124,7 +124,7 @@
     {
       "time": "10:05",
       "timestamp": "2024-02-29T10:05:00-05:00",
-      "open": 20006.0,
+      "open": 20006,
       "high": 20010.25,
       "low": 19975.75,
       "close": 19987.75
@@ -135,20 +135,20 @@
       "open": 19988.25,
       "high": 19989.5,
       "low": 19922.25,
-      "close": 19929.0
+      "close": 19929
     },
     {
       "time": "10:15",
       "timestamp": "2024-02-29T10:15:00-05:00",
       "open": 19929.25,
-      "high": 19956.0,
+      "high": 19956,
       "low": 19922.5,
-      "close": 19949.0
+      "close": 19949
     },
     {
       "time": "10:20",
       "timestamp": "2024-02-29T10:20:00-05:00",
-      "open": 19949.0,
+      "open": 19949,
       "high": 19968.25,
       "low": 19940.75,
       "close": 19963.25
@@ -165,30 +165,30 @@
       "time": "10:30",
       "timestamp": "2024-02-29T10:30:00-05:00",
       "open": 19958.75,
-      "high": 19969.0,
+      "high": 19969,
       "low": 19952.75,
       "close": 19962.75
     },
     {
       "time": "10:35",
       "timestamp": "2024-02-29T10:35:00-05:00",
-      "open": 19963.0,
+      "open": 19963,
       "high": 19978.75,
-      "low": 19955.0,
+      "low": 19955,
       "close": 19975.5
     },
     {
       "time": "10:40",
       "timestamp": "2024-02-29T10:40:00-05:00",
-      "open": 19975.0,
-      "high": 19977.0,
+      "open": 19975,
+      "high": 19977,
       "low": 19943.5,
       "close": 19949.5
     },
     {
       "time": "10:45",
       "timestamp": "2024-02-29T10:45:00-05:00",
-      "open": 19949.0,
+      "open": 19949,
       "high": 19979.25,
       "low": 19936.5,
       "close": 19973.25
@@ -197,8 +197,8 @@
       "time": "10:50",
       "timestamp": "2024-02-29T10:50:00-05:00",
       "open": 19973.25,
-      "high": 19976.0,
-      "low": 19938.0,
+      "high": 19976,
+      "low": 19938,
       "close": 19939.75
     },
     {
@@ -206,7 +206,7 @@
       "timestamp": "2024-02-29T10:55:00-05:00",
       "open": 19940.25,
       "high": 19952.75,
-      "low": 19930.0,
+      "low": 19930,
       "close": 19946.5
     }
   ]

@@ -18,7 +18,7 @@
     15,
     22
   ],
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] 2 lows land within 5.25 points of each other around 23277.6, stacking resting stops into one larger pool.",
+  "explanation": "This is Sell-Side Liquidity. Multiple lows formed around the same level, creating a pool of liquidity resting below them.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
     "symbol": "NQ",
@@ -50,15 +50,15 @@
       "equal_tolerance_pct": 0.05,
       "fvg_min_range_mult": 0.25,
       "range_window": 100,
-      "ob_displacement_mult": 2.0,
+      "ob_displacement_mult": 2,
       "ob_max_leg": 3
     },
     "detection_notes": "2 touches within 5.25 points (tolerance 0.05% = 11.64 points)",
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-30T18:50:16+00:00",
-    "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "human_reviewed": true,
+    "reviewed_by": "lpshaven@gmail.com",
+    "reviewed_at": "2026-10-03",
     "review_notes": null
   },
   "candles": [
@@ -84,7 +84,7 @@
       "open": 23320.75,
       "high": 23347.75,
       "low": 23311.25,
-      "close": 23338.0
+      "close": 23338
     },
     {
       "time": "10:15",
@@ -97,40 +97,40 @@
     {
       "time": "10:30",
       "timestamp": "2025-06-30T10:30:00-04:00",
-      "open": 23336.0,
-      "high": 23339.0,
-      "low": 23303.0,
+      "open": 23336,
+      "high": 23339,
+      "low": 23303,
       "close": 23314.75
     },
     {
       "time": "10:45",
       "timestamp": "2025-06-30T10:45:00-04:00",
       "open": 23314.25,
-      "high": 23330.0,
-      "low": 23305.0,
+      "high": 23330,
+      "low": 23305,
       "close": 23315.25
     },
     {
       "time": "11:00",
       "timestamp": "2025-06-30T11:00:00-04:00",
       "open": 23315.75,
-      "high": 23336.0,
+      "high": 23336,
       "low": 23302.5,
       "close": 23309.25
     },
     {
       "time": "11:15",
       "timestamp": "2025-06-30T11:15:00-04:00",
-      "open": 23309.0,
+      "open": 23309,
       "high": 23321.5,
       "low": 23295.5,
-      "close": 23311.0
+      "close": 23311
     },
     {
       "time": "11:30",
       "timestamp": "2025-06-30T11:30:00-04:00",
       "open": 23311.5,
-      "high": 23344.0,
+      "high": 23344,
       "low": 23303.25,
       "close": 23338.5
     },
@@ -155,15 +155,15 @@
       "timestamp": "2025-06-30T12:15:00-04:00",
       "open": 23347.5,
       "high": 23358.5,
-      "low": 23326.0,
-      "close": 23330.0
+      "low": 23326,
+      "close": 23330
     },
     {
       "time": "12:30",
       "timestamp": "2025-06-30T12:30:00-04:00",
       "open": 23329.75,
       "high": 23360.5,
-      "low": 23327.0,
+      "low": 23327,
       "close": 23349.25
     },
     {
@@ -186,9 +186,9 @@
       "time": "13:15",
       "timestamp": "2025-06-30T13:15:00-04:00",
       "open": 23326.5,
-      "high": 23333.0,
+      "high": 23333,
       "low": 23317.5,
-      "close": 23331.0
+      "close": 23331
     },
     {
       "time": "13:30",
@@ -204,12 +204,12 @@
       "open": 23310.75,
       "high": 23342.25,
       "low": 23280.25,
-      "close": 23315.0
+      "close": 23315
     },
     {
       "time": "14:00",
       "timestamp": "2025-06-30T14:00:00-04:00",
-      "open": 23315.0,
+      "open": 23315,
       "high": 23332.5,
       "low": 23300.5,
       "close": 23312.25
@@ -226,8 +226,8 @@
       "time": "14:30",
       "timestamp": "2025-06-30T14:30:00-04:00",
       "open": 23313.25,
-      "high": 23317.0,
-      "low": 23275.0,
+      "high": 23317,
+      "low": 23275,
       "close": 23291.5
     },
     {
@@ -249,7 +249,7 @@
     {
       "time": "15:15",
       "timestamp": "2025-06-30T15:15:00-04:00",
-      "open": 23360.0,
+      "open": 23360,
       "high": 23387.75,
       "low": 23344.25,
       "close": 23371.25
@@ -258,7 +258,7 @@
       "time": "15:30",
       "timestamp": "2025-06-30T15:30:00-04:00",
       "open": 23371.25,
-      "high": 23389.0,
+      "high": 23389,
       "low": 23357.75,
       "close": 23376.25
     },
