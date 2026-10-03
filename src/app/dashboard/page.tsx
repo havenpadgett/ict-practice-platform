@@ -9,7 +9,7 @@ import { RecommendedSession } from "@/components/recommended-session";
 import { MetricStrip } from "@/components/metric-strip";
 import { SkillRows, type SkillRow } from "@/components/skill-rows";
 import { useRequireAuth } from "@/hooks/use-require-auth";
-import { DASHBOARD_COLUMNS, fetchAttempts, getCouldImproveByConcept, migrateLocalAttempts, type DbAttempt } from "@/lib/attempts";
+import { DASHBOARD_COLUMNS, fetchAttempts, getCouldImproveByConcept, type DbAttempt } from "@/lib/attempts";
 import { conceptDisplayName, conceptShortName } from "@/lib/concepts";
 import { fetchProfile } from "@/lib/profiles";
 import { describeError } from "@/lib/errors";
@@ -18,7 +18,7 @@ import { mistakeCounts } from "@/lib/mistakes";
 import { LIQUIDITY_VARIANT, MIN_ATTEMPTS_FOR_ACCURACY, RECOGNITION_CONCEPTS, TRADE_CONCEPTS } from "@/lib/practice-modes";
 import { attemptsSince, conceptTrend, recentSessions } from "@/lib/progress";
 import { recommendSession, scoreConcepts } from "@/lib/recommendations";
-import { clearLocalAttempts, loadAttempts } from "@/lib/storage";
+import { useLocalResults } from "@/hooks/use-local-results";
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useRequireAuth();
@@ -27,20 +27,7 @@ export default function DashboardPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
 
-  const [localCount, setLocalCount] = useState(0);
-  const [migrationDismissed, setMigrationDismissed] = useState(false);
-  const [migrating, setMigrating] = useState(false);
-  const [migrateError, setMigrateError] = useState<string | null>(null);
-
   const [streak, setStreak] = useState<number | null>(null);
-
-  // Reading localStorage is a one-time sync from a browser-only store (it
-  // isn't available during SSR), so this can't be lazy initial state — the
-  // setState-in-effect here is intentional.
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLocalCount(loadAttempts().length);
-  }, []);
 
   async function loadStats(userId: string) {
     setDataLoading(true);
@@ -81,26 +68,9 @@ export default function DashboardPage() {
     trackRecommendationShown(r.concept, r.difficulty);
   }, [attempts]);
 
-  async function handleMigrate() {
-    if (!user) return;
-    setMigrating(true);
-    setMigrateError(null);
-    try {
-      const local = loadAttempts();
-      await migrateLocalAttempts(user.id, local);
-      clearLocalAttempts();
-      setLocalCount(0);
-      await loadStats(user.id);
-    } catch (err) {
-      setMigrateError(
-        err instanceof Error
-          ? err.message
-          : "Migration failed — your local data is untouched, nothing was lost.",
-      );
-    } finally {
-      setMigrating(false);
-    }
-  }
+  const local = useLocalResults(user, () => {
+    if (user) void loadStats(user.id);
+  });
 
   if (authLoading || !user) {
     // Same shell as the loaded page, so nothing moves when data arrives.
@@ -114,7 +84,7 @@ export default function DashboardPage() {
     );
   }
 
-  const showMigrationPrompt = localCount > 0 && !migrationDismissed;
+  const showMigrationPrompt = local.count > 0;
 
   return (
     <div className="page">
@@ -123,11 +93,11 @@ export default function DashboardPage() {
       {showMigrationPrompt && (
         <div className="mt-6">
           <MigrationPrompt
-            count={localCount}
-            migrating={migrating}
-            error={migrateError}
-            onMigrate={handleMigrate}
-            onDismiss={() => setMigrationDismissed(true)}
+            count={local.count}
+            migrating={local.saving}
+            error={local.error}
+            onMigrate={local.save}
+            onDismiss={local.dismiss}
           />
         </div>
       )}

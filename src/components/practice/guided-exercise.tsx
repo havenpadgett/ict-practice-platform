@@ -65,8 +65,11 @@ export function GuidedExercise({
   onDraftChange,
   prompt,
   footer,
+  share,
 }: {
   exercise: PublicGuidedExercise;
+  /** A share action for the chart, shown with the feedback. */
+  share?: ReactNode;
   prompt?: ReactNode;
   /** Save status and the report link, under the controls. */
   footer?: ReactNode;
@@ -297,6 +300,7 @@ export function GuidedExercise({
             }
             onNext={onNext}
             nextLabel={nextLabel}
+            share={share}
           />
         )}
         {footer}

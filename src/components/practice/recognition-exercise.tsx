@@ -41,6 +41,8 @@ export function RecognitionExercise({
   nextLabel,
   onRetryChart,
   footer,
+  feedbackActions,
+  share,
 }: {
   exercise: PublicZoneExercise | PublicLevelExercise | PublicChoiceExercise;
   prompt: ReactNode;
@@ -67,6 +69,10 @@ export function RecognitionExercise({
   onRetryChart: () => void;
   /** Save status and the report link, under the controls. */
   footer: ReactNode;
+  /** Replaces the feedback's Next / Retry buttons. */
+  feedbackActions?: ReactNode;
+  /** A share action for the chart, shown with the feedback. */
+  share?: ReactNode;
 }) {
   const [showWhy, setShowWhy] = useState(false);
   const answering = result === null && !grading;
@@ -140,6 +146,8 @@ export function RecognitionExercise({
         nextLabel={nextLabel}
         onRetry={exercise.answer_type === "choice" || isRetry ? undefined : onRetryChart}
         isRetry={isRetry}
+        actions={feedbackActions}
+        share={share}
       />
     );
   } else if (exercise.answer_type === "choice") {

@@ -184,6 +184,7 @@ export function attempt(concept: string, isCorrect: boolean, extra: Partial<DbAt
     failure_reason: null,
     response_time_ms: 1000,
     attempt_number: 1,
+    confidence: null,
     created_at: new Date(Date.UTC(2026, 8, 1) + seq * 60000).toISOString(),
     ...extra,
   };

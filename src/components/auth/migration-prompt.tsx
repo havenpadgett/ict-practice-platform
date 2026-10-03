@@ -14,10 +14,10 @@ export function MigrationPrompt({
   return (
     <div className="mb-6 card">
       <p className="text-sm font-medium text-foreground">
-        Found {count} practice {count === 1 ? "attempt" : "attempts"} saved on this device.
+        {count} {count === 1 ? "result" : "results"} from before you signed in {count === 1 ? "is" : "are"} saved on this device.
       </p>
       <p className="mt-1 text-sm text-muted">
-        Migrate them to your account? They&apos;ll be removed from this device afterward.
+        Add {count === 1 ? "it" : "them"} to your account? {count === 1 ? "It" : "They"}&apos;ll be removed from this device afterward.
       </p>
 
       {error && (
@@ -33,7 +33,7 @@ export function MigrationPrompt({
           disabled={migrating}
           className="btn-primary"
         >
-          {migrating ? "Migrating…" : "Migrate"}
+          {migrating ? "Saving…" : "Save to my account"}
         </button>
         <button
           type="button"

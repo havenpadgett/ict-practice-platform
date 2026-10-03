@@ -9,7 +9,13 @@ import type { GradeResult, UserAnswer } from "@/lib/grading";
 import type { GuidedGradeResult, GuidedStepId, GuidedUserAnswer } from "@/lib/guided-grading";
 import { isCorrectForCompat } from "@/lib/verdict";
 
-export type AttemptMeta = { sessionId: string; responseTimeMs: number; attemptNumber: number };
+export type AttemptMeta = {
+  sessionId: string;
+  responseTimeMs: number;
+  attemptNumber: number;
+  /** The learner's optional confidence rating (1-3); absent = skipped. */
+  confidence?: 1 | 2 | 3 | null;
+};
 
 const NULL_GUIDED_FIELDS = {
   guided_bias_choice: null,
@@ -69,6 +75,7 @@ export function buildAnswerAttempt(exercise: Exercise, answer: UserAnswer, grade
     failure_reason: grade.failureReason,
     response_time_ms: meta.responseTimeMs,
     attempt_number: meta.attemptNumber,
+    confidence: meta.confidence ?? null,
   };
 }
 
@@ -112,6 +119,7 @@ export function buildGuidedAttempt(
     failure_reason: null,
     response_time_ms: meta.responseTimeMs,
     attempt_number: meta.attemptNumber,
+    confidence: meta.confidence ?? null,
   };
 }
 
@@ -167,5 +175,6 @@ export function buildFreeTradeAttempt(
     failure_reason: null,
     response_time_ms: meta.responseTimeMs,
     attempt_number: meta.attemptNumber,
+    confidence: meta.confidence ?? null,
   };
 }

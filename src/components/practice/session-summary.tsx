@@ -1,8 +1,11 @@
 import Link from "next/link";
+import { ShareButton } from "@/components/share-button";
 import { getExerciseMeta } from "@/data/catalog";
 import { conceptDisplayName, DIFFICULTY_LABELS } from "@/lib/concepts";
 import { FAILURE_LABELS } from "@/lib/failure-labels";
+import { challengePath } from "@/lib/challenge";
 import { sessionInsight } from "@/lib/session-insight";
+import { pickChallengeFromSession } from "@/lib/session-share";
 import type { SessionState } from "@/lib/storage";
 
 /** Plain words for a missed exercise; never its database id. */
@@ -38,6 +41,7 @@ export function SessionSummary({
   const failureOf = new Map(outcomes.filter((o) => !o.correct).map((o) => [o.exercise_id, o.failure_reason]));
   const difficulties = [...new Set(session.exercise_order.map((id) => getExerciseMeta(id)?.difficulty).filter(Boolean))] as (1 | 2 | 3)[];
   const skipped = total - answered;
+  const challengeId = pickChallengeFromSession(session);
 
   return (
     <div className="max-w-2xl">
@@ -78,6 +82,17 @@ export function SessionSummary({
           Dashboard
         </Link>
       </div>
+
+      {challengeId && (
+        <div className="mt-6">
+          <ShareButton
+            path={challengePath(challengeId)}
+            title={`A chart challenge from ${title}`}
+            text={missed.length > 0 ? "This chart got me. Can you read it?" : "Can you read this chart?"}
+            label="Send a friend a chart from this session"
+          />
+        </div>
+      )}
 
       {missed.length > 0 && (
         <section className="mt-section" aria-labelledby="summary-missed">

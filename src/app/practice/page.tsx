@@ -12,11 +12,13 @@ import { RecognitionExercise } from "@/components/practice/recognition-exercise"
 import { SessionLengthPicker } from "@/components/practice/session-length-picker";
 import { SessionSummary } from "@/components/practice/session-summary";
 import { SaveStatus } from "@/components/save-status";
+import { ShareButton } from "@/components/share-button";
 import { gradeFreeTradeScenario, gradeGuided, gradeRecognition, loadSessionExercises } from "@/app/practice/actions";
 import { getExerciseMeta } from "@/data/catalog";
 import type { ZoneAnswer } from "@/data/exercises";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { DASHBOARD_COLUMNS, fetchAttempts, insertAttempt, nextAttemptNumber, type DbAttempt, type NewAttempt } from "@/lib/attempts";
+import { canShare, challengePath } from "@/lib/challenge";
 import { describeError, type FriendlyError } from "@/lib/errors";
 import { modeFor, track, type SessionSource } from "@/lib/events";
 import { CONCEPT_LIST, conceptShortName, DIFFICULTY_LABELS, getConceptMeta, type Concept } from "@/lib/concepts";
@@ -756,6 +758,16 @@ export default function PracticePage() {
       {report}
     </>
   );
+  // A finished chart can be sent to someone as a challenge (src/lib/
+  // challenge.ts). Free Trade can't: its playback ships unrevealed candles.
+  const share = canShare(getExerciseMeta(exercise.exercise_id)) ? (
+    <ShareButton
+      path={challengePath(exercise.exercise_id)}
+      title={`${conceptShortName(exercise.concept)} chart challenge`}
+      text="Can you read this chart? Mark your answer and see how it compares."
+      label="Challenge a friend with this chart"
+    />
+  ) : null;
   const prompt = (
     <div>
       <p className="text-lg leading-snug text-foreground sm:text-xl">{exercise.prompt}</p>
@@ -827,6 +839,7 @@ export default function PracticePage() {
               onGrade={gradeGuidedAnswer}
               onNext={handleNext}
               nextLabel={nextLabel}
+              share={share}
             />
           )
         ) : (
@@ -853,6 +866,7 @@ export default function PracticePage() {
             nextLabel={nextLabel}
             onRetryChart={handleRetryChart}
             footer={footer}
+            share={share}
           />
         )}
 

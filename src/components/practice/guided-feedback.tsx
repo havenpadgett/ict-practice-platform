@@ -19,12 +19,15 @@ export function GuidedFeedback({
   plan,
   onNext,
   nextLabel,
+  share,
 }: {
   result: GuidedGradeResult;
   /** What the user built, in one line. */
   plan: string;
   onNext: () => void;
   nextLabel: string;
+  /** A share action for the chart (src/components/share-button.tsx). */
+  share?: React.ReactNode;
 }) {
   return (
     <div className="card" role="status" aria-live="polite">
@@ -57,6 +60,7 @@ export function GuidedFeedback({
           {nextLabel}
         </button>
       </div>
+      {share && <div className="mt-3">{share}</div>}
     </div>
   );
 }

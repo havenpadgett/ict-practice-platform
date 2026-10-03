@@ -98,6 +98,11 @@ export type DbAttempt = {
   failure_reason: string | null;
   response_time_ms: number;
   attempt_number: number;
+  /** How sure the learner said they were before submitting: 1 a guess, 2
+   * fairly sure, 3 certain. Null when skipped, and for every attempt made
+   * before the column existed (supabase/migrations/20261003120000_attempt_
+   * confidence.sql, awaiting Haven — B4). Optional rating, never required. */
+  confidence: 1 | 2 | 3 | null;
   created_at: string;
 };
 
@@ -169,8 +174,14 @@ export async function fetchAttempts(userId: string, columns = "*"): Promise<DbAt
     .eq("user_id", userId)
     .order("created_at", { ascending: true });
   if (error) {
-    if ((error.code === "PGRST204" || error.code === "42703") && columns.includes("verdict")) {
-      return fetchAttempts(userId, columns.split(",").filter((c) => c !== "verdict").join(","));
+    if ((error.code === "PGRST204" || error.code === "42703") && columns !== "*") {
+      // An unknown column fails the whole select. Drop the columns pending
+      // migrations add, newest first (confidence, then verdict), and retry,
+      // so applying one migration doesn't need the other.
+      const list = columns.split(",");
+      for (const missing of ["confidence", "verdict"]) {
+        if (list.includes(missing)) return fetchAttempts(userId, list.filter((c) => c !== missing).join(","));
+      }
     }
     throw error;
   }
@@ -204,6 +215,8 @@ export const ATTEMPTS_CHANGED_EVENT = "ict:attempts-changed";
  * fallback in src/app/report/actions.ts. */
 const VERDICT_COLUMNS: (keyof NewAttempt)[] = [
   "verdict",
+  // Same fallback for the confidence column (20261003120000, not yet applied).
+  "confidence",
   "guided_bias_verdict", "guided_entry_verdict", "guided_stop_verdict", "guided_target_verdict", "guided_rr_verdict",
   "free_direction_verdict", "free_entry_verdict", "free_stop_verdict", "free_target_verdict", "free_rr_verdict", "free_decision_verdict",
 ];
@@ -290,6 +303,7 @@ export async function migrateLocalAttempts(
       // Pre-Phase-B local attempts only ever recorded a boolean — there's
       // no COULD_IMPROVE reading to recover, so the verdict is binary here.
       verdict: a.is_correct ? "correct" : "incorrect",
+      confidence: null,
       failure_reason: a.failure_reason,
       // Same 24-hour cap as the grading Server Functions and the
       // attempts_ranges constraint.
@@ -310,6 +324,34 @@ export async function migrateLocalAttempts(
   }
   if (error) throw error;
   return rows.length;
+}
+
+/** Adds results kept on this device from public challenges (src/lib/pending-
+ * attempts.ts) to the user's history. The rows were built by the server from
+ * a real grade; attempt_number is recomputed here as it is for any attempt.
+ * Falls back like insertAttempt when a pending migration's columns are
+ * missing. */
+export async function savePendingResults(userId: string, rows: NewAttempt[]): Promise<number> {
+  const seen = new Map<string, number>();
+  const prepared: NewAttempt[] = [];
+  for (const row of rows) {
+    const base = seen.get(row.exercise_id) ?? (await nextAttemptNumber(userId, row.exercise_id)) - 1;
+    seen.set(row.exercise_id, base + 1);
+    prepared.push({ ...row, attempt_number: base + 1 });
+  }
+  const supabase = createClient();
+  let { error } = await supabase.from("attempts").insert(prepared.map((r) => ({ ...r, user_id: userId })));
+  if (error && (error.code === "PGRST204" || error.code === "42703")) {
+    const fallback = prepared.map((r) => {
+      const copy: Record<string, unknown> = { ...r, user_id: userId };
+      for (const col of VERDICT_COLUMNS) delete copy[col];
+      return copy;
+    });
+    ({ error } = await supabase.from("attempts").insert(fallback));
+  }
+  if (error) throw error;
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(ATTEMPTS_CHANGED_EVENT));
+  return prepared.length;
 }
 
 // ---- Dashboard aggregates -------------------------------------------------

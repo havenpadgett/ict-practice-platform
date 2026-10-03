@@ -11,6 +11,8 @@ export function FeedbackPanel({
   nextLabel,
   onRetry,
   isRetry = false,
+  actions,
+  share,
 }: {
   result: GradeResult;
   /** The concept's rule in plain words, for "Show me why". */
@@ -23,6 +25,11 @@ export function FeedbackPanel({
   onRetry?: () => void;
   /** This verdict is for a retry, which isn't recorded. */
   isRetry?: boolean;
+  /** Replaces the Next / Retry buttons (public challenges send the
+   * learner somewhere else than "the next exercise"). */
+  actions?: React.ReactNode;
+  /** A share action for this chart (src/components/share-button.tsx). */
+  share?: React.ReactNode;
 }) {
   return (
     <div className="card" role="status" aria-live="polite">
@@ -59,15 +66,20 @@ export function FeedbackPanel({
       )}
 
       <div className="mt-5 flex flex-wrap gap-3 border-t border-line pt-5">
-        <button type="button" onClick={onNext} className="btn-primary">
-          {nextLabel}
-        </button>
-        {onRetry && (
-          <button type="button" onClick={onRetry} className="btn-secondary">
-            Retry this chart
-          </button>
+        {actions ?? (
+          <>
+            <button type="button" onClick={onNext} className="btn-primary">
+              {nextLabel}
+            </button>
+            {onRetry && (
+              <button type="button" onClick={onRetry} className="btn-secondary">
+                Retry this chart
+              </button>
+            )}
+          </>
         )}
       </div>
+      {share && <div className="mt-3">{share}</div>}
     </div>
   );
 }

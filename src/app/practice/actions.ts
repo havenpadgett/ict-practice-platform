@@ -15,8 +15,6 @@ import type { NewAttempt } from "@/lib/attempts";
 import { buildAnswerAttempt, buildFreeTradeAttempt, buildGuidedAttempt } from "@/lib/attempt-rows";
 import {
   gradeFreeTrade,
-  isStopOnLosingSide,
-  isTargetOnWinningSide,
   type FreeTradeExit,
   type FreeTradeGradeResult,
   type FreeTradePosition,
@@ -25,6 +23,7 @@ import { pickFrame, zoneToFrame, type Frame } from "@/lib/framing";
 import { gradeAttempt, type GradeResult, type UserAnswer } from "@/lib/grading";
 import { gradeGuidedAttempt, type GuidedGradeResult, type GuidedUserAnswer } from "@/lib/guided-grading";
 import { toPublicExercise, type PublicExercise } from "@/lib/public-exercise";
+import { clampContext, isGuidedAnswer, isExit, isPosition, isUserAnswer } from "@/lib/answer-validation";
 import { createClient } from "@/lib/supabase/server";
 
 type Failure = { ok: false; error: string };
@@ -55,8 +54,6 @@ export type FreeTradeGrading = {
 };
 
 const MAX_SESSION_IDS = 60;
-/** Matches the attempts_ranges constraint (20260927130000_attempt_integrity.sql). */
-const MAX_RESPONSE_MS = 24 * 60 * 60 * 1000;
 
 async function signedIn(): Promise<boolean> {
   const supabase = await createClient();
@@ -66,27 +63,10 @@ async function signedIn(): Promise<boolean> {
   return user !== null;
 }
 
-function isNum(x: unknown): x is number {
-  return typeof x === "number" && Number.isFinite(x);
-}
-
-function isNumOrNull(x: unknown): x is number | null {
-  return x === null || isNum(x);
-}
-
 function practiceExercise(id: unknown): Exercise | null {
   if (typeof id !== "string") return null;
   const e = getExercise(id);
   return e && isPracticeReady(e) ? e : null;
-}
-
-/** Clamp what the browser reports about the attempt to storable values. */
-function context(c: AttemptContext) {
-  return {
-    sessionId: typeof c?.sessionId === "string" ? c.sessionId.slice(0, 100) : "",
-    responseTimeMs: isNum(c?.responseTimeMs) ? Math.min(MAX_RESPONSE_MS, Math.max(0, Math.round(c.responseTimeMs))) : 0,
-    attemptNumber: 0,
-  };
 }
 
 const NOT_SIGNED_IN: Failure = { ok: false, error: "Your login has expired. Log in again to continue." };
@@ -127,28 +107,6 @@ function unframeAnswer(answer: UserAnswer, frame: Frame): UserAnswer {
   };
 }
 
-function isUserAnswer(a: unknown): a is UserAnswer {
-  if (typeof a !== "object" || a === null) return false;
-  const x = a as Record<string, unknown>;
-  switch (x.type) {
-    case "none":
-      return true;
-    case "level":
-      return isNum(x.price);
-    case "choice":
-      return typeof x.choice === "string" && x.choice.length <= 100;
-    case "region": {
-      const r = x.region as Record<string, unknown> | null;
-      return (
-        typeof r === "object" && r !== null &&
-        isNum(r.priceLow) && isNum(r.priceHigh) && isNum(r.candleIndexLow) && isNum(r.candleIndexHigh)
-      );
-    }
-    default:
-      return false;
-  }
-}
-
 /** Recognition: zone, level and choice exercises. */
 export async function gradeRecognition(
   exerciseId: string,
@@ -175,18 +133,8 @@ export async function gradeRecognition(
       zone: grade.revealZone && e.answer_type === "zone" && e.answer ? zoneToFrame(e.answer, frame) : null,
       level: grade.revealZone && e.answer_type === "level" ? e.answer?.price ?? null : null,
     },
-    row: buildAnswerAttempt(e, graded, grade, context(ctx)),
+    row: buildAnswerAttempt(e, graded, grade, clampContext(ctx)),
   };
-}
-
-function isGuidedAnswer(a: unknown): a is GuidedUserAnswer {
-  if (typeof a !== "object" || a === null) return false;
-  const x = a as Record<string, unknown>;
-  return (
-    (x.bias === "bullish" || x.bias === "bearish" || x.bias === "unclear") &&
-    isNumOrNull(x.entry) && isNumOrNull(x.stop) && isNumOrNull(x.target) &&
-    typeof x.declaredTrade === "boolean"
-  );
 }
 
 export async function gradeGuided(
@@ -207,27 +155,8 @@ export async function gradeGuided(
       stop: e.answer.stop?.invalidation_price ?? null,
       target: e.answer.target?.anchor ?? null,
     },
-    row: buildGuidedAttempt(e, answer, grade, context(ctx)),
+    row: buildGuidedAttempt(e, answer, grade, clampContext(ctx)),
   };
-}
-
-function isPosition(p: unknown): p is FreeTradePosition | null {
-  if (p === null) return true;
-  if (typeof p !== "object") return false;
-  const x = p as Record<string, unknown>;
-  if (!((x.direction === "long" || x.direction === "short") && isNum(x.entryIndex) && isNum(x.entry) && isNum(x.stop) && isNum(x.target))) {
-    return false;
-  }
-  // The UI only confirms a trade with the stop and target on the right
-  // sides; anything else is a forged request.
-  return isStopOnLosingSide(x.direction, x.entry, x.stop) && isTargetOnWinningSide(x.direction, x.entry, x.target);
-}
-
-function isExit(p: unknown): p is FreeTradeExit | null {
-  if (p === null) return true;
-  if (typeof p !== "object") return false;
-  const x = p as Record<string, unknown>;
-  return isNum(x.index) && isNum(x.price) && (x.reason === "stop" || x.reason === "target" || x.reason === "session_end");
 }
 
 export async function gradeFreeTradeScenario(
@@ -241,5 +170,5 @@ export async function gradeFreeTradeScenario(
   if (!e || e.answer_type !== "free") return UNAVAILABLE;
   if (!isPosition(position) || !isExit(exit)) return BAD_ANSWER;
   const grade = gradeFreeTrade(e, position, exit);
-  return { ok: true, grade, key: e.answer, row: buildFreeTradeAttempt(e, position, exit, grade, context(ctx)) };
+  return { ok: true, grade, key: e.answer, row: buildFreeTradeAttempt(e, position, exit, grade, clampContext(ctx)) };
 }
