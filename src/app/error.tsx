@@ -1,12 +1,18 @@
 "use client";
 
+import { useEffect } from "react";
+import { reportError } from "@/lib/monitoring";
 import { clearSession } from "@/lib/storage";
 
 // Any render error below the root layout lands here instead of a blank
 // page. "Start over" also clears the stored practice session, the most
 // likely source of a repeatable crash (stale or hand-edited data).
-// React already reports the error to the console; nothing extra is logged here.
-export default function Error({ retry }: { error: Error & { digest?: string }; retry: () => void }) {
+// React already reports the error to the console; production monitoring
+// (src/lib/monitoring.ts, off unless configured) hears about it too.
+export default function Error({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
+  useEffect(() => {
+    reportError(error, { boundary: "error" });
+  }, [error]);
   return (
     <div className="page">
       <h1 className="page-title">Something went wrong on this page</h1>

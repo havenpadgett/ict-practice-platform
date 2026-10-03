@@ -1,10 +1,16 @@
 "use client";
 
+import { useEffect } from "react";
+import { reportError } from "@/lib/monitoring";
+
 // Last resort when the root layout itself fails. It renders its own
 // document, without the app's stylesheet, so styles are inline — the
 // values mirror the tokens in globals.css (the one place hex is allowed
 // outside it).
-export default function GlobalError({ retry }: { error: Error & { digest?: string }; retry: () => void }) {
+export default function GlobalError({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
+  useEffect(() => {
+    reportError(error, { boundary: "global-error" });
+  }, [error]);
   return (
     <html lang="en">
       <body style={{ background: "#0d0e10", color: "#ededea", fontFamily: "system-ui, sans-serif", padding: 24 }}>

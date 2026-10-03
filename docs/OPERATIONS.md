@@ -163,6 +163,9 @@ Run through this before pushing to `main`, since Vercel deploys every push to pr
      5. `20260927130000_attempt_integrity.sql`
      6. `20260927140000_mistakes_session_events.sql` (allows the Review Mistakes `mode`/`source` on events; until then those event inserts fail silently)
      7. `20260927150000_question_reports.sql` (the `question_reports` table and its admin functions; until then "Report a problem" says reporting isn't available yet, and /admin says the reports section needs it)
+     8. `20260928120000_report_reasons_app_version.sql`, `20260929120000_add_verdict_to_attempts.sql`, `20260929130000_analytics_could_improve.sql` (see docs/APP_PERFECTION_PLAN.md → B4)
+     9. `20261003120000_attempt_confidence.sql` (the optional confidence rating on attempts and `v_confidence_calibration`; until then ratings aren't stored and Analytics → Confidence versus accuracy stays empty)
+     10. `20261003130000_profile_experience.sql` (the beginner / experienced preference on `profiles`; until then it lives on the device only and doesn't follow the learner to another one)
    - Afterwards, run `supabase/audit/attempt_integrity_audit.sql` and deal with anything it lists ([DATA-INTEGRITY.md](DATA-INTEGRITY.md)).
    - To see what's applied, check the Supabase dashboard → Database → Migrations, or `select version from supabase_migrations.schema_migrations`. Migrations pasted into the SQL editor by hand aren't recorded there, so keep a note of which ones you ran.
 3. **Check the Vercel environment variables:** `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are set for Production and Preview ([DEPLOYMENT.md](DEPLOYMENT.md)). After changing one, redeploy.
@@ -178,6 +181,46 @@ Run through this before pushing to `main`, since Vercel deploys every push to pr
 - [ ] Rehearse a restore once, into a scratch project.
 - [ ] Record the Auth settings somewhere outside Supabase.
 - [ ] Decide between Pro and accepting pause/backup risk before inviting real users.
+
+## Error monitoring (Sentry)
+
+*2026-10-03. Optional, free tier, and off until you turn it on.*
+
+Production errors go to [Sentry](https://sentry.io) (free "Developer" plan: one user, a monthly error quota, 30-day history; check the current limits on their pricing page). Nothing is reported, and the SDK is never loaded, unless `NEXT_PUBLIC_SENTRY_DSN` is set. Development, tests and the demo don't set it, so they stay silent.
+
+### What you configure
+
+1. **Create a project** at sentry.io: Projects → Create Project → platform **Next.js**. Copy its **DSN** (Project Settings → Client Keys). A DSN is a write-only address, not a secret.
+2. **Test it from your machine** before deploying:
+   ```bash
+   NEXT_PUBLIC_SENTRY_DSN='https://…@….ingest.sentry.io/…' npm run monitoring:test
+   ```
+   A message called "ICT Practice monitoring test" appears in Issues, environment `monitoring-test`.
+3. **Set it in Vercel** → Settings → Environment Variables:
+
+   | Name | Value | Environments |
+   |---|---|---|
+   | `NEXT_PUBLIC_SENTRY_DSN` | the DSN | **Production** only (leave Preview empty so previews, including the demo branch, stay silent) |
+
+   Redeploy: `NEXT_PUBLIC_` values are baked in at build time.
+4. **Optional, for readable stack traces.** Without source maps, browser stack traces point into minified code. To upload them at build time, also set (Production, as secrets): `SENTRY_AUTH_TOKEN` (Sentry → Settings → Auth Tokens, scope `project:releases` and `org:read`), `SENTRY_ORG` (the org slug) and `SENTRY_PROJECT` (the project slug). Only when all three are present does `next.config.ts` wrap the build with Sentry's plugin, which uploads the maps and then deletes them from the deployment. Set `CI=1` for one build to see the plugin's output.
+5. **Add an alert** in Sentry → Alerts so a new issue emails you; the default is a digest.
+
+### What it reports, and what it doesn't
+
+- **Reports:** errors thrown while rendering (`src/app/error.tsx`, `global-error.tsx`), in Server Functions and route handlers (`onRequestError` in `src/instrumentation.ts`), uncaught browser errors and unhandled rejections (`src/instrumentation-client.ts`), and failures the app catches and shows a message for (`describeError` in `src/lib/errors.ts`, except being offline or an expired login, which are the learner's situation). Each event has the error, stack, route, browser and release.
+- **Doesn't send:** cookies, headers, request bodies, query strings, user ids or emails, or anything a learner drew, typed or answered. Supabase request URLs in breadcrumbs lose their query strings (they carry user ids). `sendDefaultPii` is off. Tests in `tests/monitoring.test.ts` check the scrub through the real SDK.
+- **Not enabled:** performance tracing and session replay. They use quota, and replay would record charts and answers.
+
+### Costs and limits
+
+- The SDK is a separate ~550 KB chunk that browsers fetch only when the DSN is set; the initial page weight is unchanged otherwise.
+- Ad blockers block requests to `ingest.sentry.io`, so some browser errors won't arrive. Sentry's tunnel option fixes that but needs a route of our own; not built.
+- A crash loop can spend the monthly quota. Set a spike-protection rate limit in Sentry → Settings → Client Keys if that happens.
+
+### After the first deploy
+
+Trigger one real error to check the whole path: for example, in the browser console on the production site run `setTimeout(() => { throw new Error("monitoring check") })`. It should appear in Sentry within a minute, with a readable stack if step 4 is done. Source-map upload and the Turbopack build have only been exercised here with placeholder credentials (the build succeeds); a real upload hasn't been seen.
 
 ## Demo mode (branch `demo-mode`, delete after review)
 

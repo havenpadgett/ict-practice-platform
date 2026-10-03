@@ -29,4 +29,22 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Error monitoring (docs/OPERATIONS.md → Error monitoring). Reports need
+// only NEXT_PUBLIC_SENTRY_DSN (src/instrumentation*.ts). Readable stack
+// traces need source maps uploaded at build time, which also needs
+// SENTRY_AUTH_TOKEN, SENTRY_ORG and SENTRY_PROJECT; without all three the
+// build is exactly the one above and the SDK is not even loaded.
+export default async function config(): Promise<NextConfig> {
+  const { SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT } = process.env;
+  if (!SENTRY_AUTH_TOKEN || !SENTRY_ORG || !SENTRY_PROJECT) return nextConfig;
+  const { withSentryConfig } = await import("@sentry/nextjs/config");
+  return withSentryConfig(nextConfig, {
+    org: SENTRY_ORG,
+    project: SENTRY_PROJECT,
+    authToken: SENTRY_AUTH_TOKEN,
+    silent: !process.env.CI,
+    telemetry: false,
+    // Upload the maps, then remove them from the deployed files.
+    sourcemaps: { deleteSourcemapsAfterUpload: true },
+  });
+}

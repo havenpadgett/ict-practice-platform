@@ -2,6 +2,8 @@
 // can act on. Raw messages ("Failed to fetch", "JWT expired", "new row
 // violates row-level security policy") mean nothing to a trader.
 
+import { reportError } from "@/lib/monitoring";
+
 export type ErrorKind = "network" | "auth" | "other";
 
 export type FriendlyError = { kind: ErrorKind; message: string };
@@ -36,5 +38,8 @@ export function describeError(err: unknown, action: string): FriendlyError {
   if (kind === "auth") {
     return { kind, message: `Couldn't ${action} — your login has expired. Log in again to continue.` };
   }
+  // Offline and expired logins are the learner's situation; anything else is
+  // ours to hear about (a no-op unless monitoring is configured).
+  reportError(err, { action });
   return { kind, message: `Couldn't ${action}: ${raw(err).message}` };
 }

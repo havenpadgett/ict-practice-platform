@@ -18,9 +18,11 @@
     "restore": "vite-node --config vitest.config.ts scripts/restore.ts --",
     "backup:status": "node --experimental-strip-types scripts/backup-status.ts",
     "brand": "vite-node --config vitest.config.ts scripts/build-brand-assets.ts",
-    "daily": "vite-node --config vitest.config.ts scripts/build-daily-schedule.ts --"
+    "daily": "vite-node --config vitest.config.ts scripts/build-daily-schedule.ts --",
+    "monitoring:test": "vite-node --config vitest.config.ts scripts/sentry-test.ts"
   },
   "dependencies": {
+    "@sentry/nextjs": "^11.4.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.116.0",
     "next": "16.3.4",
