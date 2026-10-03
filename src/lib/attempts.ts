@@ -208,32 +208,41 @@ export async function nextAttemptNumber(
  * counts (the nav's open-mistakes badge) can refresh. */
 export const ATTEMPTS_CHANGED_EVENT = "ict:attempts-changed";
 
-/** Verdict columns added in 20260929120000_add_verdict_to_attempts.sql —
- * not yet applied in production (B4). Stripped on VERDICT_COLUMNS_MISSING
- * so grading keeps recording attempts (on is_correct alone, as it always
- * did) until the migration runs; same pattern as the report-reasons
- * fallback in src/app/report/actions.ts. */
-const VERDICT_COLUMNS: (keyof NewAttempt)[] = [
+/** Columns that arrive with migrations not yet applied in production (B4).
+ * Writes try the full row first and, if the database says a column doesn't
+ * exist, drop the newest migration's columns and retry, then the older one's
+ * too, so grading keeps recording attempts (on is_correct alone, as it
+ * always did) until the migrations run, and applying one doesn't need the
+ * other. Same pattern as the report-reasons fallback in
+ * src/app/report/actions.ts. */
+const CONFIDENCE_COLUMNS: string[] = ["confidence"]; // 20261003120000
+const VERDICT_COLUMNS: string[] = [
+  // 20260929120000
   "verdict",
-  // Same fallback for the confidence column (20261003120000, not yet applied).
-  "confidence",
   "guided_bias_verdict", "guided_entry_verdict", "guided_stop_verdict", "guided_target_verdict", "guided_rr_verdict",
   "free_direction_verdict", "free_entry_verdict", "free_stop_verdict", "free_target_verdict", "free_rr_verdict", "free_decision_verdict",
 ];
+
+const isMissingColumn = (err: { code?: string } | null) => err?.code === "PGRST204" || err?.code === "42703";
+
+/** Inserts attempt rows with the fallback above. Returns the last error, if any. */
+export async function insertAttemptRows(rows: Record<string, unknown>[]): Promise<{ code?: string; message: string } | null> {
+  const supabase = createClient();
+  const drops: string[][] = [[], CONFIDENCE_COLUMNS, [...CONFIDENCE_COLUMNS, ...VERDICT_COLUMNS]];
+  let error: { code?: string; message: string } | null = null;
+  for (const drop of drops) {
+    const payload = drop.length === 0 ? rows : rows.map((r) => Object.fromEntries(Object.entries(r).filter(([k]) => !drop.includes(k))));
+    ({ error } = await supabase.from("attempts").insert(payload));
+    if (!isMissingColumn(error)) return error;
+  }
+  return error;
+}
 
 export async function insertAttempt(
   userId: string,
   attempt: NewAttempt,
 ): Promise<void> {
-  const supabase = createClient();
-  let { error } = await supabase
-    .from("attempts")
-    .insert({ ...attempt, user_id: userId });
-  if (error && (error.code === "PGRST204" || error.code === "42703")) {
-    const fallback = { ...attempt, user_id: userId };
-    for (const col of VERDICT_COLUMNS) delete fallback[col];
-    ({ error } = await supabase.from("attempts").insert(fallback));
-  }
+  const error = await insertAttemptRows([{ ...attempt, user_id: userId }]);
   if (error) throw error;
   if (typeof window !== "undefined") window.dispatchEvent(new Event(ATTEMPTS_CHANGED_EVENT));
 }
@@ -312,16 +321,7 @@ export async function migrateLocalAttempts(
     };
   });
 
-  const supabase = createClient();
-  let { error } = await supabase.from("attempts").insert(rows);
-  if (error && (error.code === "PGRST204" || error.code === "42703")) {
-    const fallback = rows.map((r) => {
-      const copy = { ...r } as Record<string, unknown>;
-      for (const col of VERDICT_COLUMNS) delete copy[col];
-      return copy;
-    });
-    ({ error } = await supabase.from("attempts").insert(fallback));
-  }
+  const error = await insertAttemptRows(rows);
   if (error) throw error;
   return rows.length;
 }
@@ -339,16 +339,7 @@ export async function savePendingResults(userId: string, rows: NewAttempt[]): Pr
     seen.set(row.exercise_id, base + 1);
     prepared.push({ ...row, attempt_number: base + 1 });
   }
-  const supabase = createClient();
-  let { error } = await supabase.from("attempts").insert(prepared.map((r) => ({ ...r, user_id: userId })));
-  if (error && (error.code === "PGRST204" || error.code === "42703")) {
-    const fallback = prepared.map((r) => {
-      const copy: Record<string, unknown> = { ...r, user_id: userId };
-      for (const col of VERDICT_COLUMNS) delete copy[col];
-      return copy;
-    });
-    ({ error } = await supabase.from("attempts").insert(fallback));
-  }
+  const error = await insertAttemptRows(prepared.map((r) => ({ ...r, user_id: userId })));
   if (error) throw error;
   if (typeof window !== "undefined") window.dispatchEvent(new Event(ATTEMPTS_CHANGED_EVENT));
   return prepared.length;
