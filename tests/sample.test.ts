@@ -21,7 +21,7 @@ describe("try a sample", () => {
   });
 
   it("rejects malformed answers", async () => {
-    const res = await gradeSample("fvg-001", { type: "region", region: { priceLow: NaN } } as never);
+    const res = await gradeSample("ob-001", { type: "region", region: { priceLow: NaN } } as never);
     expect(res.ok).toBe(false);
   });
 

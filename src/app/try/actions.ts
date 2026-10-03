@@ -10,8 +10,10 @@ import { getExercise, isPracticeReady, type ZoneAnswer } from "@/data/exercises"
 import { gradeAttempt, type GradeResult, type UserAnswer } from "@/lib/grading";
 import { toPublicExercise, type PublicLevelExercise, type PublicZoneExercise } from "@/lib/public-exercise";
 
-/** A box, a line and a box: FVG, liquidity, order block, all difficulty 1. */
-const SAMPLE_IDS = ["fvg-001", "liq-001", "ob-001"] as const;
+/** A line, a box and a line: liquidity, order block, MSS, all difficulty 1.
+ * The landing page's embedded exercise is the FVG one (LANDING_EXERCISE_ID),
+ * so "Try 3 more charts" doesn't repeat it. */
+const SAMPLE_IDS = ["liq-001", "ob-001", "mss-001"] as const;
 
 type SampleExercise = PublicZoneExercise | PublicLevelExercise;
 

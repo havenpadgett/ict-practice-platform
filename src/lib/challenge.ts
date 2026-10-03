@@ -35,6 +35,12 @@ export function canShare(meta: Shareable | undefined | null): boolean {
   return true;
 }
 
+/** The exercise embedded on the landing page: the product's signature
+ * concept (the brand mark is a Fair Value Gap), an unmistakable gap after a
+ * clean trend, one valid answer. A constructed chart, so it carries no
+ * data-licence question, and tests/landing.test.ts holds it to that. */
+export const LANDING_EXERCISE_ID = "fvg-001";
+
 export function challengePath(exerciseId: string): string {
   return `/c/${encodeURIComponent(exerciseId)}`;
 }

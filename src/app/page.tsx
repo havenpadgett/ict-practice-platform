@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { PrimaryButton } from "@/components/primary-button";
-import { ProductPreview } from "@/components/product-preview";
+import { HeroExercise } from "@/components/landing/hero-exercise";
+import { LANDING_EXERCISE_ID } from "@/lib/challenge";
+import { shareableExercise } from "@/lib/challenge-source";
+import { toPublicExercise } from "@/lib/public-exercise";
 import { realApprovalCounts } from "@/lib/real-data-provenance";
 
 // Every claim here describes something that exists in the app today
@@ -82,24 +85,37 @@ const HOW = (real: { human: number; auto: number }) => [
 
 export default function Home() {
   const how = HOW(realApprovalCounts());
+  const heroSource = shareableExercise(LANDING_EXERCISE_ID);
+  const hero = heroSource ? toPublicExercise(heroSource) : null;
   return (
     <div className="flex flex-1 flex-col">
       <div className="mx-auto w-full max-w-6xl flex-1 px-4 pt-12 pb-20 sm:px-6 sm:pt-20">
         {/* Hero */}
-        <section className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-          <div className="max-w-xl">
+        <section className="grid items-start gap-x-12 gap-y-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:grid-rows-[auto_1fr]">
+          <div className="max-w-xl lg:col-start-1 lg:row-start-1 lg:pt-8">
             <p className="eyebrow">ICT concepts · NQ-style charts · Practice</p>
             <h1 className="mt-4 text-4xl leading-[1.05] sm:text-6xl">
               Stop watching setups. Start spotting them.
             </h1>
-            <p className="mt-6 text-base sm:text-lg">
+            <p className="mt-5 text-base sm:mt-6 sm:text-lg">
               Graded practice for reading ICT concepts on NQ-style price charts. Mark your answer on the chart and get
               immediate feedback that explains the rule, whether you were right or wrong.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+          </div>
+          {/* On a phone the exercise follows the headline directly; the
+              actions come after it. */}
+          <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+            {hero && hero.answer_type === "zone" ? (
+              <HeroExercise exercise={hero} />
+            ) : (
               <PrimaryButton href="/try">Try 3 charts, no account</PrimaryButton>
-              <Link href="/login?mode=signup" className="btn-secondary">
-                Create an account
+            )}
+          </div>
+          <div className="max-w-xl lg:col-start-1 lg:row-start-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <PrimaryButton href="/login?mode=signup">Create a free account</PrimaryButton>
+              <Link href="/try" className="btn-secondary">
+                Try 3 more charts
               </Link>
             </div>
             <p className="mt-6 text-xs">
@@ -107,7 +123,6 @@ export default function Home() {
               reading and makes no claim about trading results.
             </p>
           </div>
-          <ProductPreview />
         </section>
 
         {/* The loop */}
