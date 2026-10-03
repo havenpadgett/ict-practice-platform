@@ -4,8 +4,34 @@
     {
       "name": "ict-practice-platform-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 3000
+    },
+    {
+      "name": "ict-demo-3000",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "NEXT_PUBLIC_DEMO_MODE=true",
+        "npm",
+        "run",
+        "dev"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "ict-prod-3100",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "start",
+        "--",
+        "-p",
+        "3100"
+      ],
+      "port": 3100
     }
   ]
 }
