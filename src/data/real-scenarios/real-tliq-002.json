@@ -18,7 +18,7 @@
     30,
     47
   ],
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] NY AM 2024-05-07 high 19945.5; not taken later that day.",
+  "explanation": "This is the New York AM session high. It is the highest price reached between 9:30 and 11:00 ET, so stops tend to rest above it as buy-side liquidity.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
     "symbol": "NQ",
@@ -56,9 +56,10 @@
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-30T18:55:41+00:00",
     "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "review_notes": null
+    "reviewed_by": "auto",
+    "reviewed_at": "2026-10-03",
+    "review_notes": null,
+    "auto_approved": true
   },
   "candles": [
     {

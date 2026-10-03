@@ -6,8 +6,10 @@ classified by setups.find_setup: valid, or a specific no-trade reason
 (no_shift, no_sweep, no_entry, low_rr). --plan says how many of each kind
 to build; picks are spread evenly across the date range (seeded), and a
 session used by an existing scenario file is never reused. Every scenario
-is written with provenance.human_reviewed = false and draft explanations,
-and must be approved at /review before it can be practiced.
+is written with house-style explanations (scripts/explanations.py) and
+auto-approved (provenance.reviewed_by "auto", human_reviewed false); /review is
+for spot-checking. With --manual-review it keeps draft explanations and must be
+approved at /review before it can be practiced.
 
   guided   the chart runs from 07:00 to three bars after the entry level
            forms (or after the break / to the session end when there is
@@ -37,8 +39,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from build_scenario import DEFAULT_OUTPUT_DIR, DRAFT_NOTE
-from common import curriculum_versions, load_clean, load_json, round_price, trading_date, write_json
+from common import auto_approval, curriculum_versions, load_clean, load_json, round_price, trading_date, write_json
 from detect import group_indices, session_median_range
+from explanations import apply_explanations
 from setups import MIN_RR, find_setup
 
 KINDS = ["valid", "no_shift", "no_sweep", "no_entry", "low_rr"]
@@ -229,6 +232,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--prefix", required=True)
     ap.add_argument("--first", type=int, default=1)
     ap.add_argument("--seed", type=int, default=1)
+    ap.add_argument("--manual-review", action="store_true",
+                    help="keep draft explanations and human_reviewed: false so scenarios wait at /review "
+                         "(default: house-style explanations, auto-approved)")
     args = ap.parse_args(argv)
 
     plan = {k: int(v) for k, v in (p.split("=") for p in args.plan.split(","))}
@@ -277,9 +283,14 @@ def main(argv: Optional[List[str]] = None) -> int:
         if path.exists():
             print(f"ERROR: {path} already exists")
             return 1
-        write_json(path, build(args.mode, exercise_id, day, n_ctx, s, meta, params, args.first + i))
+        scenario = build(args.mode, exercise_id, day, n_ctx, s, meta, params, args.first + i)
+        if not args.manual_review:
+            apply_explanations(scenario)
+            scenario["provenance"].update(auto_approval())
+        write_json(path, scenario)
         print(f"{exercise_id}: {s['notes']} ({trading_date(day[n_ctx]['_dt'])})")
-    print(f"Wrote {len(picks)} {args.mode} scenario(s) with human_reviewed = false. Register them: python3 scripts/register_scenarios.py")
+    state = "held for review (human_reviewed = false)" if args.manual_review else 'auto-approved (reviewed_by "auto")'
+    print(f"Wrote {len(picks)} {args.mode} scenario(s), {state}. Register them: python3 scripts/register_scenarios.py")
     return 0
 
 

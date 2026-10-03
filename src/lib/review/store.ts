@@ -7,7 +7,10 @@
 // and deployed.
 //
 //   approve:   rewrite the explanation (required — the draft can't ship), set
-//              human_reviewed, reviewed_by, reviewed_at, review_notes
+//              human_reviewed, reviewed_by, reviewed_at, review_notes. On an
+//              auto-approved scenario this is the retroactive spot-check:
+//              the person's approval replaces the pipeline's (auto_approved
+//              is dropped, so the record shows who actually looked).
 //   reject:    delete the JSON file and unregister it from index.ts
 //   ambiguous: keep the file but mark review_status "ambiguous" — never
 //              practice-ready (PRD Section 5 ambiguity rule), listed apart
@@ -47,6 +50,9 @@ export type ReviewLogEntry = {
   reason: string | null;
   note: string | null;
   reviewer: string;
+  /** The scenario was auto-approved (live, unreviewed by a person) when this
+   * decision was made — a retroactive spot-check. Absent otherwise. */
+  after_auto?: boolean;
 };
 
 export async function readReviewLog(): Promise<ReviewLogEntry[]> {
@@ -163,6 +169,39 @@ export function renderSummary(entries: ReviewLogEntry[], awaiting: Record<string
   ].join("\n");
 }
 
+/** Who approved what, by rule: scenarios live on a person's approval vs the
+ * pipeline's, and how many of the pipeline's have since been spot-checked
+ * (and how many of those a person overturned). Counts the files on disk, so
+ * a stale one is still counted under the approval it carries. */
+export function renderApprovalSummary(
+  scenarios: { provenance: { detection_rule: string; human_reviewed: boolean; auto_approved?: boolean; review_status?: string } }[],
+  entries: ReviewLogEntry[],
+): string {
+  const rules = Array.from(new Set(scenarios.map((s) => s.provenance.detection_rule))).sort();
+  const lines = [
+    "| Rule | Human-reviewed | Auto-approved | Auto-approved share | Auto spot-checked | Overturned by a person |",
+    "|---|---|---|---|---|---|",
+  ];
+  let human = 0;
+  let auto = 0;
+  for (const rule of rules) {
+    const live = scenarios.filter((s) => s.provenance.detection_rule === rule && s.provenance.review_status !== "ambiguous");
+    const h = live.filter((s) => s.provenance.human_reviewed).length;
+    const a = live.filter((s) => s.provenance.auto_approved).length;
+    const checked = entries.filter((e) => e.rule === rule && e.after_auto);
+    const overturned = checked.filter((e) => e.decision !== "approved").length;
+    human += h;
+    auto += a;
+    lines.push(`| ${rule} | ${h} | ${a} | ${pct(a, h + a)} | ${checked.length} | ${overturned} |`);
+  }
+  lines.push(`| **All rules** | **${human}** | **${auto}** | **${pct(auto, human + auto)}** | | |`);
+  return [
+    "*Auto-approved scenarios went live from detection rules (docs/SCENARIO-VALIDATION.md → Auto-approval says what that vouches for) with explanations in the house style, without a person reading them (`reviewed_by: \"auto\"`). \"Auto spot-checked\" counts retroactive decisions at /review; a spot-check that approves one replaces its auto approval with a human one, so the Auto-approved column shrinks as checks happen. Overturned = rejected or flagged ambiguous.*",
+    "",
+    lines.join("\n"),
+  ].join("\n");
+}
+
 /** Regenerate the logs and summary in docs/SCENARIO-VALIDATION.md from
  * review-log.json. */
 async function renderDocs(entries: ReviewLogEntry[]): Promise<void> {
@@ -170,10 +209,11 @@ async function renderDocs(entries: ReviewLogEntry[]): Promise<void> {
   const { scenarios } = await listScenarios();
   const awaiting: Record<string, number> = {};
   for (const s of scenarios) {
-    if (!s.provenance.human_reviewed && s.provenance.review_status !== "ambiguous") {
+    if (!s.provenance.human_reviewed && !s.provenance.auto_approved && s.provenance.review_status !== "ambiguous") {
       awaiting[s.provenance.detection_rule] = (awaiting[s.provenance.detection_rule] ?? 0) + 1;
     }
   }
+  doc = replaceBlock(doc, "approval-summary", renderApprovalSummary(scenarios, entries));
   doc = replaceBlock(doc, "rejection-summary", renderSummary(entries, awaiting));
   doc = replaceBlock(doc, "review-log", renderLogTable(entries.filter((e) => e.decision !== "ambiguous"), "No real scenarios reviewed yet"));
   doc = replaceBlock(doc, "ambiguous-log", renderLogTable(entries.filter((e) => e.decision === "ambiguous"), "None flagged yet"));
@@ -193,13 +233,14 @@ async function appendReviewLog(entry: ReviewLogEntry): Promise<void> {
 
 /** The reviewer's local calendar date (the dev server runs on their machine). */
 /** Keep the generated catalog (src/data/catalog.ts) in step with a review
- * decision: approved -> practice_ready, rejected -> gone. */
-async function updateCatalog(id: string, change: "approve" | "reject"): Promise<void> {
+ * decision: approved -> practice_ready, rejected -> gone, ambiguous -> not
+ * practice_ready (it may have been live as an auto approval). */
+async function updateCatalog(id: string, change: "approve" | "reject" | "ambiguous"): Promise<void> {
   const entries = JSON.parse(await fs.readFile(CATALOG, "utf8")) as { exercise_id: string; practice_ready: boolean }[];
   const next =
     change === "reject"
       ? entries.filter((e) => e.exercise_id !== id)
-      : entries.map((e) => (e.exercise_id === id ? { ...e, practice_ready: true } : e));
+      : entries.map((e) => (e.exercise_id === id ? { ...e, practice_ready: change === "approve" } : e));
   await fs.writeFile(CATALOG, JSON.stringify(next, null, 1) + "\n");
 }
 
@@ -234,6 +275,8 @@ export async function approveScenario(
   if (s.answer_type === "guided") {
     s.explanation = (s.answer as { overall_explanation: string }).overall_explanation;
   }
+  const wasAuto = s.provenance.auto_approved === true;
+  delete s.provenance.auto_approved;
   s.provenance = {
     ...s.provenance,
     human_reviewed: true,
@@ -255,6 +298,7 @@ export async function approveScenario(
     reason: null,
     note: notes.trim() || null,
     reviewer,
+    ...(wasAuto ? { after_auto: true } : {}),
   });
 }
 
@@ -282,6 +326,7 @@ export async function rejectScenario(id: string, reviewer: string, reason: strin
     reason,
     note: note.trim() || null,
     reviewer,
+    ...(s.provenance.auto_approved === true ? { after_auto: true } : {}),
   });
 }
 
@@ -293,8 +338,10 @@ export async function flagAmbiguous(id: string, reviewer: string, note: string):
   if (!note.trim()) throw new Error("Say what makes it ambiguous — it goes in the Ambiguous Log.");
   const s = await readScenario(id);
   if (s.provenance.human_reviewed) throw new Error(`${id} is already approved.`);
+  const wasAuto = s.provenance.auto_approved === true;
   s.provenance = { ...s.provenance, review_status: "ambiguous", review_notes: note.trim() };
   await fs.writeFile(scenarioPath(id), JSON.stringify(s, null, 2) + "\n");
+  await updateCatalog(id, "ambiguous");
   await appendReviewLog({
     date: today(),
     exercise_id: id,
@@ -304,5 +351,6 @@ export async function flagAmbiguous(id: string, reviewer: string, note: string):
     reason: null,
     note: note.trim(),
     reviewer,
+    ...(wasAuto ? { after_auto: true } : {}),
   });
 }

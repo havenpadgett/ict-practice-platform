@@ -90,10 +90,13 @@ export type ChoiceAnswer = {
   dealing_range?: DealingRange;
 };
 
-/** Where a real-data scenario came from and whether a human has checked it
- * (docs/SCENARIO-VALIDATION.md). Written by scripts/build_scenario.py with
- * human_reviewed: false; the reviewer fills in the review fields on
- * promotion. Constructed exercises have no provenance. */
+/** Where a real-data scenario came from and who approved it
+ * (docs/SCENARIO-VALIDATION.md). Written by scripts/build_scenario.py.
+ * Approval is one of two kinds, kept apart on purpose: a person at /review
+ * (human_reviewed: true, reviewed_by their email) or the pipeline
+ * (auto_approved: true, human_reviewed: false, reviewed_by "auto"). Never
+ * set human_reviewed for an auto approval. Constructed exercises have no
+ * provenance. */
 export type ScenarioProvenance = {
   data_source: string;
   symbol: string;
@@ -120,6 +123,10 @@ export type ScenarioProvenance = {
   input_sha256: string;
   built_at: string;
   human_reviewed: boolean;
+  /** Approved by the pipeline from validated detection rules, not by a
+   * person. Mutually exclusive with human_reviewed; reviewed_by is "auto".
+   * A human approving it at /review replaces this with human_reviewed. */
+  auto_approved?: boolean;
   /** Set when a reviewer flags the scenario ambiguous; never practice-ready. */
   review_status?: "ambiguous";
   reviewed_by: string | null;
@@ -2974,8 +2981,8 @@ const conceptExercises: Exercise[] = [
 // same Exercise shape, so sessions, attempts, and analytics treat them like
 // any other exercise.
 // Real-data scenarios (src/data/real-scenarios/) are registered alongside the
-// constructed ones — every one carries provenance, and only human-reviewed
-// ones are ever offered in practice (see isPracticeReady below).
+// constructed ones — every one carries provenance, and only approved
+// approved ones are ever offered in practice (see isPracticeReady below).
 export const exercises: Exercise[] = [
   ...conceptExercises,
   ...orderBlockExercises,
@@ -2987,13 +2994,14 @@ export const exercises: Exercise[] = [
 
 /** Constructed exercises are always practice-ready (tests/curriculum.test.ts
  * fails if one is out of date with the curriculum); a real-data scenario
- * only once a human has approved it under the current version of every
- * definition it depends on (docs/SCENARIO-VALIDATION.md). */
+ * only once it has been approved, by a human or by the pipeline, under the
+ * current version of every definition it depends on
+ * (docs/SCENARIO-VALIDATION.md). */
 export function isPracticeReady(exercise: Exercise): boolean {
   const p = exercise.provenance;
   if (p === undefined) return true;
   return (
-    p.human_reviewed === true &&
+    (p.human_reviewed === true || p.auto_approved === true) &&
     p.review_status !== "ambiguous" &&
     staleDefinitions(p.curriculum_versions, definitionsForRule(p.detection_rule)).length === 0
   );

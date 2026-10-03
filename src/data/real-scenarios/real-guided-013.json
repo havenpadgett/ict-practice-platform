@@ -3,7 +3,7 @@
   "instrument": "NQ (real data)",
   "timeframe": "5m",
   "difficulty": 3,
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] Bias is unclear, so there is no trade.",
+  "explanation": "No trade. The setup is missing the liquidity sweep needed to confirm a clear bias.",
   "concept": "GuidedEntry",
   "answer_type": "guided",
   "answerLabel": "a valid trade setup",
@@ -16,12 +16,12 @@
     "min_rr": 2.0,
     "is_valid_setup": false,
     "step_explanations": {
-      "bias": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bearish Market Structure Shift closes beyond 19,965.5, but the setup high (20,032.75) never took the previous swing high at 20,074.75. Without buy-side liquidity taken first, it's unclear which side is being targeted. Bias is unclear.",
-      "entry": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] With no clear bias there's no direction to look for an entry in.",
-      "stop": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] No entry means no stop.",
-      "target": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] No entry means no target."
+      "bias": "A bearish Market Structure Shift formed, but buy-side liquidity was never swept first. Without that liquidity sweep, there isn't enough confirmation to establish a clear directional bias.",
+      "entry": "With no clear bias, there is no valid entry to take.",
+      "stop": "No valid entry means no stop loss is needed.",
+      "target": "No valid entry means no target is needed."
     },
-    "overall_explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] Bias is unclear, so there is no trade."
+    "overall_explanation": "No trade. The setup is missing the liquidity sweep needed to confirm a clear bias."
   },
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
@@ -37,7 +37,7 @@
     "detection_rule": "guided_setup",
     "curriculum_versions": {
       "guided_entry": 2,
-      "mss": 1,
+      "mss": 2,
       "fvg": 1,
       "fvg_respect": 1,
       "order_block": 1,
@@ -66,9 +66,10 @@
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-30T18:52:15+00:00",
     "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "review_notes": null
+    "reviewed_by": "auto",
+    "reviewed_at": "2026-10-03",
+    "review_notes": "Re-derived from source data under current detection rules (mss v1->v2): setup re-classified no_sweep.",
+    "auto_approved": true
   },
   "candles": [
     {

@@ -8,7 +8,7 @@
   "answer_type": "free",
   "title": "Real NY AM session 6",
   "answerLabel": "Real NY AM session 6",
-  "prompt": "Play the chart forward. Trade it if a valid setup forms — or don't.",
+  "prompt": "Play the chart forward. Trade it if a valid setup forms \u2014 or don't.",
   "answer": {
     "intended_bias": "short",
     "is_valid_setup": true,
@@ -76,7 +76,8 @@
     "human_reviewed": true,
     "reviewed_by": "lpshaven@gmail.com",
     "reviewed_at": "2026-09-30",
-    "review_notes": null
+    "review_notes": "Auto-flagged 2026-10-03: re-derived from source data under the current detection rules (curriculum definitions changed since it was built) and the answer key no longer reproduces - now classified no_shift, was valid. Kept on disk, never live.",
+    "review_status": "ambiguous"
   },
   "candles": [
     {

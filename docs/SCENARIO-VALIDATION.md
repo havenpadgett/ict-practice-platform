@@ -2,12 +2,17 @@
 
 How real historical data becomes a practice exercise. The PRD deferred real data to Phase 7 because it needs "a real answer-validation process" (Section 5, V1 ambiguity rule). This is that process.
 
-**The rule:** answer keys come from the curriculum's rules applied by code, not from someone eyeballing a chart — and no scenario reaches a user until a human has checked it against [CURRICULUM.md](CURRICULUM.md). Detection finds candidates; a person decides.
+**The rule:** answer keys come from the curriculum's rules applied by code, not from someone eyeballing a chart. Since 2026-10-03 a scenario reaches users one of two ways, and the record always says which:
+- **Human-reviewed** (`human_reviewed: true`, `reviewed_by` = the reviewer): a person checked it against [CURRICULUM.md](CURRICULUM.md) at `/review` and wrote or approved its explanation. The first 49 approvals were done this way, as were later ones; see the [Approval Summary](#approval-summary) for the current counts.
+- **Auto-approved** (`auto_approved: true`, `human_reviewed: false`, `reviewed_by: "auto"`): the pipeline built it from a detection rule, wrote its explanation in the house style, and approved it with no person reading it. [Auto-approval](#auto-approval) says what that does and doesn't guarantee.
+
+Don't describe the whole set as human-validated: it isn't. The About page, README and landing copy say the same.
 
 ## Pipeline
 
 ```
-raw CSV ──ingest.py──▶ clean JSON ──detect.py──▶ candidates ──build_scenario.py──▶ scenario JSON ──human review──▶ promoted (or rejected + logged)
+raw CSV ──ingest.py──▶ clean JSON ──detect.py──▶ candidates ──build_scenario.py──▶ scenario JSON ──auto-approved──▶ live ──/review spot-check──▶ confirmed (or rejected + logged)
+                                                                                         └─ --manual-review: held for a human first
 ```
 
 | Stage | Tool | What it guarantees |
@@ -15,9 +20,27 @@ raw CSV ──ingest.py──▶ clean JSON ──detect.py──▶ candidates 
 | 1. Source | — | Data comes from a named vendor/dataset whose license allows this use. Raw files go in `data/raw/` (git-ignored — never commit licensed data); generated outputs go in `data/clean/` (also git-ignored). Every new source is checked against [Data quality lessons](#data-quality-lessons) before use. |
 | 2. Clean | `scripts/ingest.py` | Strict ordering, no duplicate timestamps, no gaps outside scheduled CME closures (holidays must be named with `--allow-gap-on`), bar integrity (`low ≤ open/close ≤ high`), sane bar ranges and jumps. Timestamps converted to ET. Any error aborts with nothing written. |
 | 3. Detect | `scripts/detect.py` | Every candidate is flagged by a rule that implements a CURRICULUM.md definition exactly: three-candle FVG, equal highs/lows, MSS by body close, previous day / NY AM / weekly highs and lows. Output lists each candidate's rule, timestamps, and price levels. |
-| 4. Build | `scripts/build_scenario.py` | Turns one chosen candidate plus a candle window into an exercise in the app's format. The answer key is copied from the detected levels. It refuses (unless `--allow-ambiguous`) if the window holds another candidate of the same rule — PRD Section 5: exactly one valid answer per scenario. Writes `provenance.human_reviewed: false`, a placeholder explanation marked `[DRAFT`, and the `setup_span` the app frames the chart around (see [Chart framing](#chart-framing)). |
-| 5. Review | a human, this checklist | The candidate really is what the rule says, in curriculum terms; the chart is fair to a beginner; the explanation is rewritten in plain language. |
-| 6. Promote or reject | `/review` (or by hand) + the log below | Approved: explanation rewritten, review fields filled in. Rejected: file deleted and unregistered, reason logged. Commit to make it live. |
+| 4. Build | `scripts/build_scenario.py` | Turns one chosen candidate plus a candle window into an exercise in the app's format. The answer key is copied from the detected levels. It refuses (unless `--allow-ambiguous`) if the window holds another candidate of the same rule — PRD Section 5: exactly one valid answer per scenario. Writes the `setup_span` the app frames the chart around (see [Chart framing](#chart-framing)), an explanation in the house style (`scripts/explanations.py`, [CURRICULUM.md → Explanation style guide](CURRICULUM.md#explanation-style-guide)) and `auto_approved: true`, `reviewed_by: "auto"`. With `--manual-review`, or for a rule without an explanation template, it instead writes `human_reviewed: false`, a placeholder explanation marked `[DRAFT`, and waits for a person. |
+| 5. Register + catalog | `scripts/register_scenarios.py`, `npm run catalog` | Registers the file and marks it practice-ready in the generated catalog. Commit to make it live. |
+| 6. Spot-check (optional, any time) | `/review`, this checklist | A person re-checks an auto-approved scenario (or one the app flagged from use): approve it (it becomes human-reviewed), reject it (file deleted, reason logged) or flag it ambiguous (kept, never live). |
+
+### Auto-approval
+
+*Decided 2026-10-03 (PRD Decision Log): hand review was the bottleneck, so new scenarios go live on the pipeline's say-so and humans check afterwards.* This replaced "no real scenario is served until a human approves it".
+
+What an auto approval does vouch for:
+- The answer key was **derived by code** from a detection rule that implements the curriculum definition (`scripts/detect.py`; its fit to the written definitions is audited in [DETECTION-AUDIT.md](DETECTION-AUDIT.md), which still lists known gaps).
+- The builder refused windows holding a second candidate of the same rule (one valid answer, PRD Section 5).
+- The explanation is a template filled from the answer key, so it can't contradict it.
+- If a curriculum definition has changed since the scenario was built, it is only approved after its answer key is **re-derived from the source data under today's rules and comes out the same** (`scripts/auto_approve.py`). A key that no longer reproduces is flagged ambiguous and logged, never served.
+
+What it does not vouch for: that the chart is fair to a beginner, that the setup is a *good* example in a trader's eyes, or that a rule with known audit gaps is right in this instance. Several rules (Order Block, Premium/Discount, IFVG, NY AM high/low) have no human-reviewed scenario at all yet, and the first three are still AI-DRAFTED, pending Haven's review, in CURRICULUM.md. Their explanation wording is extrapolated from the house style, not copied from reviewed examples.
+
+How bad auto-approved keys surface:
+- **Use:** an exercise is flagged when it gets open question reports (one is enough for an auto-approved scenario; two for a human-approved one) or when its success rate is at least 25 points below the rest of its concept over 10+ attempts and clear of chance (`admin_review_flags`, `src/lib/review/use-flags.ts`). Flagged scenarios show first, with the reason, at `/review?view=flagged`, and on `/admin`. The database functions behind this are in `supabase/migrations/20260927150000_question_reports.sql`, which is marked NOT YET APPLIED; until it is, nothing is flagged from use.
+- **Spot-checks:** `/review?view=auto` lists every auto-approved scenario. Each decision there is logged with `after_auto`, so the Approval Summary shows how many were checked and how many a person overturned. That overturn rate is the measure of whether auto-approval is working: if it is high for a rule, switch that rule back to `--manual-review` and fix the rule.
+
+To hold a batch for human review instead, pass `--manual-review` to `pick_candidates.py`, `build_scenario.py` or `build_trade_scenarios.py`.
 
 ### Curriculum versions
 
@@ -62,7 +85,7 @@ Detection runs within one session at a time, so a session must hold enough bars 
 - **FVG:** another gap of at least 0.1× the median bar range is visible, even one below the detection minimum.
 - **Equal highs/lows:** the pool is taken before the chart ends.
 
-The first batch (2026-09-24, awaiting review — no Review Log rows yet):
+The first batch (2026-09-24; built before auto-approval, so reviewed by hand):
 
 ```bash
 N=data/clean/nq_nyam_ctx.5m; R=data/clean/nq_rth_full.15m
@@ -76,7 +99,7 @@ python3 scripts/pick_candidates.py $R.clean.json $R.candidates.json --rules mss 
 
 That is 30 scenarios (`real-fvg-001`…`010`, `real-liq-001`…`010`, `real-mss-001`…`010`), each with `human_reviewed: false`. They are registered in `src/data/real-scenarios/index.ts`, so they're visible at `/review` but never served in practice until approved. **Reviewed 2026-09-30: 49 of the first 50 approved (across this batch and the Guided/Free Trade one below), 1 (`real-mss-007`) flagged ambiguous — see the Review Log and Ambiguous Log below.**
 
-The second batch (2026-09-30, awaiting review), deepening the existing pools and adding the first-ever real Order Block and TimeLiquidity content:
+The second batch (2026-09-30; auto-approved 2026-10-03 unless noted in the Review Log), deepening the existing pools and adding the first-ever real Order Block and TimeLiquidity content:
 
 ```bash
 N=data/clean/nq_nyam_ctx.5m; R=data/clean/nq_rth_full.15m
@@ -97,7 +120,7 @@ That's 26 more recognition scenarios (`real-fvg-011`…`015`, `real-liq-011`…`
 - One `pick_candidates.py` run (`mss --first 14 --seed 16`, not shown above) picked `mss-bearish-20230613T1415` — the exact same candidate already built as `real-mss-008`. Seeded random picks aren't checked against already-*built* scenarios, only against scenarios another *run in progress* would reuse, so an exact duplicate is possible by chance; this one was caught by hand (comparing every file's `provenance.candidate_id`) and rebuilt with `--seed 23` instead, which is what's shown above. Check for this before registering a future batch: `python3 -c "..."` comparing `candidate_id` across all `src/data/real-scenarios/real-<prefix>-*.json` files, same rule.
 - TimeLiquidity's default window for a `ny_am_high`/`ny_am_low` candidate is exactly the 18-bar NY AM session (`build_scenario.py`'s `--window session` excludes context bars for every rule except `mss`/`order_block`) — every one of these scenarios would otherwise be the same fixed length, which `tests/framing.test.ts` catches as a chart-size clustering regression. They were rebuilt with `--start <day>T07:00:00<offset> --end <day>T10:55:00<offset>` to include the same 07:00 context bars MSS/Order Block scenarios get, then hand-patched to `setup_span: [30, 47]` (the original 18 session bars, offset by the 30 context bars) — the context bars are legitimate extra distractor history (a pre-market spike that isn't part of the NY AM session, exactly CURRICULUM.md's own "a lower pre-market spike... is a different level" distractor), not part of what the answer needs, so framing can vary how much of it is shown without ever hiding the session itself.
 
-The third batch (2026-09-30, awaiting review) adds the first-ever real IFVG and Premium/Discount content, plus a first difficulty-3 batch built from a relaxed detection profile (docs/CURRICULUM.md → Detection thresholds by difficulty tier):
+The third batch (2026-09-30; auto-approved 2026-10-03) adds the first-ever real IFVG and Premium/Discount content, plus a first difficulty-3 batch built from a relaxed detection profile (docs/CURRICULUM.md → Detection thresholds by difficulty tier):
 
 ```bash
 N=data/clean/nq_nyam_ctx.5m; R=data/clean/nq_rth_full.15m
@@ -228,16 +251,17 @@ Every real scenario carries a `provenance` block (type `ScenarioProvenance` in `
 | `detection_rule` | build | The `detect.py` rule that flagged it, e.g. `fvg`, `mss`, `previous_day_high` |
 | `candidate_id`, `detection_params`, `detection_notes` | build | Exactly which candidate, with which settings, and what the detector saw |
 | `input_sha256` | ingest | Hash of the raw CSV — traces the scenario to the exact file |
-| `human_reviewed` | build → reviewer | `false` until promoted |
-| `reviewed_by`, `reviewed_at`, `review_notes` | reviewer | Who approved it, when (YYYY-MM-DD), and anything notable |
+| `human_reviewed` | build → reviewer | `true` only when a person approved it at `/review`. Never set for an auto approval. |
+| `auto_approved` | build / `auto_approve.py` | `true` when the pipeline approved it. Mutually exclusive with `human_reviewed`; dropped when a person approves it afterwards. |
+| `reviewed_by`, `reviewed_at`, `review_notes` | approver | Who approved it (`"auto"` for the pipeline, the reviewer's email otherwise), when (YYYY-MM-DD), and anything notable. A scenario re-checked by code after a definition change says so in `review_notes`. |
 
 **Enforcement in the app:**
-- `isPracticeReady()` in `src/data/exercises.ts` — sessions are built only from exercises with no provenance (constructed) or `human_reviewed: true`. An unreviewed scenario can be registered and still never appear in practice.
-- `parseRealScenario()` in `src/data/real-scenarios/index.ts` — every registered file is validated at load. A scenario marked reviewed without `reviewed_by`/`reviewed_at`, or still carrying the `[DRAFT` explanation, fails loudly instead of shipping.
+- `isPracticeReady()` in `src/data/exercises.ts` — sessions are built only from exercises with no provenance (constructed) or `human_reviewed: true` or `auto_approved: true`, and never one flagged ambiguous or built under an out-of-date curriculum definition. A scenario with neither approval can be registered and still never appear in practice.
+- `parseRealScenario()` in `src/data/real-scenarios/index.ts` — every registered file is validated at load. An approved scenario without `reviewed_by`/`reviewed_at`, one claiming both approvals, one recording `"auto"` as a human reviewer (or a person as the auto approver), or one still carrying the `[DRAFT` explanation, fails loudly instead of shipping.
 
 ## Review checklist
 
-Work through every item for each candidate. One "no" means reject (or fix and re-build — never hand-edit the answer key).
+Used for every human review, including a spot-check of an auto-approved scenario. Work through every item for each candidate. One "no" means reject (or fix and re-build — never hand-edit the answer key).
 
 **Data**
 - [ ] `data_source` names a real, licensed source — not the synthetic sample
@@ -270,14 +294,15 @@ Work through every item for each candidate. One "no" means reject (or fix and re
 `/review` is internal tooling. It needs a login (`src/proxy.ts`) and the `reviewer` or `admin` role on the signed-in user's profile. Roles are granted in the Supabase SQL editor (docs/SECURITY-AUDIT.md → Roles). Before 2026-09-27 access came from a `REVIEWER_EMAILS` env allowlist, which is no longer read.
 
 **Layout:**
+- Three views (tabs under the heading): **Needs a first look** (not yet approved by anyone, or stale), **Auto-approved** (live on the pipeline's approval; the spot-check queue) and **Flagged by use** (see [Auto-approval](#auto-approval); admins only). Flagged scenarios sort first.
 - Candidates are grouped **by detection rule**, so you review one concept at a time. Counts show reviewed vs. remaining overall and per rule.
 - Each candidate shows the chart with the detected answer key drawn on it, the rule that fired with its values and parameters, and the provenance.
 - The **curriculum definition** the rule implements sits beside the chart, with its version. Definitions it also depends on are collapsed underneath.
 
 **Three decisions:**
-- **Approve:** requires the rewritten text users will see (anything still containing `[DRAFT` is refused). It updates the JSON file.
+- **Approve:** requires the text users will see (anything still containing `[DRAFT` is refused). It updates the JSON file. On an auto-approved scenario the form is pre-filled with the live text; approving makes you the reviewer (`human_reviewed: true`, `auto_approved` dropped).
 - **Reject:** pick a structured reason (wrong answer key, ambiguous, poor quality chart, doesn't match the definition, other + note). It deletes the JSON file and removes it from `index.ts`.
-- **Flag ambiguous:** needs a note on what could be read two ways. It keeps the file, marked `review_status: "ambiguous"`, which is never practice-ready.
+- **Flag ambiguous:** needs a note on what could be read two ways. It keeps the file, marked `review_status: "ambiguous"`, which is never practice-ready (and takes a live auto-approved one out of practice).
 
 Every decision is appended to `docs/review-log.json`. The Rejection Summary, Review Log and Ambiguous Log below are regenerated from it.
 
@@ -295,6 +320,29 @@ Every decision is appended to `docs/review-log.json`. The Rejection Summary, Rev
 
 **Where it works:** scenarios stay in the repo, not the database, so saving only works on the local dev server. A deployed build shows the page read-only. Changes go live once committed and deployed.
 
+## Approval Summary
+
+Generated from the scenario files and `docs/review-log.json`. Excludes scenarios flagged ambiguous (never live).
+
+<!-- approval-summary:start -->
+*Auto-approved scenarios went live from detection rules (docs/SCENARIO-VALIDATION.md → Auto-approval says what that vouches for) with explanations in the house style, without a person reading them (`reviewed_by: "auto"`). "Auto spot-checked" counts retroactive decisions at /review; a spot-check that approves one replaces its auto approval with a human one, so the Auto-approved column shrinks as checks happen. Overturned = rejected or flagged ambiguous.*
+
+| Rule | Human-reviewed | Auto-approved | Auto-approved share | Auto spot-checked | Overturned by a person |
+|---|---|---|---|---|---|
+| dealing_range | 0 | 7 | 100% | 0 | 0 |
+| equal_highs | 10 | 0 | 0% | 0 | 0 |
+| equal_lows | 11 | 0 | 0% | 0 | 0 |
+| free_trade_setup | 7 | 4 | 36% | 0 | 0 |
+| fvg | 21 | 0 | 0% | 0 | 0 |
+| guided_setup | 7 | 5 | 42% | 0 | 0 |
+| ifvg | 0 | 7 | 100% | 0 | 0 |
+| mss | 6 | 3 | 33% | 0 | 0 |
+| ny_am_high | 0 | 3 | 100% | 0 | 0 |
+| ny_am_low | 0 | 3 | 100% | 0 | 0 |
+| order_block | 0 | 13 | 100% | 0 | 0 |
+| **All rules** | **62** | **45** | **42%** | | |
+<!-- approval-summary:end -->
+
 ## Rejection Summary
 
 Generated from `docs/review-log.json` on every review decision. A rule with a high rejection rate is a rule to fix in `scripts/detect.py` or in [CURRICULUM.md](CURRICULUM.md); keep rejecting its output and the same mistake just gets rejected fifty times. A rule is called out below once 30% or more of at least 5 reviews end in rejection or an ambiguous flag.
@@ -311,17 +359,12 @@ Rejection reasons (picked on `/review`, keys 1–5):
 
 | Rule | Awaiting | Reviewed | Approved | Rejected | Ambiguous | Rejection rate | Most common reason |
 |---|---|---|---|---|---|---|---|
-| dealing_range | 7 | 0 | 0 | 0 | 0 | — | — |
 | equal_highs | 0 | 10 | 10 | 0 | 0 | 0% | — |
 | equal_lows | 0 | 11 | 11 | 0 | 0 | 0% | — |
-| free_trade_setup | 5 | 10 | 10 | 0 | 0 | 0% | — |
+| free_trade_setup | 0 | 14 | 10 | 0 | 4 | 29% | — |
 | fvg | 0 | 21 | 21 | 0 | 0 | 0% | — |
-| guided_setup | 5 | 10 | 10 | 0 | 0 | 0% | — |
-| ifvg | 7 | 0 | 0 | 0 | 0 | — | — |
-| mss | 3 | 15 | 9 | 0 | 6 | 40% | — |
-| ny_am_high | 3 | 0 | 0 | 0 | 0 | — | — |
-| ny_am_low | 3 | 0 | 0 | 0 | 0 | — | — |
-| order_block | 13 | 0 | 0 | 0 | 0 | — | — |
+| guided_setup | 0 | 13 | 10 | 0 | 3 | 23% | — |
+| mss | 0 | 15 | 9 | 0 | 6 | 40% | — |
 
 | Reason | Rejections | Share | Rules |
 |---|---|---|---|
@@ -427,4 +470,11 @@ Candidates flagged **ambiguous**: two reasonable traders would label the chart d
 | 2026-09-30 | real-mss-009 | mss-bullish-20240328T1445 | mss | ambiguous | — | system (tightened MSS rule) | Auto-flagged 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, Market Structure Shift - Minimum structure; swing move >= 0.25x median bar range), the prior swing high only moved 0.33x median bar range beyond the previous swing high - too small to count as real structure (swing low moved 0.88x). Confirm whether the trend this MSS breaks was actually established. |
 | 2026-09-30 | real-mss-011 | mss-bearish-20230824T0930 | mss | ambiguous | — | system (tightened MSS rule) | Auto-flagged 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, Market Structure Shift - Minimum structure; swing move >= 0.25x median bar range), the prior swing low only moved 0.15x median bar range beyond the previous swing low - too small to count as real structure (swing high moved 0.34x). Confirm whether the trend this MSS breaks was actually established. |
 | 2026-09-30 | real-mss-012 | mss-bearish-20241004T0950 | mss | ambiguous | — | system (tightened MSS rule) | Auto-flagged 2026-09-30: under the tightened MSS minimum-structure rule (docs/CURRICULUM.md, Market Structure Shift - Minimum structure; swing move >= 0.25x median bar range), the prior swing high only moved 0.20x median bar range beyond the previous swing high - too small to count as real structure (swing low moved 5.59x). Confirm whether the trend this MSS breaks was actually established. |
+| 2026-10-03 | real-ft-003 | setup-valid-20240221 | free_trade_setup | ambiguous | — | system (re-verification) | Auto-flagged 2026-10-03: re-derived from source data under the current detection rules (curriculum definitions changed since it was built) and the answer key no longer reproduces - now classified no_shift, was valid. Kept on disk, never live. |
+| 2026-10-03 | real-ft-004 | setup-no_entry-20241029 | free_trade_setup | ambiguous | — | system (re-verification) | Auto-flagged 2026-10-03: re-derived from source data under the current detection rules (curriculum definitions changed since it was built) and the answer key no longer reproduces - now classified no_shift, was no_entry. Kept on disk, never live. |
+| 2026-10-03 | real-ft-006 | setup-valid-20240229 | free_trade_setup | ambiguous | — | system (re-verification) | Auto-flagged 2026-10-03: re-derived from source data under the current detection rules (curriculum definitions changed since it was built) and the answer key no longer reproduces - now classified no_shift, was valid. Kept on disk, never live. |
+| 2026-10-03 | real-ft-015 | setup-no_entry-20250421 | free_trade_setup | ambiguous | — | system (re-verification) | Auto-flagged 2026-10-03: re-derived from source data under the current detection rules (curriculum definitions changed since it was built) and the answer key no longer reproduces - now classified no_shift, was no_entry. Kept on disk, never live. |
+| 2026-10-03 | real-guided-002 | setup-no_entry-20250107 | guided_setup | ambiguous | — | system (re-verification) | Auto-flagged 2026-10-03: re-derived from source data under the current detection rules (curriculum definitions changed since it was built) and the answer key no longer reproduces - now classified no_shift, was no_entry. Kept on disk, never live. |
+| 2026-10-03 | real-guided-004 | setup-low_rr-20241212 | guided_setup | ambiguous | — | system (re-verification) | Auto-flagged 2026-10-03: re-derived from source data under the current detection rules (curriculum definitions changed since it was built) and the answer key no longer reproduces - now classified no_shift, was low_rr. Kept on disk, never live. |
+| 2026-10-03 | real-guided-009 | setup-valid-20230811 | guided_setup | ambiguous | — | system (re-verification) | Auto-flagged 2026-10-03: re-derived from source data under the current detection rules (curriculum definitions changed since it was built) and the answer key no longer reproduces - now classified no_sweep, was valid. Kept on disk, never live. |
 <!-- ambiguous-log:end -->

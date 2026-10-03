@@ -21,7 +21,7 @@
     5,
     17
   ],
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] last up-close candle before a 1-candle displacement of 46.75 points (1.6x median range) closing beyond the swing at 22103.2; mitigated at 2024-07-09T13:45:00-04:00.",
+  "explanation": "This is a bearish Order Block. It is the last up-close candle before price moved sharply down and broke structure, marking where orders were placed in the highlighted area. Price later returned to the block and reacted from it.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
     "symbol": "NQ",
@@ -59,9 +59,10 @@
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-30T19:32:21+00:00",
     "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "review_notes": null
+    "reviewed_by": "auto",
+    "reviewed_at": "2026-10-03",
+    "review_notes": null,
+    "auto_approved": true
   },
   "candles": [
     {

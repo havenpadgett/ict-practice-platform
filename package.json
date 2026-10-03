@@ -12,6 +12,7 @@
     "test:coverage": "vitest run --coverage",
     "test:py": "python3 -m unittest discover -s scripts/tests",
     "catalog": "vite-node --config vitest.config.ts scripts/build-catalog.ts",
+    "review-docs": "vite-node --config vitest.config.ts scripts/regen-review-docs.ts",
     "curriculum": "vite-node --config vitest.config.ts scripts/curriculum-version.ts --",
     "backup": "vite-node --config vitest.config.ts scripts/backup.ts",
     "restore": "vite-node --config vitest.config.ts scripts/restore.ts --",

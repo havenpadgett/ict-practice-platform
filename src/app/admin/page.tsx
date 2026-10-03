@@ -14,6 +14,7 @@ import { reviewProgress, type RuleProgress } from "@/lib/admin/review-progress";
 import { reasonLabel } from "@/lib/report-reasons";
 import { getAccess, ROLE_SETUP_HINT } from "@/lib/review/access";
 import { listScenarios, readReviewLog, staleFor } from "@/lib/review/store";
+import { FLAG_MIN_ATTEMPTS, FLAG_MIN_GAP, FLAG_MIN_REPORTS } from "@/lib/review/use-flags";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -85,13 +86,7 @@ type ReportsState =
   | { kind: "not_applied" }
   | { kind: "error"; message: string };
 
-/** Open reports that flag an exercise for re-review. */
-const FLAG_MIN_REPORTS = 2;
-/** Failure-rate flag: attempts needed, and how far below the rest of its
- * concept the success rate must be (it must also be 2 standard errors
- * below; see admin_review_flags in 20260927150000_question_reports.sql). */
-const FLAG_MIN_ATTEMPTS = 10;
-const FLAG_MIN_GAP = 0.25;
+
 
 async function loadReports(): Promise<ReportsState> {
   const supabase = await createClient();
@@ -309,7 +304,8 @@ function ReviewTable({ rows }: { rows: RuleProgress[] }) {
   if (rows.length === 0) return <p className="mt-3 text-sm text-muted">No real scenarios built yet.</p>;
   const total = (k: keyof Omit<RuleProgress, "rule">) => rows.reduce((n, r) => n + r[k], 0);
   const cols: [keyof Omit<RuleProgress, "rule">, string][] = [
-    ["live", "Live"],
+    ["live", "Live (human-reviewed)"],
+    ["auto", "Live (auto-approved)"],
     ["awaiting", "Awaiting review"],
     ["stale", "Stale"],
     ["ambiguous", "Ambiguous"],

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { PrimaryButton } from "@/components/primary-button";
 import { ProductPreview } from "@/components/product-preview";
+import { realApprovalCounts } from "@/lib/real-data-provenance";
 
 // Every claim here describes something that exists in the app today
 // (README.md "What's built"). No statistics, testimonials or performance
@@ -62,11 +63,10 @@ const LOOP = [
   { step: "4", name: "Understand", detail: "Each test is measured: coverage, size, candles, distance, with the rule behind it." },
 ];
 
-const HOW = [
+const HOW = (real: { human: number; auto: number }) => [
   {
     name: "Hand-built and real practice charts",
-    detail:
-      "Every chart is built around one written definition, with deliberate near-misses, and graded by the same explicit rule every time. Alongside the hand-built ones, a growing set of charts are real historical NQ price action, each one checked by hand against the same rules before it's used.",
+    detail: `Every hand-built chart is built around one written definition, with deliberate near-misses, and graded by the same explicit rule every time. Alongside them, a growing set of charts are real historical NQ price action: ${real.human} checked by hand against the same rules, and ${real.auto} approved automatically by the same detection rules that derive their answer keys, with no one reading them first, and spot-checked afterwards.`,
   },
   {
     name: "Adaptive practice",
@@ -81,6 +81,7 @@ const HOW = [
 ];
 
 export default function Home() {
+  const how = HOW(realApprovalCounts());
   return (
     <div className="flex flex-1 flex-col">
       <div className="mx-auto w-full max-w-6xl flex-1 px-4 pt-12 pb-20 sm:px-6 sm:pt-20">
@@ -163,7 +164,7 @@ export default function Home() {
           <p className="eyebrow">How it works</p>
           <h2 className="mt-3 text-2xl sm:text-3xl">Honest answers, and practice that adapts</h2>
           <dl className="mt-8 space-y-8 border-t border-line pt-8">
-            {HOW.map((h) => (
+            {how.map((h) => (
               <div key={h.name} className="grid gap-2 sm:grid-cols-[14rem_1fr] sm:gap-8">
                 <dt className="text-base font-semibold text-foreground">{h.name}</dt>
                 <dd className="text-sm sm:text-base">{h.detail}</dd>

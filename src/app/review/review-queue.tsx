@@ -20,6 +20,10 @@ export type QueueItem = {
   texts: { key: string; label: string; draft: string }[];
   /** e.g. "Built under MSS v1; current is v2" — set when re-review is due. */
   stale: string | null;
+  /** Live on the pipeline's approval, not yet read by a person. */
+  auto: boolean;
+  /** Why use has flagged it (failure rate or reports), if it has. */
+  flag: string | null;
 };
 
 export type QueueGroup = {
@@ -46,7 +50,15 @@ function Kbd({ children }: { children: string }) {
   return <kbd className="rounded border border-control px-1.5 py-0.5 font-mono text-[11px] text-foreground">{children}</kbd>;
 }
 
-export function ReviewQueue({ groups, disabled }: { groups: QueueGroup[]; disabled: boolean }) {
+export function ReviewQueue({
+  groups,
+  disabled,
+  remainingLabel = "remaining",
+}: {
+  groups: QueueGroup[];
+  disabled: boolean;
+  remainingLabel?: string;
+}) {
   const firstWithWork = Math.max(0, groups.findIndex((g) => g.items.length > 0));
   const [g, setG] = useState(firstWithWork);
   const [i, setI] = useState(0);
@@ -108,7 +120,7 @@ export function ReviewQueue({ groups, disabled }: { groups: QueueGroup[]; disabl
   return (
     <div className="mt-8">
       <p className="text-sm text-foreground tabular-nums" aria-live="polite">
-        <span className="font-semibold">{reviewed}</span> reviewed · <span className="font-semibold">{total}</span> remaining
+        <span className="font-semibold">{reviewed}</span> reviewed · <span className="font-semibold">{total}</span> {remainingLabel}
       </p>
 
       <nav aria-label="Rules" className="mt-4 flex flex-wrap gap-2">
@@ -153,6 +165,13 @@ export function ReviewQueue({ groups, disabled }: { groups: QueueGroup[]; disabl
                 </p>
               </div>
               {item.stale && <p className="text-error mt-1">Needs re-review: {item.stale}</p>}
+              {item.flag && <p className="text-error mt-1">Flagged by use: {item.flag}</p>}
+              {item.auto && (
+                <p className="mt-1 text-sm text-foreground">
+                  Auto-approved: live without a person reading it. Approve to record yourself as the reviewer; reject or flag
+                  ambiguous to take it out of practice.
+                </p>
+              )}
               <p className="mt-1 text-sm">
                 {s.concept} · {p.timeframe} · {p.session}
                 {p.context_start ? ` (structure from ${p.context_start})` : ""} · {p.trading_date} · difficulty {s.difficulty}
@@ -206,7 +225,11 @@ export function ReviewQueue({ groups, disabled }: { groups: QueueGroup[]; disabl
                 <form ref={approveRef} action={approve} key={`a-${s.exercise_id}`}>
                   <input type="hidden" name="id" value={s.exercise_id} />
                   <p className="eyebrow">Approve</p>
-                  <p className="mt-1 text-xs">Rewrite the draft text users will see: plain language, no candle numbers, state the answer.</p>
+                  <p className="mt-1 text-xs">
+                    {item.auto
+                      ? "The text users see now. Edit it if it's wrong or off-style (docs/CURRICULUM.md → Explanation style guide)."
+                      : "Rewrite the draft text users will see: plain language, no candle numbers, state the answer."}
+                  </p>
                   {item.texts.map((t) => (
                     <label key={t.key} className="mt-2 block text-xs">
                       {t.label}

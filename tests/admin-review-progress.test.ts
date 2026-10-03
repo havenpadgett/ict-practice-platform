@@ -8,21 +8,22 @@ const s = (id: string, rule: string, p: Record<string, unknown>) =>
 const log = (rule: string, decision: ReviewLogEntry["decision"]) => ({ rule, decision }) as ReviewLogEntry;
 
 describe("reviewProgress", () => {
-  it("splits scenarios into live, awaiting, stale and ambiguous, and counts rejections from the log", () => {
+  it("splits scenarios into live (human), auto-approved, awaiting, stale and ambiguous, and counts rejections from the log", () => {
     const scenarios = [
       s("real-fvg-001", "fvg", { human_reviewed: true }),
       s("real-fvg-002", "fvg", { human_reviewed: true, stale: true }),
       s("real-fvg-003", "fvg", {}),
       s("real-fvg-004", "fvg", { review_status: "ambiguous" }),
       s("real-mss-001", "mss", {}),
+      s("real-mss-002", "mss", { auto_approved: true }),
     ];
     const rows = reviewProgress(scenarios, [log("fvg", "approved"), log("fvg", "rejected"), log("order_block", "rejected")], (x) =>
       Boolean((x.provenance as unknown as { stale?: boolean }).stale),
     );
     expect(rows).toEqual([
-      { rule: "fvg", live: 1, awaiting: 1, stale: 1, ambiguous: 1, rejected: 1 },
-      { rule: "mss", live: 0, awaiting: 1, stale: 0, ambiguous: 0, rejected: 0 },
-      { rule: "order_block", live: 0, awaiting: 0, stale: 0, ambiguous: 0, rejected: 1 },
+      { rule: "fvg", live: 1, auto: 0, awaiting: 1, stale: 1, ambiguous: 1, rejected: 1 },
+      { rule: "mss", live: 0, auto: 1, awaiting: 1, stale: 0, ambiguous: 0, rejected: 0 },
+      { rule: "order_block", live: 0, auto: 0, awaiting: 0, stale: 0, ambiguous: 0, rejected: 1 },
     ]);
   });
 });

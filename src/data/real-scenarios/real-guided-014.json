@@ -3,7 +3,7 @@
   "instrument": "NQ (real data)",
   "timeframe": "5m",
   "difficulty": 2,
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A valid bearish setup at about 2.3:1, clearing the 2:1 minimum.",
+  "explanation": "Valid bearish trade. The liquidity sweep, bearish confirmation, entry, stop, and target align, with a favorable risk-to-reward.",
   "concept": "GuidedEntry",
   "answer_type": "guided",
   "answerLabel": "a valid trade setup",
@@ -29,12 +29,12 @@
     "min_rr": 2.0,
     "is_valid_setup": true,
     "step_explanations": {
-      "bias": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] Price swept the previous swing high at 19,685 (to 19,720.75), taking the buy-side liquidity there, then a candle body closed below 19,672.5: a bearish Market Structure Shift. Bias is bearish.",
-      "entry": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] The move that broke structure left a Fair Value Gap between 19,703 and 19,706.5. Entry sits at its middle, about 19,704.75.",
-      "stop": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] The idea is wrong if price goes back above the setup high at 19,720.75. The stop sits just beyond it, about 19,723.75.",
-      "target": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] The nearest untaken sell-side liquidity is the swing low at 19,660.75."
+      "bias": "Bearish bias. Price swept buy-side liquidity above the highs and then reversed lower, showing bearish intent.",
+      "entry": "Enter short at the marked entry after the bearish reversal confirms and price returns to the setup area.",
+      "stop": "Place the stop above the swept high. A move back above that high would invalidate the bearish setup.",
+      "target": "Target the sell-side liquidity resting below the previous lows at the marked level."
     },
-    "overall_explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A valid bearish setup at about 2.3:1, clearing the 2:1 minimum."
+    "overall_explanation": "Valid bearish trade. The liquidity sweep, bearish confirmation, entry, stop, and target align, with a favorable risk-to-reward."
   },
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
@@ -50,7 +50,7 @@
     "detection_rule": "guided_setup",
     "curriculum_versions": {
       "guided_entry": 2,
-      "mss": 1,
+      "mss": 2,
       "fvg": 1,
       "fvg_respect": 1,
       "order_block": 1,
@@ -79,9 +79,10 @@
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-30T18:52:15+00:00",
     "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "review_notes": null
+    "reviewed_by": "auto",
+    "reviewed_at": "2026-10-03",
+    "review_notes": "Re-derived from source data under current detection rules (mss v1->v2): setup re-classified valid with the same levels.",
+    "auto_approved": true
   },
   "candles": [
     {

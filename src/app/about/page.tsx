@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { PrimaryButton } from "@/components/primary-button";
+import { realApprovalCounts } from "@/lib/real-data-provenance";
 
 export const metadata: Metadata = {
   title: "How it works",
@@ -41,6 +42,7 @@ const BUILT = [
 ];
 
 export default function AboutPage() {
+  const real = realApprovalCounts();
   return (
     <div className="flex flex-1 flex-col">
       <div className="page">
@@ -107,9 +109,11 @@ export default function AboutPage() {
             Where it stands
           </h2>
           <p className="mt-2">
-            Every exercise in practice today is a hand-built chart. A pipeline that turns historical futures data into
-            exercises exists, with answer keys derived by code and a human review step, but no real scenario is in
-            practice yet. There&apos;s no data on learning outcomes yet, so none is claimed.
+            Practice mixes hand-built charts with real historical NQ futures charts. The real ones come from a pipeline whose
+            answer keys are derived by code from the written definitions, never typed in. {real.human} of them were also
+            checked by hand; the other {real.auto} were approved automatically from the same detection rules, with no one
+            reading them first, and are spot-checked after the fact. There&apos;s no data on learning outcomes yet, so none
+            is claimed.
           </p>
         </section>
 

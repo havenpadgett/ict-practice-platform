@@ -1,7 +1,8 @@
 // Registry of real-data scenarios. Each is a JSON file written by
 // scripts/build_scenario.py — candles, a derived answer key, and a
-// provenance block. Registering a file here does NOT put it in practice:
-// only scenarios whose provenance says human_reviewed: true are offered
+// provenance block. Registering a file here does NOT by itself put it in
+// practice: only scenarios whose provenance says human_reviewed: true (a
+// person approved it) or auto_approved: true (the pipeline did) are offered
 // (isPracticeReady in src/data/exercises.ts). Promotion steps are in
 // docs/SCENARIO-VALIDATION.md.
 //
@@ -275,6 +276,8 @@ export function reviewTexts(s: RealScenario): { key: string; label: string; valu
 }
 
 const DRAFT_MARKER = "[DRAFT";
+/** reviewed_by on a pipeline approval; never a real reviewer's email. */
+export const AUTO_REVIEWER = "auto";
 
 function fail(id: unknown, message: string): never {
   throw new Error(`Real scenario ${String(id)}: ${message} (src/data/real-scenarios/)`);
@@ -282,9 +285,9 @@ function fail(id: unknown, message: string): never {
 
 /** Runtime check on a registered JSON file. JSON imports are untyped, so
  * this is what stands between a hand-edited file and a broken exercise —
- * and it enforces the review contract: a scenario marked reviewed must name
- * its reviewer and date, and must no longer carry the generated draft
- * explanation. */
+ * and it enforces the review contract: an approved scenario (human or auto)
+ * must name its approver and date, can't be both, and must no longer carry
+ * the generated draft explanation. */
 export function parseRealScenario(raw: unknown): RealScenario {
   if (typeof raw !== "object" || raw === null) fail("?", "not an object");
   const s = raw as Record<string, unknown>;
@@ -341,13 +344,23 @@ export function parseRealScenario(raw: unknown): RealScenario {
   const range = p.date_range as Record<string, unknown> | undefined;
   if (typeof range?.start !== "string" || typeof range?.end !== "string") fail(id, "provenance.date_range is required");
   if (typeof p.human_reviewed !== "boolean") fail(id, "provenance.human_reviewed must be true or false");
+  if (p.auto_approved !== undefined && typeof p.auto_approved !== "boolean") fail(id, "provenance.auto_approved must be true or false");
+  if (p.human_reviewed && p.auto_approved) {
+    fail(id, "human_reviewed and auto_approved are mutually exclusive: an approval is either a person's or the pipeline's");
+  }
   if (p.human_reviewed) {
     if (typeof p.reviewed_by !== "string" || typeof p.reviewed_at !== "string") {
       fail(id, "a reviewed scenario must record reviewed_by and reviewed_at");
     }
-    if (reviewTexts(raw as RealScenario).some((t) => t.value.includes(DRAFT_MARKER))) {
-      fail(id, "reviewed, but an explanation is still the generated draft");
+    if (p.reviewed_by === AUTO_REVIEWER) fail(id, `reviewed_by "${AUTO_REVIEWER}" can't be recorded as a human review`);
+  }
+  if (p.auto_approved) {
+    if (p.reviewed_by !== AUTO_REVIEWER || typeof p.reviewed_at !== "string") {
+      fail(id, `an auto-approved scenario must record reviewed_by "${AUTO_REVIEWER}" and reviewed_at`);
     }
+  }
+  if ((p.human_reviewed || p.auto_approved) && reviewTexts(raw as RealScenario).some((t) => t.value.includes(DRAFT_MARKER))) {
+    fail(id, "approved, but an explanation is still the generated draft");
   }
   return raw as RealScenario;
 }

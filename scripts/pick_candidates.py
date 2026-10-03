@@ -62,6 +62,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--prefix", required=True, help="exercise id prefix, e.g. real-fvg")
     ap.add_argument("--first", type=int, default=1, help="number of the first exercise id (default 1)")
     ap.add_argument("--seed", type=int, default=1)
+    ap.add_argument("--manual-review", action="store_true", help="hold each scenario for a human at /review instead of auto-approving it")
     args = ap.parse_args(argv)
 
     data = load_clean(args.clean)
@@ -93,7 +94,8 @@ def main(argv: Optional[List[str]] = None) -> int:
             out = io.StringIO()
             with contextlib.redirect_stdout(out):
                 rc = build_scenario.main([args.clean, args.candidates, "--candidate", cand["id"],
-                                          "--exercise-id", exercise_id, "--difficulty", str(d)])
+                                          "--exercise-id", exercise_id, "--difficulty", str(d),
+                                          *(["--manual-review"] if args.manual_review else [])])
             if rc == 0:
                 print(f"{exercise_id}: {cand['id']} (difficulty {d})")
                 built += 1

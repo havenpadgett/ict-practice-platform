@@ -99,6 +99,19 @@ def curriculum_versions(rule: str) -> Dict[str, int]:
     return {i: data["definitions"][i]["version"] for i in ids}
 
 
+def auto_approval() -> Dict[str, Any]:
+    """Provenance fields for a scenario approved by the pipeline, not a person.
+    human_reviewed stays false so the record never claims a human looked at it
+    (docs/SCENARIO-VALIDATION.md, Auto-approval)."""
+    return {
+        "human_reviewed": False,
+        "auto_approved": True,
+        "reviewed_by": "auto",
+        "reviewed_at": datetime.now(ET).date().isoformat(),
+        "review_notes": None,
+    }
+
+
 def load_json(path: str | Path) -> Any:
     with open(path, encoding="utf-8") as f:
         return json.load(f)

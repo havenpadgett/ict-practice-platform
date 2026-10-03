@@ -3,9 +3,11 @@
 
 The answer key is derived from the candidate's detected levels - never typed
 by hand - and the scenario is written with a provenance block marked
-human_reviewed: false. Unreviewed scenarios are filtered out of practice by
-the app; a human promotes one by reviewing it against docs/CURRICULUM.md and
-docs/SCENARIO-VALIDATION.md.
+human_reviewed: false. By default it is then auto-approved (house-style
+explanation from scripts/explanations.py, reviewed_by "auto"), so it goes live
+once registered; /review is for spot-checking. Pass --manual-review to hold it
+for a human instead (draft explanation, hidden from practice until approved).
+Rules without an explanation template are always held.
 
 Rule -> exercise mapping:
   fvg                             FVG, zone answer
@@ -28,8 +30,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from common import curriculum_versions, load_clean, load_json, round_price, trading_date, write_json
+from common import auto_approval, curriculum_versions, load_clean, load_json, round_price, trading_date, write_json
 from detect import session_median_range
+from explanations import apply_explanations, can_explain
 
 DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parent.parent / "src" / "data" / "real-scenarios"
 
@@ -240,6 +243,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--end", help="window end timestamp (overrides --after)")
     ap.add_argument("--tolerance", type=float, help="level tolerance in points (default: half the window's median bar range, min 2)")
     ap.add_argument("--allow-ambiguous", action="store_true", help="write even if the window contains other candidates of the same rule")
+    ap.add_argument("--manual-review", action="store_true",
+                    help="keep the draft explanation and human_reviewed: false so the scenario waits at /review "
+                         "(default: house-style explanation, auto-approved)")
     ap.add_argument("-o", "--output", help="output JSON (default: src/data/real-scenarios/<exercise-id>.json)")
     args = ap.parse_args(argv)
 
@@ -376,6 +382,11 @@ def main(argv: Optional[List[str]] = None) -> int:
         ],
     }
 
+    auto = not args.manual_review and can_explain(cand["rule"])
+    if auto:
+        apply_explanations(exercise, {"touches": len(cand["involved_indices"])})
+        exercise["provenance"].update(auto_approval())
+
     out_path = Path(args.output) if args.output else DEFAULT_OUTPUT_DIR / f"{args.exercise_id}.json"
     if out_path.exists():
         print(f"ERROR: {out_path} already exists - pick a new --exercise-id or delete it first.")
@@ -390,9 +401,12 @@ def main(argv: Optional[List[str]] = None) -> int:
               "(e.g. ingest 1h bars for previous-day/weekly levels) or a tighter --start/--end.")
     if others:
         print(f"WARNING: {len(others)} other '{cand['rule']}' candidate(s) in the window - resolve during review.")
-    print(f"Wrote {out_path} with provenance.human_reviewed = false (hidden from practice).")
-    print("Next: review it against docs/SCENARIO-VALIDATION.md, rewrite the explanation, then register it in "
-          "src/data/real-scenarios/index.ts.")
+    if auto:
+        print(f"Wrote {out_path}: auto-approved (reviewed_by \"auto\", human_reviewed false). Spot-check it at /review.")
+    else:
+        print(f"Wrote {out_path} with provenance.human_reviewed = false (hidden from practice).")
+        print("Next: review it against docs/SCENARIO-VALIDATION.md, rewrite the explanation, then register it in "
+              "src/data/real-scenarios/index.ts.")
     return 0
 
 

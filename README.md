@@ -43,7 +43,7 @@ Liquidity and time-based liquidity are one concept family with separate practice
 
 Rules and reasoning: [docs/PRD-MVP-V1.md](docs/PRD-MVP-V1.md), Section 6.
 
-### Real market data, with human validation
+### Real market data: detection rules, human spot-checks
 
 A Python pipeline in [`scripts/`](scripts/) turns historical NQ 1-minute bars into exercises:
 
@@ -54,12 +54,9 @@ A Python pipeline in [`scripts/`](scripts/) turns historical NQ 1-minute bars in
 | `build_scenario.py`, `pick_candidates.py` | Build recognition exercises. |
 | `build_trade_scenarios.py` | Builds Guided Entry and Free Trade scenarios from detected setups, no-trade sessions included. |
 
-Answer keys come from the rules, never typed by hand. **No real scenario is served until a human approves it** at `/review` (login plus an allow-listed email). Each scenario carries provenance: source, trading date, session, timeframe, detection rule and reviewer.
+Answer keys come from the rules, never typed by hand. A scenario goes live one of two ways, and its provenance records which: **human-reviewed** (a person approved it at `/review`) or **auto-approved** (`reviewed_by: "auto"`: the pipeline wrote its explanation in a fixed house style and approved it with no one reading it). `/review` (login plus the reviewer role) is for spot-checking the auto-approved ones and anything use has flagged. The split is generated into [docs/SCENARIO-VALIDATION.md](docs/SCENARIO-VALIDATION.md#approval-summary). Each scenario carries provenance: source, trading date, session, timeframe, detection rule and reviewer.
 
-**Status:** 50 real scenarios are built and all 50 are awaiting review, so none are in practice yet:
-- 10 FVG, 10 liquidity and 10 MSS recognition exercises;
-- 10 Guided Entry scenarios;
-- 10 Free Trade sessions.
+**Status:** 120 real scenarios are built across FVG, liquidity, MSS, Order Block, IFVG, Premium/Discount, NY AM high/low, Guided Entry and Free Trade. 107 are live (62 human-reviewed, 45 auto-approved) and 13 are flagged ambiguous and never served. Current counts per rule are in [docs/SCENARIO-VALIDATION.md](docs/SCENARIO-VALIDATION.md#approval-summary).
 
 The data's license is unverified (personal use only; see [docs/SCENARIO-VALIDATION.md](docs/SCENARIO-VALIDATION.md)).
 

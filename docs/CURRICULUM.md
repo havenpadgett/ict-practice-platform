@@ -375,3 +375,50 @@ All use the existing `level` answer type (`src/data/time-liquidity-exercises.ts`
 | `tliq-003` | NY AM session high | 15m | 1 | 21,522 | Reading the shaded session |
 | `tliq-004` | NY AM session low | 15m | 2 | 21,338 | Only 9:30–11:00 counts — a lower pre-market spike and a later sell-off are distractors |
 | `tliq-005` | Previous week high | 4h | 3 | 21,632 | The weekend separator (and a DST switch); Friday's near-miss and the current week's high are distractors |
+
+## Explanation style guide
+
+**Provenance:** AI-DRAFTED (2026-10-03). Derived from the 68 human-reviewed real scenarios as they stood that day (FVG, equal highs/lows, MSS, Guided Entry, Free Trade) by analysing their structure, length, tone and terminology. It is a description of what those explanations do, not a definition: it isn't versioned, and changing it doesn't re-flag any scenario. Rules with no human-reviewed scenario yet (Order Block, IFVG, Premium/Discount, NY AM high/low) follow the same skeleton, extrapolated, and should be tightened by the first human review of each. The code that applies it is `scripts/explanations.py`; keep the two in step.
+
+**What the human-reviewed explanations have in common**
+- **One idea, stated first.** Recognition scenarios open with the answer as a plain verdict: `This is a bearish Fair Value Gap.` / `This is Buy-Side Liquidity.` / `This is a bullish Market Structure Shift.` Trade scenarios open `There is no valid trade setup here.` / `This is a valid bullish trade setup.` / `Valid bearish trade.` / `No trade.`
+- **Then why, in market behaviour, not numbers.** One or two short sentences naming what price did (`Price moved up quickly and left an imbalance`, `Two lows formed around the same level, creating a pool of liquidity resting below them`, `Price swept sell-side liquidity and then shifted bullish`). No prices, candle indices, point counts or multiples of the median range. The only numbers allowed are an R:R (`about 1.5:1`, `the required 2:1 minimum`) and the NY AM window (`9:30 and 11:00 ET`).
+- **Point at the chart, don't describe coordinates.** `in the highlighted area`, `at the highlighted level`, `in the highlighted entry zone`, `at the marked entry`.
+- **No-trade verdicts end on the decision and what to wait for.** `The correct decision is to stay out and wait for a cleaner setup.` Name the one missing condition (sweep, structure shift, entry zone, reward) and no others.
+- **Present or simple past tense, active voice, second person never.** `Price swept…`, `Place the stop below the swept low.` Imperatives only in Guided Entry's Entry/Stop/Target steps.
+
+**Length**
+
+| Kind | Sentences | Words (reviewed range) |
+|---|---|---|
+| FVG, Liquidity, MSS and the other recognition scenarios | 2 | 18–30 |
+| Free Trade explanation | 3–4 | 38–64 |
+| Guided Entry: Bias step | 2 | 16–27 |
+| Guided Entry: Entry / Stop / Target step | 1–2 | 8–19 |
+| Guided Entry: Overall verdict | 2–3 | 15–28 |
+
+**Terminology (use exactly these)**
+
+| Say | Not |
+|---|---|
+| Fair Value Gap, Inverse Fair Value Gap, Order Block, Market Structure Shift | FVG/IFVG/OB/MSS spelled only as initials in learner text |
+| Buy-Side Liquidity / Sell-Side Liquidity (title case when naming the answer; `buy-side liquidity` lower case mid-sentence) | stops, "liquidity pool" alone, "BSL/SSL" |
+| imbalance (FVG), pool of liquidity (equal highs/lows), swept (liquidity taken) | "inefficiency", "stop hunt", "grabbed" |
+| bullish / bearish; long / short only for the trade itself | up/down as a label |
+| the swept high / swept low, the highlighted area / level / entry zone | "the wick", prices |
+| risk-to-reward, stay out, wait for | "RR ratio", "skip", "pass" |
+
+**Per rule**
+
+| Rule | Template |
+|---|---|
+| FVG | `This is a {bullish\|bearish} Fair Value Gap. Price {moved up\|moved down} {quickly\|sharply\|aggressively} and left an imbalance in the highlighted area.` |
+| IFVG | `This is an Inverse Fair Value Gap. A {dir} Fair Value Gap formed here, but a later candle closed {above\|below} it instead of respecting it. The gap has flipped and now acts as {support\|resistance} in the highlighted area.` |
+| Order Block | `This is a {dir} Order Block. It is the last {down\|up}-close candle before price moved sharply {up\|down} and broke structure, marking where orders were placed in the highlighted area.` + `Price later returned to the block and reacted from it.` only when mitigated |
+| Equal highs / lows | `This is {Buy\|Sell}-Side Liquidity. {Two\|Three\|Four\|Multiple} {highs\|lows} formed around the same level, creating a pool of liquidity resting {above\|below} them at the highlighted level.` |
+| MSS | `This is a {dir} Market Structure Shift. Price was trending {upward\|downward}, then broke and closed {below the previous higher low\|above the previous lower high}, confirming a shift to {dir} structure at the highlighted level.` |
+| Premium / Discount | `Price is in {premium\|discount}. The last candle closed {above\|below} the midpoint of the dealing range, in the {upper\|lower} half, where {selling\|buying} is favored.` (equilibrium: `…closed close to the midpoint… neither premium nor discount has an edge from location alone.`) |
+| NY AM high / low | `This is the New York AM session {high\|low}. It is the {highest\|lowest} price reached between 9:30 and 11:00 ET, so stops tend to rest {above\|below} it as {buy\|sell}-side liquidity.` |
+| Guided / Free Trade | Per kind (valid, no sweep, no shift, no entry, low R:R) as in the reviewed set; see `_guided` and `_free` in `scripts/explanations.py`. |
+
+The recognition wording varies slightly between reviewed scenarios (`quickly`/`sharply`/`aggressively`, `Two`/`Several`/`Multiple`); the generator keeps that variety small and deterministic per scenario id.

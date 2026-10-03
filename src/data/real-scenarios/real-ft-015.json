@@ -63,7 +63,8 @@
     "human_reviewed": false,
     "reviewed_by": null,
     "reviewed_at": null,
-    "review_notes": null
+    "review_notes": "Auto-flagged 2026-10-03: re-derived from source data under the current detection rules (curriculum definitions changed since it was built) and the answer key no longer reproduces - now classified no_shift, was no_entry. Kept on disk, never live.",
+    "review_status": "ambiguous"
   },
   "candles": [
     {

@@ -3,7 +3,7 @@
   "instrument": "NQ (real data)",
   "timeframe": "5m",
   "difficulty": 3,
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] Bias is unclear, so there is no trade.",
+  "explanation": "There is no valid trade setup here. Price shifted bearish, but the move never swept the previous swing high, so the required buy-side liquidity sweep did not occur. Without that sweep, the setup is incomplete and the correct decision is to stay out.",
   "concept": "FreeTrade",
   "answer_type": "free",
   "title": "Real NY AM session 13",
@@ -32,7 +32,7 @@
     "curriculum_versions": {
       "free_trade": 2,
       "guided_entry": 2,
-      "mss": 1,
+      "mss": 2,
       "fvg": 1,
       "fvg_respect": 1,
       "order_block": 1,
@@ -61,9 +61,10 @@
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-30T18:52:23+00:00",
     "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "review_notes": null
+    "reviewed_by": "auto",
+    "reviewed_at": "2026-10-03",
+    "review_notes": "Re-derived from source data under current detection rules (mss v1->v2): setup re-classified no_sweep.",
+    "auto_approved": true
   },
   "candles": [
     {

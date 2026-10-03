@@ -34,7 +34,7 @@
     0,
     25
   ],
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] bearish leg 20246.2-20401.2; last close 20252.5 at 4% of the range -> discount.",
+  "explanation": "Price is in discount. The last candle closed below the midpoint of the dealing range, in the lower half, where buying is favored.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
     "symbol": "NQ",
@@ -75,9 +75,10 @@
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-30T19:37:25+00:00",
     "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "review_notes": null
+    "reviewed_by": "auto",
+    "reviewed_at": "2026-10-03",
+    "review_notes": null,
+    "auto_approved": true
   },
   "candles": [
     {

@@ -34,7 +34,7 @@
     0,
     17
   ],
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] bullish leg 19572.2-19733; last close 19667.8 at 59% of the range -> premium.",
+  "explanation": "Price is in premium. The last candle closed above the midpoint of the dealing range, in the upper half, where selling is favored.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
     "symbol": "NQ",
@@ -75,9 +75,10 @@
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-30T19:37:23+00:00",
     "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "review_notes": null
+    "reviewed_by": "auto",
+    "reviewed_at": "2026-10-03",
+    "review_notes": null,
+    "auto_approved": true
   },
   "candles": [
     {

@@ -21,7 +21,7 @@
     0,
     7
   ],
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bullish Fair Value Gap forms at 21404-21421.5, but a later candle's body closes below the lower boundary - disrespected, not just a wick through. The old zone flips: it now acts as resistance.",
+  "explanation": "This is an Inverse Fair Value Gap. A bullish Fair Value Gap formed here, but a later candle closed below it instead of respecting it. The gap has flipped and now acts as resistance in the highlighted area.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
     "symbol": "NQ",
@@ -64,9 +64,10 @@
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-30T19:37:18+00:00",
     "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "review_notes": null
+    "reviewed_by": "auto",
+    "reviewed_at": "2026-10-03",
+    "review_notes": null,
+    "auto_approved": true
   },
   "candles": [
     {

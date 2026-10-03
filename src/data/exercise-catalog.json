@@ -613,7 +613,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-04-15",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-002",
@@ -624,7 +624,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-06-16",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-003",
@@ -657,7 +657,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-09-25",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-006",
@@ -679,7 +679,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-01-12",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-008",
@@ -690,7 +690,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-07-20",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-009",
@@ -701,7 +701,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-06-05",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-010",
@@ -712,7 +712,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-11-17",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-011",
@@ -723,7 +723,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-08-15",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-012",
@@ -734,7 +734,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-01-20",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-013",
@@ -745,7 +745,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-09-10",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-014",
@@ -756,7 +756,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-03-07",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ft-015",
@@ -1009,7 +1009,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-05-21",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-002",
@@ -1031,7 +1031,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-11-22",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-004",
@@ -1053,7 +1053,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-05-29",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-006",
@@ -1064,7 +1064,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-08-05",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-007",
@@ -1075,7 +1075,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-02-03",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-008",
@@ -1086,7 +1086,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-12-20",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-009",
@@ -1108,7 +1108,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-04-19",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-011",
@@ -1119,7 +1119,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-04-28",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-012",
@@ -1130,7 +1130,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-10-20",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-013",
@@ -1141,7 +1141,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-03-12",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-014",
@@ -1152,7 +1152,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-02-07",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-guided-015",
@@ -1163,7 +1163,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-03-04",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ifvg-001",
@@ -1174,7 +1174,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-04-26",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ifvg-002",
@@ -1185,7 +1185,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-03-22",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ifvg-003",
@@ -1196,7 +1196,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-12-23",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ifvg-004",
@@ -1207,7 +1207,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-07-16",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ifvg-005",
@@ -1218,7 +1218,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2023-11-17",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ifvg-006",
@@ -1229,7 +1229,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2024-09-25",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ifvg-007",
@@ -1240,7 +1240,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2025-05-14",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-liq-001",
@@ -1482,7 +1482,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-05-25",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-mss-002",
@@ -1493,7 +1493,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-09-11",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-mss-003",
@@ -1504,7 +1504,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-03-15",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-mss-004",
@@ -1526,7 +1526,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-12-10",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-mss-006",
@@ -1537,7 +1537,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-03-27",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-mss-007",
@@ -1581,7 +1581,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2025-08-27",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-mss-011",
@@ -1614,7 +1614,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-03-06",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-mss-014",
@@ -1625,7 +1625,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2024-05-23",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-mss-015",
@@ -1636,7 +1636,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2025-01-27",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ob-001",
@@ -1647,7 +1647,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-04-24",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ob-002",
@@ -1658,7 +1658,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-12-08",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ob-003",
@@ -1669,7 +1669,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-04-10",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ob-004",
@@ -1680,7 +1680,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-01-08",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ob-005",
@@ -1691,7 +1691,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-07-08",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ob-006",
@@ -1702,7 +1702,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2023-10-25",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ob-007",
@@ -1713,7 +1713,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2024-02-16",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ob-008",
@@ -1724,7 +1724,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2025-05-06",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ob-009",
@@ -1735,7 +1735,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-09-07",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ob-010",
@@ -1746,7 +1746,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-06-13",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ob-011",
@@ -1757,7 +1757,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2023-07-25",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ob-012",
@@ -1768,7 +1768,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2024-07-09",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-ob-013",
@@ -1779,7 +1779,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2025-10-10",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-pd-001",
@@ -1790,7 +1790,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-02-17",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-pd-002",
@@ -1801,7 +1801,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-02-13",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-pd-003",
@@ -1812,7 +1812,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-07-08",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-pd-004",
@@ -1823,7 +1823,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-11-24",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-pd-005",
@@ -1834,7 +1834,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2023-10-30",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-pd-006",
@@ -1845,7 +1845,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2024-03-21",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-pd-007",
@@ -1856,7 +1856,7 @@
   "timeframe": "15m",
   "real": true,
   "trading_date": "2025-09-17",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-tliq-001",
@@ -1867,7 +1867,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-09-15",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-tliq-002",
@@ -1878,7 +1878,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-05-07",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-tliq-003",
@@ -1889,7 +1889,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-06-13",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-tliq-004",
@@ -1900,7 +1900,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2023-08-07",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-tliq-005",
@@ -1911,7 +1911,7 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2024-11-18",
-  "practice_ready": false
+  "practice_ready": true
  },
  {
   "exercise_id": "real-tliq-006",
@@ -1922,6 +1922,6 @@
   "timeframe": "5m",
   "real": true,
   "trading_date": "2025-06-25",
-  "practice_ready": false
+  "practice_ready": true
  }
 ]

@@ -8,7 +8,7 @@
   "answer_type": "free",
   "title": "Real NY AM session 9",
   "answerLabel": "Real NY AM session 9",
-  "prompt": "Play the chart forward. Trade it if a valid setup forms — or don't.",
+  "prompt": "Play the chart forward. Trade it if a valid setup forms \u2014 or don't.",
   "answer": {
     "intended_bias": "none",
     "is_valid_setup": false,
@@ -32,7 +32,7 @@
     "curriculum_versions": {
       "free_trade": 2,
       "guided_entry": 2,
-      "mss": 1,
+      "mss": 2,
       "fvg": 1,
       "fvg_respect": 1,
       "order_block": 1,
@@ -63,7 +63,7 @@
     "human_reviewed": true,
     "reviewed_by": "lpshaven@gmail.com",
     "reviewed_at": "2026-09-30",
-    "review_notes": null
+    "review_notes": "Re-derived from source data under current detection rules (mss v1->v2): setup re-classified no_shift. Checked by code, not re-read by a person."
   },
   "candles": [
     {

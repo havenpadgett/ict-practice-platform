@@ -768,5 +768,75 @@
     "reason": null,
     "note": null,
     "reviewer": "lpshaven@gmail.com"
+  },
+  {
+    "date": "2026-10-03",
+    "exercise_id": "real-ft-003",
+    "candidate_id": "setup-valid-20240221",
+    "rule": "free_trade_setup",
+    "decision": "ambiguous",
+    "reason": null,
+    "reviewer": "system (re-verification)",
+    "note": "Auto-flagged 2026-10-03: re-derived from source data under the current detection rules (curriculum definitions changed since it was built) and the answer key no longer reproduces - now classified no_shift, was valid. Kept on disk, never live."
+  },
+  {
+    "date": "2026-10-03",
+    "exercise_id": "real-ft-004",
+    "candidate_id": "setup-no_entry-20241029",
+    "rule": "free_trade_setup",
+    "decision": "ambiguous",
+    "reason": null,
+    "reviewer": "system (re-verification)",
+    "note": "Auto-flagged 2026-10-03: re-derived from source data under the current detection rules (curriculum definitions changed since it was built) and the answer key no longer reproduces - now classified no_shift, was no_entry. Kept on disk, never live."
+  },
+  {
+    "date": "2026-10-03",
+    "exercise_id": "real-ft-006",
+    "candidate_id": "setup-valid-20240229",
+    "rule": "free_trade_setup",
+    "decision": "ambiguous",
+    "reason": null,
+    "reviewer": "system (re-verification)",
+    "note": "Auto-flagged 2026-10-03: re-derived from source data under the current detection rules (curriculum definitions changed since it was built) and the answer key no longer reproduces - now classified no_shift, was valid. Kept on disk, never live."
+  },
+  {
+    "date": "2026-10-03",
+    "exercise_id": "real-ft-015",
+    "candidate_id": "setup-no_entry-20250421",
+    "rule": "free_trade_setup",
+    "decision": "ambiguous",
+    "reason": null,
+    "reviewer": "system (re-verification)",
+    "note": "Auto-flagged 2026-10-03: re-derived from source data under the current detection rules (curriculum definitions changed since it was built) and the answer key no longer reproduces - now classified no_shift, was no_entry. Kept on disk, never live."
+  },
+  {
+    "date": "2026-10-03",
+    "exercise_id": "real-guided-002",
+    "candidate_id": "setup-no_entry-20250107",
+    "rule": "guided_setup",
+    "decision": "ambiguous",
+    "reason": null,
+    "reviewer": "system (re-verification)",
+    "note": "Auto-flagged 2026-10-03: re-derived from source data under the current detection rules (curriculum definitions changed since it was built) and the answer key no longer reproduces - now classified no_shift, was no_entry. Kept on disk, never live."
+  },
+  {
+    "date": "2026-10-03",
+    "exercise_id": "real-guided-004",
+    "candidate_id": "setup-low_rr-20241212",
+    "rule": "guided_setup",
+    "decision": "ambiguous",
+    "reason": null,
+    "reviewer": "system (re-verification)",
+    "note": "Auto-flagged 2026-10-03: re-derived from source data under the current detection rules (curriculum definitions changed since it was built) and the answer key no longer reproduces - now classified no_shift, was low_rr. Kept on disk, never live."
+  },
+  {
+    "date": "2026-10-03",
+    "exercise_id": "real-guided-009",
+    "candidate_id": "setup-valid-20230811",
+    "rule": "guided_setup",
+    "decision": "ambiguous",
+    "reason": null,
+    "reviewer": "system (re-verification)",
+    "note": "Auto-flagged 2026-10-03: re-derived from source data under the current detection rules (curriculum definitions changed since it was built) and the answer key no longer reproduces - now classified no_sweep, was valid. Kept on disk, never live."
   }
 ]

@@ -18,7 +18,7 @@
     2,
     13
   ],
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] A bearish Market Structure Shift: a candle body closed beyond the swing at 20580, against the prevailing trend.",
+  "explanation": "This is a bearish Market Structure Shift. Price was trending upward, then broke and closed below the previous higher low, confirming a shift to bearish structure at the highlighted level.",
   "provenance": {
     "data_source": "Kaggle, \"NQ Futures 1min Bar 2022-2025\" (redistributed CME data); license unverified - personal use only",
     "symbol": "NQ",
@@ -32,7 +32,7 @@
     "timeframe": "15m",
     "detection_rule": "mss",
     "curriculum_versions": {
-      "mss": 1,
+      "mss": 2,
       "detection_parameters": 1
     },
     "candidate_id": "mss-bearish-20240523T1245",
@@ -57,9 +57,10 @@
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-30T18:50:36+00:00",
     "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "review_notes": null
+    "reviewed_by": "auto",
+    "reviewed_at": "2026-10-03",
+    "review_notes": "Re-derived from source data under current detection rules (mss v1->v2): candidate re-detected with the same levels.",
+    "auto_approved": true
   },
   "candles": [
     {

@@ -3,7 +3,7 @@
   "instrument": "NQ (real data)",
   "timeframe": "5m",
   "difficulty": 3,
-  "explanation": "[DRAFT - generated from the detection rule; rewrite in plain language during review.] Every step lines up, but the nearest sell-side liquidity is too close: about 1.3:1, below 2:1. No trade.",
+  "explanation": "This is not a valid trade to take. The bearish setup and entry area are reasonable, but the available risk-to-reward is only about 1.3:1, which is below the required 2:1 minimum. The correct decision is to stay out and wait for a setup with better reward relative to the risk.",
   "concept": "FreeTrade",
   "answer_type": "free",
   "title": "Real NY AM session 11",
@@ -45,7 +45,7 @@
     "curriculum_versions": {
       "free_trade": 2,
       "guided_entry": 2,
-      "mss": 1,
+      "mss": 2,
       "fvg": 1,
       "fvg_respect": 1,
       "order_block": 1,
@@ -74,9 +74,10 @@
     "input_sha256": "1577e60a7feab411e49da7a56c7052a64738cd1757cfd60aa11fd783ff43b60b",
     "built_at": "2026-09-30T18:52:23+00:00",
     "human_reviewed": false,
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "review_notes": null
+    "reviewed_by": "auto",
+    "reviewed_at": "2026-10-03",
+    "review_notes": "Re-derived from source data under current detection rules (mss v1->v2): setup re-classified low_rr with the same levels.",
+    "auto_approved": true
   },
   "candles": [
     {
