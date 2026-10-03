@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { createContext, useContext, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { getGlossaryEntry, type GlossaryEntry } from "@/data/glossary";
@@ -39,7 +40,7 @@ const GAP = 8;
 const MARGIN = 8;
 
 function Tooltip({ entry, anchor, id, onEnter, onLeave }: { entry: GlossaryEntry; anchor: HTMLElement; id: string; onEnter: () => void; onLeave: () => void }) {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLSpanElement>(null);
   const [pos, setPos] = useState<{ top: number; left: number; below: boolean } | null>(null);
 
   useEffect(() => {
@@ -53,25 +54,28 @@ function Tooltip({ entry, anchor, id, onEnter, onLeave }: { entry: GlossaryEntry
     setPos({ top: below ? a.bottom + GAP : a.top - t.height - GAP, left, below });
   }, [anchor]);
 
-  return (
-    <div
+  // Rendered in the body, not inside the sentence: a tooltip is a block, and a
+  // sentence is a paragraph that can't contain one.
+  return createPortal(
+    <span
       ref={ref}
       id={id}
       role="tooltip"
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
       style={pos ? { top: pos.top, left: pos.left } : { top: 0, left: 0, visibility: "hidden" }}
-      className="fixed z-50 w-72 max-w-[calc(100vw-1rem)] rounded-lg border border-control bg-surface p-3 text-left text-sm font-normal normal-case tracking-normal text-muted shadow-lg"
+      className="fixed z-50 block w-72 max-w-[calc(100vw-1rem)] rounded-lg border border-control bg-surface p-3 text-left text-sm font-normal normal-case tracking-normal text-muted shadow-lg"
     >
-      <p className="font-semibold text-foreground">
+      <span className="block font-semibold text-foreground">
         {entry.name}
         {entry.abbr && <span className="ml-1.5 font-normal text-muted">({entry.abbr})</span>}
-      </p>
-      <p className="mt-1 leading-snug">{entry.short}</p>
+      </span>
+      <span className="mt-1 block leading-snug">{entry.short}</span>
       <Link href={`/glossary#${entry.id}`} className="mt-2 inline-block text-xs text-foreground underline underline-offset-4">
         In the glossary
       </Link>
-    </div>
+    </span>,
+    document.body,
   );
 }
 
@@ -104,8 +108,8 @@ export function Term({
     const close = () => setOpen(false);
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
     const onDown = (e: PointerEvent) => {
-      const target = e.target as HTMLElement;
-      if (anchor && !anchor.contains(target) && !target.closest("[role=tooltip]")) close();
+      const target = e.target instanceof Element ? e.target : null;
+      if (anchor && target && !anchor.contains(target) && !target.closest("[role=tooltip]")) close();
     };
     window.addEventListener("keydown", onKey);
     window.addEventListener("pointerdown", onDown);

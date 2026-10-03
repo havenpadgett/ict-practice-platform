@@ -84,6 +84,19 @@ The data's license is unverified (personal use only; see [docs/SCENARIO-VALIDATI
 
 The three migrations above are written and tested but **not yet applied** to the hosted database.
 
+### Sharing, learning aids and identity (2026-10-03)
+
+- **Shareable challenge links** (`/c/<exercise id>`): any Recognition or Guided Entry chart as a public page. Mark it, submit, see your mark against the correct one and why, then practice more or sign up to keep the result. The answer key never reaches the page before an answer. Free Trade can't be shared (docs/SHARING.md).
+- **Landing page:** a real playable exercise beside the hero, no account.
+- **Daily challenge** (`/daily`): one chart per UTC day, the same for everyone, with its own link, a daily streak kept apart from the practice streak, and no leaderboard.
+- **Share cards** (`POST /api/card`): a 1200×630 PNG of your marked chart against the correct one, the result and the brand. Built from ids and marks only; never money, P&L or population statistics.
+- **Confidence ratings:** optional "how sure are you?" before submitting, compared with accuracy in Analytics ("certain and wrong" is the signal).
+- **Spaced repetition:** a cleared mistake comes back after 1, 3 and 7 days; "mastered" means it held across separate days (docs/SPACED-REPETITION.md).
+- **Glossary** (`/glossary`) and hover definitions for every curriculum term; full name on first use per page, acronym after.
+- **Beginner / experienced mode:** asked after sign-up, changeable in Settings. More structure, or less on screen and faster to the next chart.
+- **Brand:** a mark drawn from the Fair Value Gap itself (`src/lib/brand.ts`), used for the nav, favicons, social preview and cards.
+- **Error monitoring:** Sentry, free tier, off unless `NEXT_PUBLIC_SENTRY_DSN` is set (docs/OPERATIONS.md).
+
 ### Tests
 
 - **`npm test`:** Vitest suite for grading (every answer type and the no-answer matrix), attempt records against PRD Section 9, session-data validation, RLS policies, the recommendation engine, error handling and the CSV export.
@@ -135,6 +148,9 @@ npm run catalog
 - [docs/CURRICULUM.md](docs/CURRICULUM.md): every concept definition and detection parameter, with provenance.
 - [docs/SCENARIO-VALIDATION.md](docs/SCENARIO-VALIDATION.md): the real-data pipeline, data sources, and review checklist and log.
 - [docs/ANALYTICS.md](docs/ANALYTICS.md): the CSV export's columns and example questions.
+- [docs/SHARING.md](docs/SHARING.md): challenge links, the daily challenge, share cards, and what the public routes expose.
+- [docs/SPACED-REPETITION.md](docs/SPACED-REPETITION.md): the review schedule and the words "cleared" and "mastered".
+- [docs/OPERATIONS.md](docs/OPERATIONS.md): backups, restore, deploy checklist, error monitoring, demo mode.
 
 ---
 

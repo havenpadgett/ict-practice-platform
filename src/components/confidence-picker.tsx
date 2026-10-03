@@ -22,8 +22,8 @@ export function ConfidencePicker({
     if (disabled) return;
     function onKey(e: KeyboardEvent) {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const t = e.target as HTMLElement | null;
-      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
+      const t = e.target instanceof Element ? e.target : null;
+      if (t?.closest("input, textarea, select, [contenteditable=true]")) return;
       const level = CONFIDENCE_LEVELS.find((l) => String(l.value) === e.key);
       if (level) onChange(value === level.value ? null : level.value);
     }

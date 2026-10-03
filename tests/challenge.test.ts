@@ -126,3 +126,24 @@ describe("grading a public challenge", () => {
     expect(resolveChallenge(free.exercise_id, "challenge")).toBeNull();
   });
 });
+
+describe("session kinds", () => {
+  it("tells practice sessions from one-exercise public visits", async () => {
+    const { isPracticeSessionId } = await import("@/lib/challenge");
+    expect(isPracticeSessionId("session_abc")).toBe(true);
+    for (const other of ["challenge:fvg-001", "daily:2026-10-03", "", null, undefined]) expect(isPracticeSessionId(other)).toBe(false);
+  });
+
+  it("leave public visits out of session counts and recent activity", async () => {
+    const { getOverallStats } = await import("@/lib/analytics");
+    const { recentSessions } = await import("@/lib/progress");
+    const { attempt } = await import("./fixtures");
+    const rows = [
+      attempt("FVG", true, { session_id: "session_a" }),
+      attempt("FVG", true, { session_id: "challenge:fvg-001" }),
+      attempt("FVG", false, { session_id: "daily:2026-10-03" }),
+    ];
+    expect(getOverallStats(rows).totalSessions).toBe(1);
+    expect(recentSessions(rows).map((s) => s.sessionId)).toEqual(["session_a"]);
+  });
+});

@@ -11,6 +11,8 @@ The practice app records one row per answered exercise in the Postgres table `pu
 | `supabase/migrations/20260926120000_analytics_views.sql` | The views in this doc | **Not yet applied** |
 | `supabase/migrations/20260926130000_practice_events.sql` | Session and event views, [below](#session-and-event-views) | **Not yet applied** |
 | `supabase/migrations/20260926140000_admin_functions.sql` | Admin functions | **Not yet applied** |
+| `supabase/migrations/20261003120000_attempt_confidence.sql` | The `confidence` column and [`v_confidence_calibration`](#v_confidence_calibration) | **Not yet applied** |
+| `supabase/migrations/20261003140000_session_progress_practice_only.sql` | `v_session_progress` leaves out one-exercise public-link "sessions" | **Not yet applied** |
 
 To apply them, run `supabase db push` or paste each file into the Supabase SQL editor, in filename order.
 
@@ -311,3 +313,21 @@ where id = (select id from auth.users where email = 'you@example.com');
 | `admin_resolve_reports(target_exercise_id)` | Marks that exercise's open reports resolved and returns how many. `/admin` → "Mark re-reviewed". |
 
 The failure-rate flag compares an exercise with its own concept, not the whole app. A hard concept doesn't flag every exercise in it. The standard-error test stops a handful of unlucky attempts from tripping it.
+
+---
+
+## `v_confidence_calibration`
+
+*Added 2026-10-03.* **Question:** when a learner said how sure they were, how often were they right? One row per user and confidence level (1 a guess, 2 fairly sure, 3 certain); attempts with no rating are left out.
+
+| Column | Meaning |
+|---|---|
+| `confidence` | 1, 2 or 3 |
+| `attempts`, `correct`, `wrong` | counts at that level |
+| `accuracy` | `correct / attempts`, 0 to 1 |
+
+"Confidently wrong" is `confidence = 3` and `wrong`. Compare `accuracy` across levels: it should rise with confidence; if level 3 is no higher than level 1, feeling sure isn't yet a reliable signal. The app computes the same table from the attempts it already fetches (`src/lib/confidence.ts`); `tests/sql/confidence.test.ts` checks the SQL.
+
+## Public-link attempts and `v_session_progress`
+
+Answers via `/c/<id>` and `/daily/<date>` are stored as attempts with session ids `challenge:<exercise id>` and `daily:<date>`. They count in every accuracy view, and are excluded from `v_session_progress` (so from `v_session_dropoff` and the funnel): a one-exercise visit is not a practice session that ended after one answer.

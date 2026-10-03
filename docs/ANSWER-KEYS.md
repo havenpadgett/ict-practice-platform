@@ -68,6 +68,10 @@ Grading is also local, so nothing stops a user from inserting a made-up attempt 
 - **Simplicity:** grading moved from an in-component function call to an async request, with loading and retry states in three places.
 - **Guided Entry detail:** there is one request per Guided Entry attempt, at the end, as before. Steps are still not graded one by one.
 
+## Public pages (2026-10-03)
+
+Shareable challenge links, the daily challenge, the landing page's exercise and `/try` are served without an account, so they follow the same rule with no session to lean on: the page carries `toPublicExercise` output, grading is a Server Function that returns the key with the verdict, and only shareable exercises are reachable (`src/lib/challenge-source.ts`). The share card endpoint grades the mark it is given and draws the key beside it. Details, and what was checked in the page source and the JS, are in [SHARING.md](SHARING.md). Free Trade is not served publicly, for the reason below.
+
 ## What this does not protect
 
 - **Free Trade's future candles.** Playback reveals candles on a timer, so the whole scenario's candles are still sent up front. A determined user can read what happens next in DevTools, which half-answers "should I trade here?". The explicit key (valid setup or not, the entry and stop zones, the target) *is* now server-side. Streaming candles one at a time from the server would close this. It's already in the PRD Backlog (LATER), deferred because every tick would need a request.

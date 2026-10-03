@@ -57,6 +57,17 @@ Why a column on `profiles` rather than a separate table or Supabase `app_metadat
 
 `app_metadata` would put it in the JWT, where a role change only takes effect after the token refreshes.
 
+## Public routes added 2026-10-03
+
+Unauthenticated, by design (docs/SHARING.md): `/c/<id>`, `/daily`, `/daily/<date>`, `/glossary`, `/settings`, `/welcome`, the link-preview images, **`POST /api/card`**, and three Server Functions: `gradeChallengeRecognition`, `gradeChallengeGuided` (`src/app/c/actions.ts`) and, from before, `gradeSample`. What bounds them:
+
+- **Input is validated like any Server Function** (`src/lib/answer-validation.ts`): shapes, finite numbers, id length, a 24-hour response-time cap, confidence clamped to 1 to 3 or dropped. `/api/card` takes no free text, refuses bodies over 4 KB, and rejects any request it can't parse.
+- **Reachable set is narrow:** shareable exercises only (not Free Trade, not unapproved, not withdrawn), and a daily request can grade only that day's exercise.
+- **No writes.** Nothing from these routes touches the database; the attempt row goes back to the browser and is saved by the visitor's own session (RLS) or kept on the device.
+- **No user data.** The pages and cards contain the visitor's own marks and nothing about anyone else. The daily streak and completions are read from the viewer's own attempts or device.
+- **Cost, not data, is the exposure:** the endpoints can be called repeatedly (grading is cheap; a card is about 70 ms of CPU). There is no in-app rate limit; add one at the platform if needed.
+- **Unchanged:** the security headers, the proxy's protected paths, RLS, roles, and the rule that no service-role key exists in this app. Error monitoring (docs/OPERATIONS.md) scrubs cookies, headers, bodies and user ids before anything leaves.
+
 ## Checklist for a new table or route
 
 1. Enable RLS in the same migration that creates the table, with own-row policies. Add it to `tests/sql/rls.test.ts`.

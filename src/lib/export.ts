@@ -93,6 +93,16 @@ export const EXPORT_COLUMNS: {
   { name: "free_is_win", value: (a) => (a.free_outcome === "win" ? 1 : a.free_outcome === "loss" ? 0 : null) },
   { name: "free_result_r", value: (a) => a.free_result_r },
   { name: "free_planned_rr", value: (a) => a.free_rr },
+  // Added last so existing BI imports keep their column positions.
+  // 1 a guess, 2 fairly sure, 3 certain; blank when skipped (or before the
+  // column existed).
+  { name: "confidence", value: (a) => a.confidence ?? null },
+  // Where the attempt came from: a practice session, a shared challenge
+  // link, or the daily challenge (session ids "challenge:<id>", "daily:<date>").
+  {
+    name: "session_kind",
+    value: (a) => (a.session_id?.startsWith("daily:") ? "daily" : a.session_id?.startsWith("challenge:") ? "challenge" : a.session_id ? "practice" : null),
+  },
 ];
 
 function csvCell(value: Cell): string {

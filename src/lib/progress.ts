@@ -2,6 +2,7 @@
 // per-concept trend, and recent sessions. Pure functions over attempts
 // (newest last, as fetchAttempts returns them).
 
+import { isPracticeSessionId } from "@/lib/challenge";
 import { MIN_ATTEMPTS_FOR_ACCURACY } from "@/lib/practice-modes";
 
 type AttemptLike = { concept: string; is_correct: boolean; created_at: string; session_id?: string | null };
@@ -40,7 +41,7 @@ export type SessionSummaryRow = {
 export function recentSessions(attempts: AttemptLike[], limit = 3): SessionSummaryRow[] {
   const bySession = new Map<string, SessionSummaryRow>();
   for (const a of attempts) {
-    if (!a.session_id) continue;
+    if (!a.session_id || !isPracticeSessionId(a.session_id)) continue;
     const row = bySession.get(a.session_id) ?? { sessionId: a.session_id, endedAt: a.created_at, concepts: [], correct: 0, total: 0 };
     row.total += 1;
     if (a.is_correct) row.correct += 1;

@@ -17,6 +17,13 @@ import type { ExerciseMeta } from "@/data/catalog";
 export const CHALLENGE_SESSION_PREFIX = "challenge:";
 export const DAILY_SESSION_PREFIX = "daily:";
 
+/** A practice session, as opposed to the one-exercise "sessions" that
+ * public challenge links and the daily challenge create. Session counts,
+ * recent sessions and drop-off are about practice sessions only. */
+export function isPracticeSessionId(sessionId: string | null | undefined): boolean {
+  return !!sessionId && !sessionId.startsWith(CHALLENGE_SESSION_PREFIX) && !sessionId.startsWith(DAILY_SESSION_PREFIX);
+}
+
 /** Real-data charts are CME-derived (docs/APP_PERFECTION_PLAN.md → B1).
  * Public links serve them unless this is switched off, which a deployment
  * can do without a code change. NEXT_PUBLIC_ so the share button and the

@@ -19,7 +19,7 @@ export function useQuickAdvance(feedbackShowing: boolean, next: () => void): voi
     if (!enabled) return;
     function onKey(e: KeyboardEvent) {
       if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
-      const t = e.target as HTMLElement | null;
+      const t = e.target instanceof Element ? e.target : null;
       // Never while typing.
       if (t?.closest("input, textarea, select, [contenteditable=true]")) return;
       const isN = e.key === "n" || e.key === "N";

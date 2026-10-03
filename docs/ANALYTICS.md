@@ -59,6 +59,15 @@ Source: `src/lib/export.ts` (the column list) and `src/app/api/export/attempts/r
 | `precision_ratio` | Zone answers: the box's height ÷ the true zone's height (1 = exact; the pass limit is 2.5). |
 | `distance_from_level` | Level answers: the user's line minus the true level, in points (positive = too high). |
 
+### Confidence and where an attempt came from
+
+| Column | Meaning |
+|---|---|
+| `confidence` | How sure the learner said they were before submitting: `1` a guess, `2` fairly sure, `3` certain. Blank when skipped, and for every attempt before the column existed (migration `20261003120000`). Optional by design, so blank is the common case. |
+| `session_kind` | `practice` (a session), `challenge` (a shared challenge link, session id `challenge:<exercise id>`) or `daily` (the daily challenge, `daily:<date>`). Public-link visits are one-exercise "sessions": filter them out when counting practice sessions (the app and `v_session_progress` do). |
+
+Both columns are last in the file so existing BI imports keep their column positions.
+
 ### Guided Entry steps
 
 | Column | Meaning |
@@ -130,3 +139,18 @@ A session that is never marked completed counts as not completed, even when the 
    - Use the sessions export.
    - Average `completed` by `planned_length` and by `source`.
    - For unfinished sessions, a histogram of `exercises_answered` shows where they stop.
+
+## Confidence versus accuracy
+
+*Added 2026-10-03.* Before submitting, a learner may rate how sure they are. The comparison with the verdict is the most useful signal the data gives: **being certain and wrong**. Analytics → *Confidence versus accuracy* shows accuracy at each level (a level's percentage appears from 5 rated answers, like every percentage in the app), says in a sentence what the pattern is, lists the concepts the certain-and-wrong answers came from and links to practice them. Unrated attempts are left out and counted.
+
+SQL twin: `v_confidence_calibration` ([SQL-QUERIES.md](SQL-QUERIES.md)).
+
+```sql
+-- Certain and wrong, by concept
+select concept, count(*) as certain_and_wrong
+from attempts where confidence = 3 and not is_correct
+group by concept order by certain_and_wrong desc;
+```
+
+What the ratings don't tell you: whether a rating means the same thing to two people. They are most useful compared with one person's own accuracy over time.

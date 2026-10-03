@@ -9,15 +9,14 @@ import { EXPERIENCE_LEVELS } from "@/lib/experience";
 export function ExperienceChoice({ details = true, onChoose }: { details?: boolean; onChoose?: () => void }) {
   const { level, chosen, setLevel } = useExperience();
   return (
-    <div role="radiogroup" aria-label="Experience level" className="grid gap-3 sm:grid-cols-2">
+    <div role="group" aria-label="Experience level" className="grid gap-3 sm:grid-cols-2">
       {EXPERIENCE_LEVELS.map((opt) => {
         const selected = chosen && level === opt.value;
         return (
           <button
             key={opt.value}
             type="button"
-            role="radio"
-            aria-checked={selected}
+            aria-pressed={selected}
             onClick={() => {
               setLevel(opt.value);
               onChoose?.();

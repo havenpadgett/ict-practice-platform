@@ -4,6 +4,7 @@
 
 import { getExerciseMeta } from "@/data/catalog";
 import type { DbAttempt } from "@/lib/attempts";
+import { isPracticeSessionId } from "@/lib/challenge";
 
 export type OverallStats = {
   accuracy: number | null;
@@ -24,8 +25,10 @@ const SESSION_GAP_MS = 30 * 60 * 1000;
  * sessions are counted exactly; older attempts (null) fall back to the
  * 30-minute gap rule. */
 function countSessions(attemptsAscending: DbAttempt[]): number {
-  const tagged = new Set(attemptsAscending.map((a) => a.session_id).filter((id): id is string => !!id));
+  const tagged = new Set(attemptsAscending.map((a) => a.session_id).filter((id): id is string => isPracticeSessionId(id)));
   return tagged.size + countSessionsByGap(attemptsAscending.filter((a) => !a.session_id));
+  // Challenge and daily attempts (session ids "challenge:…", "daily:…") are
+  // one-exercise visits, not practice sessions, and are left out above.
 }
 
 function countSessionsByGap(attemptsAscending: DbAttempt[]): number {

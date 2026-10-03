@@ -6,6 +6,34 @@
 
 ---
 
+## Update 2026-10-03: growth and learning features (read this, then the older resume point below)
+
+Built on `demo-mode`, one commit per batch, each with `tsc`, `eslint`, the full test suite and a production build. Full detail: [SHARING.md](SHARING.md), [SPACED-REPETITION.md](SPACED-REPETITION.md), [OPERATIONS.md](OPERATIONS.md) (error monitoring), PRD Decision Log 2026-10-03.
+
+| # | Feature | Status |
+|---|---|---|
+| 1 | Shareable challenge links `/c/<id>`, share actions, save-after-sign-up | Done. Recognition and Guided Entry. **Free Trade is not shareable** (its playback ships unrevealed candles) |
+| 2 | Playable exercise on the landing page | Done (`fvg-001`, constructed) |
+| 3 | Share cards (`POST /api/card`), a session summary worth screenshotting | Done |
+| 4 | Confidence ratings, confidence-versus-accuracy analytics | Done. Needs migration `20261003120000` to store ratings. Free Trade asks only when a trade is confirmed |
+| 5 | Daily challenge `/daily/<date>`, streak apart from the practice streak | Done, no leaderboard. Schedule covers 365 days from 2026-10-03 (`npm run daily` extends it) |
+| 6 | Spaced repetition; "cleared" vs "mastered" | Done, derived from attempts, no migration. Rechecks the same chart (differently framed), not a sibling |
+| 7 | Glossary `/glossary` and hover definitions | Done (45 terms; 37 marked pending review, following the curriculum's own AI-DRAFTED tags) |
+| 8 | Beginner / experienced mode, onboarding, `/settings` | Done. Device copy always; profile mirror needs migration `20261003130000` |
+| 9 | Brand mark, favicon, nav, social preview, cards | Done. Product name still undecided (B8) |
+| 10 | Error monitoring | Done, off until `NEXT_PUBLIC_SENTRY_DSN` is set. Source-map upload and the real Sentry round trip not exercised |
+
+**New migrations, all written and not run** (apply in filename order, after the earlier ten): `20261003120000_attempt_confidence.sql`, `20261003130000_profile_experience.sql`, `20261003140000_session_progress_practice_only.sql` (the last needs `20260926120000`). Each has PGlite tests; the app falls back without them.
+
+**Open, needs Haven:**
+- Set `NEXT_PUBLIC_SENTRY_DSN` (Production only) in Vercel, and optionally the three `SENTRY_*` variables for source maps (OPERATIONS.md → Error monitoring).
+- Decide whether real-data charts should be on public links (B1). Default is on; `NEXT_PUBLIC_SHARE_REAL_SCENARIOS=false` turns it off.
+- Review the glossary definitions flagged "Pending review", with B2.
+- `tests/curriculum.test.ts` was already failing before this work: the MSS definition went to v2 (2026-09-30) and 25 constructed exercises (mss, guided, ob, pd) still say "checked at v1". That is a re-check of constructed answer keys against the tightened MSS rule, a content call, so it was left alone (`npm run curriculum -- verify <prefix> mss` once checked).
+- Consider a platform rate limit on `/api/card` and `/c/*` (docs/SECURITY-AUDIT.md → Public routes).
+
+---
+
 ## Resume point (read this first — updated 2026-09-29)
 
 **1. Fully complete phases.** P0 (except P0-3/P0-4, blocked on Haven), P1 (all 11), P2 (all 7), Phase B (grading redesign), Phase C (feedback rewrite). Every `[x]` line under P0–P2 and Phases B–C below is verified: `tsc`, `eslint`, full test suite, production build, and a live browser walkthrough — see the Verification log and Phase B/C sections for exact commits.
@@ -58,7 +86,7 @@ These are launch blockers. None of them is worked around or quietly softened.
 - [ ] **B1. Historical data license, and data already public.** The 50 real scenarios in `src/data/real-scenarios/*.json` are built from the Kaggle "NQ Futures 1min Bar 2022-2025" file (redistributed CME data, license unverified, personal use only per docs/SCENARIO-VALIDATION.md). They include real OHLC candles, and **the GitHub repo is public** (the unauthenticated API returns 200). So derived CME data is being redistributed publicly now, even though none of it is served in practice (`human_reviewed: false` on all 50). Decide: (a) confirm the license allows this, (b) move the files out of the public repo, and optionally purge them from history (destructive, needs your go-ahead), or (c) make the repo private. Until then no real scenario can be approved for users.
 - [ ] **B2. Answer-key review of live constructed exercises.** Every live exercise is constructed. Several definitions behind them are AI-DRAFTED and say "treat as needing review before anyone other than Haven uses the app": MSS, IFVG, Order Block, Premium & Discount, Guided Entry rules, Free Trade rules, and the time-based session boundaries (docs/CURRICULUM.md, docs/CURRICULUM-REVIEW.md). Beta testers are "anyone other than Haven". This needs your review, not code.
 - [ ] **B3. Real-scenario review.** 0 of 50 approved at `/review` (blocked on B1 anyway).
-- [ ] **B4. Hosted migrations.** Ten migrations are written but not applied to the hosted database: `20260926120000` analytics views, `…130000` practice events, `…140000` admin functions, `20260927120000` roles, `…130000` attempt integrity, `…140000` mistake events, `…150000` question reports, `20260928120000` report reasons + app version, and **`20260929120000` verdict columns + `…130000` analytics could-improve breakdown (new in this phase — Phase B)**. Per the PRD, the app degrades gracefully without them, but reports and mistake events won't be recorded, and every attempt's `verdict` stays null (the dashboard/analytics/mistakes pages fall back to the binary `is_correct` reading they always had). Applying them to production needs your confirmation. They're tested in PGlite (`tests/sql/`).
+- [ ] **B4. Hosted migrations.** Thirteen migrations are written but not applied to the hosted database (the three from 2026-10-03, `20261003120000` confidence, `…130000` experience level and `…140000` practice-only session views, are listed in the update at the top). The first ten: `20260926120000` analytics views, `…130000` practice events, `…140000` admin functions, `20260927120000` roles, `…130000` attempt integrity, `…140000` mistake events, `…150000` question reports, `20260928120000` report reasons + app version, and **`20260929120000` verdict columns + `…130000` analytics could-improve breakdown (new in this phase — Phase B)**. Per the PRD, the app degrades gracefully without them, but reports and mistake events won't be recorded, and every attempt's `verdict` stays null (the dashboard/analytics/mistakes pages fall back to the binary `is_correct` reading they always had). Applying them to production needs your confirmation. They're tested in PGlite (`tests/sql/`).
 - [ ] **B5. Live RLS test.** `tests/data-integrity.test.ts` skips the cross-user RLS check without two safe test accounts (env vars in the test file). Needs you to create them.
 - [ ] **B6. Google OAuth.** Wired but switched off (`src/lib/auth-flags.ts`) until a Google Cloud client is configured in Supabase.
 - [ ] **B7. Forgot-password redirect URL.** Password reset (added in P2 auth work) needs `…/auth/callback` allowed as a redirect URL in Supabase Auth settings for the production domain.
@@ -168,9 +196,11 @@ These are launch blockers. None of them is worked around or quietly softened.
 
 **Do not build yet:** community, chat, feeds, leaderboards, P&L competitions, subscriptions, big achievement systems, marketplace, copy trading, signals, AI chatbot, many markets.
 
-**Future:** candle-by-candle replay for recognition; adaptive difficulty within a session; **spaced repetition** (a cleared mistake resurfaces after 1, 3 and 7 days, and is "mastered" only after correct answers in separate sessions); top-down multi-timeframe analysis; a confidence rating before answering, with confidence-vs-accuracy analytics; timed challenge; mixed-concept exam; daily challenge; more instruments and SMT (needs a dual chart); user-uploaded charts; AI-simplified explanations. **If AI is ever used, the validated deterministic answer key stays the source of truth. AI may rephrase or tutor, never write keys.**
+**Future:** candle-by-candle replay for recognition; adaptive difficulty within a session; top-down multi-timeframe analysis; timed challenge; mixed-concept exam; more instruments and SMT (needs a dual chart); user-uploaded charts; AI-simplified explanations. **If AI is ever used, the validated deterministic answer key stays the source of truth. AI may rephrase or tutor, never write keys.**
 
-**Onboarding (Phase 13), deferred:** three questions (experience, concepts known, goal) that would seed the first recommendation. Deferred because the engine already sends a new user to FVG difficulty 1, and a profile column needs a migration (B4 applies there too).
+**Onboarding (Phase 13):** one question was built on 2026-10-03 (beginner or experienced, `/welcome` and Settings). The other two (concepts known, goal), meant to seed the first recommendation, are still deferred: the engine already sends a new user to FVG difficulty 1.
+
+*Delivered 2026-10-03, no longer "future": spaced repetition (SPACED-REPETITION.md), confidence ratings with confidence-versus-accuracy analytics, the daily challenge, and the beginner / experienced preference.*
 
 **Pan/zoom (Phase 6), deferred:** the PRD keeps the chart static on purpose (coordinate bugs), and every chart is framed to fit. A focus mode wasn't needed once the chart got the wide layout.
 
@@ -199,7 +229,7 @@ Each batch: `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run build`, wal
 | Accessibility | `41f5f07` | ✓ all; typed entry walked |
 | Reporting | `d9e9d3a` | ✓ all (PGlite migration tests included) |
 | How it works | `7c02849` | ✓ all; 375 |
-| Final QA | (this commit) | tsc ✓ lint ✓ tests 447 passed / 1 skipped ✓ build ✓; routes walked at 1280, 768, 375, 320; production build checked for demo isolation |
+| Final QA | (earlier commit) | tsc ✓ lint ✓ tests 447 passed / 1 skipped ✓ build ✓; routes walked at 1280, 768, 375, 320; production build checked for demo isolation |
 
 ---
 
@@ -295,3 +325,20 @@ Re-checked against the checklist above (P0–P3): everything with `[x]` was alre
 **Migrations awaiting Haven's action:** unchanged from the B4 list above, plus the two new ones from this session (`20260929120000_add_verdict_to_attempts.sql`, `20260929130000_analytics_could_improve.sql`). Nothing in this session requires them to be applied immediately — the app degrades to its pre-Phase-B behavior (binary `is_correct`, no could-improve breakdown) until they run, verified by the fallback logic in `src/lib/attempts.ts`.
 
 **Blocked on Haven, unchanged:** everything in "Blocked on Haven" above (B1–B9) is still exactly as blocked as before this session; nothing in Phases B–D changes any of those decisions. Phase D adds one more question for Haven specifically (see Phase D above): confirming that trading away the PRD's original "charts stay static" decision is intended, since Phase D's whole premise is reversing it.
+
+### Verification log: 2026-10-03 batch
+
+| Batch | Commit | Checks |
+|---|---|---|
+| Brand mark | `0565e42` | tsc ✓ lint ✓ tests ✓ (known failure below) |
+| Challenge links | `f4558b0` | ✓ all; page source and RSC payload scanned for key fields on 7 exercise types; public routes in the production build |
+| Landing exercise | `b8ab122` | ✓ all; desktop + 375 |
+| Share cards, summary | `b045de7` | ✓ all; card rendered in dev and in the production build |
+| Confidence | `626917c` | ✓ all; PGlite migration test |
+| Daily challenge | `abb27a9` | ✓ all |
+| Spaced repetition | `98c2da2` | ✓ all |
+| Glossary | `e894b4a` | ✓ all; tooltip checked by hover |
+| Experience modes | `f2b1e26` | ✓ all; both modes walked in the browser |
+| Error monitoring | `d355717` | ✓ all; scrub checked through the real SDK; build with placeholder Sentry credentials |
+
+Every run: `tsc` clean, `eslint` clean, the full suite green **except** `tests/curriculum.test.ts` › "no constructed exercise was built under an older definition version", which was already failing at the start of the session (MSS v2, above). PGlite suites occasionally time out under load and pass on re-run. Console on the new pages: no errors or React warnings (the `beforeunload` message is the known leave-page guard). Production build (`next start`, no demo): protected routes redirect, `/api/demo` is 404, every public route answers 200.

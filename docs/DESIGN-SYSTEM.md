@@ -85,6 +85,12 @@ All buttons are at least 44×44px. Option buttons (selection) and commit buttons
 | `ChartThumbnail` | Small static chart of a reviewed answer (user solid, correct dashed), no axes |
 | `ManualEntry` | "Enter values manually" for chart answers (price, or candles and prices) |
 
+| `BrandMark` | The product mark (below). Decorative; the wordmark carries the name |
+| `Term` / `GlossaryText` | A glossary term in running text: dotted underline, definition on hover, focus or tap; first use per page is the full name with its acronym |
+| `ConfidencePicker` | "How sure are you? Optional": Guess / Fairly sure / Certain, keys 1 to 3, press again to clear |
+| `ShareButton` / `ShareCard` | Share a link (system sheet, else clipboard); make, preview, save and share a result card |
+| `ExperienceChoice` | The beginner / experienced choice, with what each changes |
+
 **Cards are for things you act on or read as a unit** (the recommendation, feedback, a form). Lists use divided rows (`divide-y divide-line`) inside one bordered container, or no container at all. Don't box every stat.
 
 **Sample-size rule:** no percentage from fewer than 5 attempts anywhere (`MIN_ATTEMPTS_FOR_ACCURACY` in `src/lib/practice-modes.ts`).
@@ -115,3 +121,15 @@ This pass defined the token layer in `globals.css` and, per instruction, touched
 - **Working:** tab order follows reading order. Every button, link, option and field is reachable and operable, including concept cards, answer options, playback controls and the review forms. Option buttons expose `aria-pressed`.
 - **Added:** a "Skip to content" link, one visible focus ring (2px mint `:focus-visible`), and an accessible name on each chart (`role="img"`).
 - **Fixed 2026-09-28 (partly):** recognition exercises now have "Enter values manually" under the chart: a price for a line, first/last candle and upper/lower price for a box. The chart redraws from what's typed. Guided Entry and Free Trade levels are still pointer-only (see the plan). **Originally not fixed (needed a behaviour change):** drawing a box (FVG, IFVG, order block), placing a line (liquidity, MSS, time-based levels), and placing entry/stop/target (Guided Entry, Free Trade) are pointer-only. A keyboard-only user cannot answer those exercises; choice exercises and every control around the chart do work. Suggested fix: when the chart has focus, arrow keys move a cursor over candles and price, Enter anchors, Shift+arrows resize, Enter again commits, and the chosen values are announced. Logged in `docs/POLISH-BACKLOG.md`.
+
+## Brand (2026-10-03)
+
+**The mark is the product's own geometry: a bullish Fair Value Gap.** Three candles, the first candle's high below the third candle's low, and the gap between them marked in mint. Off-white candles, one mint element, nothing else: no rocket, no dollar sign, no stock-chart cliché. It reads at 16 px (the favicon) and at 340 px (the social preview).
+
+- **One source:** `src/lib/brand.ts` holds the geometry and colors. The nav (`BrandMark`), `icon.svg`, `favicon.ico`, `apple-icon.png`, the Open Graph / Twitter image and the share cards all draw from it. `npm run brand` regenerates the files a browser fetches by name.
+- **Wordmark:** "ICT Practice" in Geist SemiBold beside the mark. The product name is still undecided (D-4); the mark doesn't depend on it.
+- **Colors:** the existing tokens (`--background`, `--foreground`, `--accent`); the mark never uses the candle red or green, so it doesn't read as a price chart going up or down.
+
+**Glossary terms in running text** carry a dotted underline in `--muted` (no color, so a paragraph of them still reads as prose); experienced learners see it only on hover or focus. The tooltip is a `role="tooltip"` in the body, dismissed with Escape or by moving away, reachable by keyboard, and its link goes to the glossary entry.
+
+**Share cards** use the chart's own conventions: up candles hollow, down solid, the learner's mark solid off-white, the correct answer dashed mint, labelled. A score is never painted red.

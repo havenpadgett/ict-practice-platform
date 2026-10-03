@@ -15,7 +15,8 @@ export function DailyStatus({ progress, today }: { progress: DailyProgress; toda
         <p className="eyebrow">Daily streak</p>
         <p className="mt-1 text-2xl font-semibold text-foreground tabular-nums">
           {progress.ready ? progress.streak : "—"}
-          <span className="ml-1.5 text-sm font-normal text-muted">{progress.streak === 1 ? "day" : "days"}</span>
+          {" "}
+          <span className="text-sm font-normal text-muted">{progress.streak === 1 ? "day" : "days"}</span>
         </p>
       </div>
       <ol className="flex gap-1.5" aria-label="Last 7 days">
