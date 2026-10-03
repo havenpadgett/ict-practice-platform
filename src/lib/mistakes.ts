@@ -4,11 +4,16 @@
 // Pure and answer-free, so the dashboard can use it in the browser; the
 // answers themselves come from the server (src/app/mistakes/actions.ts).
 
+import { reviewState, type ReviewStage } from "@/lib/spaced-repetition";
+
 /** An exercise with at least one incorrect attempt is a mistake. It's
  * cleared once the user's most recent attempt at it is correct, and open
  * again if they miss it after that. "Cleared", not "mastered": one correct
- * retry isn't mastery. Mastery would need correct answers across separate
- * sessions (spaced repetition, docs/APP_PERFECTION_PLAN.md → Later). */
+ * retry isn't mastery. Mastery is repeated success across separate sessions
+ * days apart, and a cleared mistake comes back to be checked (spaced
+ * repetition: src/lib/spaced-repetition.ts, docs/SPACED-REPETITION.md).
+ * `status` stays two-valued (a mastered mistake is still not open); `stage`
+ * is the full picture. */
 export type MistakeStatus = "open" | "cleared";
 
 export type MistakeSummary = {
@@ -20,13 +25,26 @@ export type MistakeSummary = {
   lastMissedAt: string;
   /** When the latest (correct) attempt was made; null while open. */
   clearedAt: string | null;
+  /** open, cleared (one correct retry), confirming (rechecked at least
+   * once), or mastered (rechecked across separated sessions). */
+  stage: ReviewStage;
+  /** Rechecks passed after the clearing retry, 0 to 3. */
+  confirmations: number;
+  /** When the next recheck can count; null while open or once mastered. */
+  dueAt: string | null;
+  /** A cleared or confirming mistake whose recheck can count now. */
+  due: boolean;
+  masteredAt: string | null;
+  /** Times it was missed again after being answered correctly. */
+  lapses: number;
 };
 
-type AttemptLike = { exercise_id: string; is_correct: boolean; created_at: string };
+type AttemptLike = { exercise_id: string; is_correct: boolean; created_at: string; session_id?: string | null };
 
-/** One entry per exercise ever answered incorrectly: open first, most
- * recently missed first within each group. */
-export function summarizeMistakes(attempts: AttemptLike[]): MistakeSummary[] {
+/** One entry per exercise ever answered incorrectly: open first, then the
+ * ones due a recheck, then the rest; most recently missed first within each
+ * group. `now` is when "due" is judged (tests pass a fixed one). */
+export function summarizeMistakes(attempts: AttemptLike[], now: Date = new Date()): MistakeSummary[] {
   const byExercise = new Map<string, AttemptLike[]>();
   for (const a of attempts) {
     const list = byExercise.get(a.exercise_id) ?? [];
@@ -39,35 +57,49 @@ export function summarizeMistakes(attempts: AttemptLike[]): MistakeSummary[] {
     const misses = sorted.filter((a) => !a.is_correct);
     if (misses.length === 0) continue;
     const latest = sorted[sorted.length - 1];
+    const state = reviewState(sorted, now)!;
     out.push({
       exercise_id,
       status: latest.is_correct ? "cleared" : "open",
       missed: misses.length,
       lastMissedAt: misses[misses.length - 1].created_at,
       clearedAt: latest.is_correct ? latest.created_at : null,
+      stage: state.stage,
+      confirmations: state.confirmations,
+      dueAt: state.dueAt,
+      due: state.due,
+      masteredAt: state.masteredAt,
+      lapses: state.lapses,
     });
   }
-  return out.sort((a, b) =>
-    a.status === b.status ? b.lastMissedAt.localeCompare(a.lastMissedAt) : a.status === "open" ? -1 : 1,
-  );
+  const rank = (m: MistakeSummary) => (m.status === "open" ? 0 : m.due ? 1 : 2);
+  return out.sort((a, b) => rank(a) - rank(b) || (a.due && b.due ? (a.dueAt ?? "").localeCompare(b.dueAt ?? "") : b.lastMissedAt.localeCompare(a.lastMissedAt)));
 }
 
-export function mistakeCounts(attempts: AttemptLike[]): { open: number; cleared: number } {
-  const all = summarizeMistakes(attempts);
+export function mistakeCounts(
+  attempts: AttemptLike[],
+  now: Date = new Date(),
+): { open: number; cleared: number; due: number; mastered: number } {
+  const all = summarizeMistakes(attempts, now);
   return {
     open: all.filter((m) => m.status === "open").length,
+    // Everything no longer open, mastered ones included.
     cleared: all.filter((m) => m.status === "cleared").length,
+    // Cleared mistakes whose recheck can count now.
+    due: all.filter((m) => m.due).length,
+    mastered: all.filter((m) => m.stage === "mastered").length,
   };
 }
 
 /** Longest mistakes-only session; the rest wait for the next one. */
 export const MISTAKES_SESSION_CAP = 20;
 
-/** Open mistakes for a mistakes-only session, most recently missed first,
+/** A mistakes-only session: open mistakes (most recently missed first),
+ * then cleared ones that are due a recheck (the longest overdue first),
  * limited to ids the caller can still serve. */
-export function mistakeSessionIds(attempts: AttemptLike[], isAvailable: (id: string) => boolean): string[] {
-  return summarizeMistakes(attempts)
-    .filter((m) => m.status === "open" && isAvailable(m.exercise_id))
+export function mistakeSessionIds(attempts: AttemptLike[], isAvailable: (id: string) => boolean, now: Date = new Date()): string[] {
+  return summarizeMistakes(attempts, now)
+    .filter((m) => (m.status === "open" || m.due) && isAvailable(m.exercise_id))
     .slice(0, MISTAKES_SESSION_CAP)
     .map((m) => m.exercise_id);
 }

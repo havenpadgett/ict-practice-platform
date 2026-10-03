@@ -173,19 +173,21 @@ function DashboardContent({ attempts, streak }: { attempts: DbAttempt[]; streak:
       <div className="space-y-4">
         <RecommendedSession recommendation={recommendation} />
         <DailyCard />
-        {mistakes.open > 0 && (
+        {mistakes.open + mistakes.due > 0 && (
           <div className="flex flex-col gap-3 rounded-lg border border-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-semibold text-foreground">
-                {mistakes.open} mistake{mistakes.open === 1 ? "" : "s"} to review
+                {mistakes.open + mistakes.due} mistake{mistakes.open + mistakes.due === 1 ? "" : "s"} to review
               </p>
               <p className="mt-0.5 text-sm text-muted">
-                Charts you last answered incorrectly. {mistakes.cleared} cleared so far.
+                {mistakes.open} you last got wrong
+                {mistakes.due > 0 && `, ${mistakes.due} cleared and due a recheck`}. {mistakes.cleared} cleared so far
+                {mistakes.mastered > 0 && `, ${mistakes.mastered} mastered`}.
               </p>
             </div>
             <div className="flex shrink-0 flex-wrap gap-3">
               <Link href="/practice?mode=mistakes" className="btn-secondary">
-                Review {mistakes.open} mistake{mistakes.open === 1 ? "" : "s"}
+                Review {mistakes.open + mistakes.due} mistake{mistakes.open + mistakes.due === 1 ? "" : "s"}
               </Link>
               <Link href="/mistakes" className="btn-link">
                 See all
@@ -213,7 +215,7 @@ function DashboardContent({ attempts, streak }: { attempts: DbAttempt[]; streak:
                 week.length >= MIN_ATTEMPTS_FOR_ACCURACY ? `${Math.round((weekCorrect / week.length) * 100)}% correct` : "exercises answered",
             },
             { label: "Practice streak", value: streak === null ? "—" : `${streak} day${streak === 1 ? "" : "s"}`, detail: "days practiced in a row" },
-            { label: "Mistakes cleared", value: String(mistakes.cleared), detail: `${mistakes.open} still open` },
+            { label: "Mistakes cleared", value: String(mistakes.cleared), detail: `${mistakes.open} still open${mistakes.mastered > 0 ? ` · ${mistakes.mastered} mastered` : ""}` },
           ]}
         />
       </section>

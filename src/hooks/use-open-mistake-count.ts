@@ -5,8 +5,9 @@ import { useEffect, useState } from "react";
 import { ATTEMPTS_CHANGED_EVENT, fetchAttempts } from "@/lib/attempts";
 import { mistakeCounts } from "@/lib/mistakes";
 
-/** Open mistakes for the nav badge: refreshed on navigation and whenever an
- * attempt is saved. Reads three columns only. Null until known (or if the
+/** Mistakes to review for the nav badge, open ones plus cleared ones that are
+ * due a recheck: refreshed on navigation and whenever an attempt is saved.
+ * Reads four columns only. Null until known (or if the
  * read fails; the badge is a hint, never a reason to show an error). */
 export function useOpenMistakeCount(userId: string | null): number | null {
   const pathname = usePathname();
@@ -22,9 +23,12 @@ export function useOpenMistakeCount(userId: string | null): number | null {
   useEffect(() => {
     if (!userId) return;
     let cancelled = false;
-    fetchAttempts(userId, "exercise_id,is_correct,created_at")
+    fetchAttempts(userId, "exercise_id,session_id,is_correct,created_at")
       .then((rows) => {
-        if (!cancelled) setCount(mistakeCounts(rows).open);
+        if (!cancelled) {
+          const c = mistakeCounts(rows);
+          setCount(c.open + c.due);
+        }
       })
       .catch(() => {});
     return () => {

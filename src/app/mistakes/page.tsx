@@ -14,11 +14,28 @@ import { failureLabel } from "@/lib/failure-labels";
 import { MISTAKES_SESSION_CAP } from "@/lib/mistakes";
 import { loadMistakes, type MistakeItem, type ReviewChart } from "@/app/mistakes/actions";
 
-type StatusFilter = "open" | "cleared" | "all";
+type StatusFilter = "open" | "due" | "cleared" | "mastered" | "all";
 const noop = () => {};
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+/** Where a mistake is in the review schedule, in words
+ * (src/lib/spaced-repetition.ts). "Cleared" is one correct retry;
+ * "mastered" is only ever repeated success on separate days. */
+function stageText(item: MistakeItem): string {
+  switch (item.stage) {
+    case "open":
+      return `Missed ${item.missed === 1 ? "once" : `${item.missed} times`}, last ${formatDate(item.lastMissedAt)}`;
+    case "cleared":
+    case "confirming": {
+      const done = item.stage === "cleared" ? "Cleared" : `Cleared, rechecked ${item.confirmations} of 3`;
+      return item.due ? `${done}. Due a recheck` : `${done}. Recheck from ${item.dueAt ? formatDate(item.dueAt) : "later"}`;
+    }
+    case "mastered":
+      return `Mastered ${item.masteredAt ? formatDate(item.masteredAt) : ""}: right again on separate days`;
+  }
 }
 
 /** The full-size chart for one reviewed answer, drawn exactly as in
@@ -112,9 +129,7 @@ function MistakeRow({ item }: { item: MistakeItem }) {
             {DIFFICULTY_LABELS[item.difficulty]}
             {why && <> · {why}</>}
             {" · "}
-            {item.status === "cleared"
-              ? `Cleared ${item.clearedAt ? formatDate(item.clearedAt) : ""}`
-              : `Missed ${item.missed === 1 ? "once" : `${item.missed} times`}, last ${formatDate(item.lastMissedAt)}`}
+            {stageText(item)}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-x-4">
             <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls={panelId} className="btn-link">
@@ -122,7 +137,7 @@ function MistakeRow({ item }: { item: MistakeItem }) {
             </button>
             {item.retryable ? (
               <Link href={`/practice?retry=${encodeURIComponent(item.exercise_id)}`} className="btn-link">
-                {item.status === "cleared" ? "Practice again" : "Retry"}
+                {item.stage === "open" ? "Retry" : item.due ? "Recheck" : "Practice again"}
               </Link>
             ) : (
               <span className="text-xs text-muted">Withdrawn, can&apos;t be retried</span>
@@ -176,13 +191,16 @@ export default function MistakesPage() {
     void load();
   }, [user]);
 
-  const open = items?.filter((i) => i.status === "open") ?? [];
-  const cleared = items?.filter((i) => i.status === "cleared") ?? [];
-  const retryableOpen = open.filter((i) => i.retryable).length;
+  const open = items?.filter((i) => i.stage === "open") ?? [];
+  const due = items?.filter((i) => i.due) ?? [];
+  const cleared = items?.filter((i) => i.status === "cleared" && i.stage !== "mastered" && !i.due) ?? [];
+  const mastered = items?.filter((i) => i.stage === "mastered") ?? [];
+  const retryableOpen = [...open, ...due].filter((i) => i.retryable).length;
   const concepts = useMemo(() => [...new Set((items ?? []).map((i) => i.concept))], [items]);
   const shown = (items ?? []).filter(
     (i) =>
-      (status === "all" || i.status === status) &&
+      (status === "all" ||
+        (status === "open" ? i.stage === "open" : status === "due" ? i.due : status === "mastered" ? i.stage === "mastered" : i.status === "cleared" && i.stage !== "mastered" && !i.due)) &&
       (concept === "all" || i.concept === concept) &&
       (difficulty === "all" || String(i.difficulty) === difficulty),
   );
@@ -219,12 +237,14 @@ export default function MistakesPage() {
               </Link>
             )}
             <p className="text-sm text-muted tabular-nums">
-              {open.length} to review · {cleared.length} cleared
+              {open.length} to review · {due.length} due a recheck · {cleared.length} cleared · {mastered.length} mastered
             </p>
           </div>
-          <p className="mt-3 text-xs text-muted">
-            A mistake is cleared when your latest answer on that chart is correct. Mistake review sessions count toward your
-            stats; &ldquo;Retry this chart&rdquo; right after an answer doesn&apos;t.
+          <p className="mt-3 max-w-3xl text-xs text-muted">
+            A mistake is <span className="text-foreground">cleared</span> when your latest answer on that chart is correct. A cleared
+            one comes back after 1 day, then 3, then 7, to check it stuck; it&apos;s <span className="text-foreground">mastered</span> once
+            you&apos;ve got it right on all of those separate days. Miss it again and it starts over. Mistake review sessions count toward
+            your stats; &ldquo;Retry this chart&rdquo; right after an answer doesn&apos;t.
           </p>
 
           <div className="mt-8 flex flex-wrap items-end gap-3 border-b border-line pb-4" role="group" aria-label="Filter mistakes">
@@ -232,7 +252,9 @@ export default function MistakesPage() {
               {(
                 [
                   ["open", `To review (${open.length})`],
+                  ["due", `Due a recheck (${due.length})`],
                   ["cleared", `Cleared (${cleared.length})`],
+                  ["mastered", `Mastered (${mastered.length})`],
                   ["all", "All"],
                 ] as [StatusFilter, string][]
               ).map(([value, label]) => (
@@ -267,7 +289,11 @@ export default function MistakesPage() {
 
           {shown.length === 0 ? (
             <p className="mt-6 text-sm text-muted">
-              {status === "open" && open.length === 0 ? "Nothing left to review. Every mistake has been cleared." : "No mistakes match these filters."}
+              {status === "open" && open.length === 0
+                ? "Nothing left to review. Every mistake has been cleared."
+                : status === "due" && due.length === 0
+                  ? "Nothing due. Cleared mistakes come back after 1, 3 and 7 days."
+                  : "No mistakes match these filters."}
             </p>
           ) : (
             <ul className="divide-y divide-line">

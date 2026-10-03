@@ -45,6 +45,11 @@ import {
   type SessionState,
 } from "@/lib/storage";
 
+/** Mistakes worth a session: open ones plus cleared ones due a recheck. */
+function reviewCount(c: { open: number; due: number }): number {
+  return c.open + c.due;
+}
+
 /** Response time for an attempt — called from event handlers only. */
 function msSince(start: number): number {
   return Date.now() - start;
@@ -271,7 +276,7 @@ export default function PracticePage() {
       return;
     }
     try {
-      const rows = await fetchAttempts(user.id, "exercise_id,is_correct,created_at");
+      const rows = await fetchAttempts(user.id, "exercise_id,session_id,is_correct,created_at");
       beginSession(MISTAKES_SESSION, mistakeSessionIds(rows, available), "mistakes");
     } catch (err) {
       setAdaptiveError(describeError(err, "load your mistakes").message);
@@ -295,7 +300,7 @@ export default function PracticePage() {
       // e.g. a concept whose only exercises are real scenarios still awaiting review.
       setNotice(
         kind === MISTAKES_SESSION
-          ? "No mistakes to review right now. Anything you miss shows up here to practice again."
+          ? "No mistakes to review right now. Anything you miss shows up here to practice again, and cleared ones come back a few days later to check they stuck."
           : `There are no exercises ready for ${kind === ADAPTIVE_SESSION ? "an adaptive session" : kind === MIXED_SESSION ? "a mixed session" : getConceptMeta(kind).pickerLabel} yet. Pick another concept.`,
       );
       setSession(null);
@@ -419,7 +424,7 @@ export default function PracticePage() {
           <ConceptPicker
             scores={pickerAttempts ? new Map(scoreConcepts(pickerAttempts).concepts.map((c) => [c.concept, c])) : null}
             recommendation={pickerAttempts ? recommendSession(pickerAttempts) : null}
-            openMistakes={pickerAttempts ? mistakeCounts(pickerAttempts).open : 0}
+            openMistakes={pickerAttempts ? reviewCount(mistakeCounts(pickerAttempts)) : 0}
             activeSession={activeSession}
             onContinue={() => setShowPicker(false)}
             onPick={handlePickConcept}

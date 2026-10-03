@@ -156,8 +156,8 @@ export function ConceptPicker({
               title="Review mistakes"
               detail={
                 openMistakes > 0
-                  ? "Only the exercises you last got wrong, most recent first."
-                  : "Nothing to review. Anything you miss shows up here."
+                  ? "The exercises you last got wrong, then cleared ones due a recheck."
+                  : "Nothing to review. Anything you miss shows up here, and cleared ones come back days later to check they stuck."
               }
               meta={openMistakes > 0 ? `${openMistakes} to review` : undefined}
               onClick={onPickMistakes}

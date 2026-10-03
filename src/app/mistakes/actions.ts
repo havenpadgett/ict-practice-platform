@@ -10,7 +10,7 @@ import { getExercise, isPracticeReady, type Candle, type DealingRange, type Exer
 import type { DbAttempt } from "@/lib/attempts";
 import { getConceptMeta } from "@/lib/concepts";
 import { describeAnswer, describeCorrect, type MistakeAttemptRow } from "@/lib/mistake-text";
-import { summarizeMistakes, type MistakeStatus } from "@/lib/mistakes";
+import { summarizeMistakes, type MistakeStatus, type MistakeSummary } from "@/lib/mistakes";
 import { createClient } from "@/lib/supabase/server";
 import { protectiveStopBand } from "@/lib/verdict";
 
@@ -61,6 +61,12 @@ export type MistakeItem = {
   answerLabel: string;
   difficulty: 1 | 2 | 3;
   status: MistakeStatus;
+  /** Where it is in the review schedule (src/lib/spaced-repetition.ts). */
+  stage: MistakeSummary["stage"];
+  confirmations: number;
+  dueAt: string | null;
+  due: boolean;
+  masteredAt: string | null;
   missed: number;
   lastMissedAt: string;
   clearedAt: string | null;
@@ -78,6 +84,7 @@ export type MistakeItem = {
 
 const COLUMNS = [
   "exercise_id",
+  "session_id",
   "is_correct",
   "created_at",
   "user_answer_type",
@@ -189,6 +196,11 @@ export async function loadMistakes(): Promise<{ ok: true; items: MistakeItem[] }
       answerLabel: e.answer_type === "free" ? e.title : e.answerLabel,
       difficulty: e.difficulty,
       status: m.status,
+      stage: m.stage,
+      confirmations: m.confirmations,
+      dueAt: m.dueAt,
+      due: m.due,
+      masteredAt: m.masteredAt,
       missed: m.missed,
       lastMissedAt: m.lastMissedAt,
       clearedAt: m.clearedAt,

@@ -32,7 +32,9 @@ describe("summarizeMistakes", () => {
       ["b", "cleared", 1],
     ]);
     expect(s.find((m) => m.exercise_id === "b")!.clearedAt).toBe(rows[2].created_at);
-    expect(mistakeCounts(rows)).toEqual({ open: 2, cleared: 1 });
+    // Cleared on 2026-09-27 and long since due a recheck (src/lib/spaced-repetition.ts).
+    expect(mistakeCounts(rows, new Date("2026-09-27T12:00:00Z"))).toEqual({ open: 2, cleared: 1, due: 0, mastered: 0 });
+    expect(mistakeCounts(rows, new Date("2026-10-03T12:00:00Z"))).toEqual({ open: 2, cleared: 1, due: 1, mastered: 0 });
   });
 
   it("doesn't depend on the order rows arrive in", () => {
