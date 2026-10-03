@@ -1,3 +1,4 @@
+import { GlossaryText } from "@/components/glossary/glossary-text";
 import { CheckRow, Verdict } from "@/components/verdict";
 import type { FreeTradeGradeResult, FreeTradeOutcome } from "@/lib/free-trade-grading";
 
@@ -60,7 +61,9 @@ export function FreeTradeFeedback({
       </ul>
 
       <p className="eyebrow mt-5">{isValidSetup ? "The ideal trade" : "Why not to trade"}</p>
-      <p className="mt-1 text-sm text-muted">{result.explanation}</p>
+      <p className="mt-1 text-sm text-muted">
+        <GlossaryText text={result.explanation} />
+      </p>
 
       <div className="mt-6 border-t border-line pt-5">
         <button type="button" onClick={onNext} className="btn-primary">

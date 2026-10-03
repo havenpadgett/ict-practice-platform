@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { gradeChallengeGuided } from "@/app/c/actions";
 import { ChallengeAfter } from "@/components/challenge/challenge-after";
+import { GlossaryText } from "@/components/glossary/glossary-text";
 import { GuidedExercise, type GuidedGradeResponse } from "@/components/practice/guided-exercise";
 import { RecognitionExercise } from "@/components/practice/recognition-exercise";
 import { useChallengeRecognition } from "@/hooks/use-challenge-recognition";
@@ -51,7 +52,9 @@ export function ChallengeRunner({
 function promptFor(exercise: ChallengeExerciseData) {
   return (
     <div>
-      <p className="text-lg leading-snug text-foreground sm:text-xl">{exercise.prompt}</p>
+      <p className="text-lg leading-snug text-foreground sm:text-xl">
+        <GlossaryText text={exercise.prompt} />
+      </p>
       <p className="mt-1.5 text-xs text-muted">
         {DIFFICULTY_LABELS[exercise.difficulty]} · {conceptShortName(exercise.concept)}
       </p>

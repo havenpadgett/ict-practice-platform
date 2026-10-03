@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ChartThumbnail } from "@/components/chart-thumbnail";
+import { GlossaryText } from "@/components/glossary/glossary-text";
 import { ErrorBanner } from "@/components/error-banner";
 import { LoadingState } from "@/components/loading-state";
 import { CandlestickChart } from "@/components/practice/candlestick-chart";
@@ -157,7 +158,9 @@ function MistakeRow({ item }: { item: MistakeItem }) {
               <dt className="text-muted">Correct answer</dt>
               <dd className="text-foreground">{item.correctAnswer}</dd>
             </dl>
-            <p className="mt-4 text-muted">{item.explanation}</p>
+            <p className="mt-4 text-muted">
+              <GlossaryText text={item.explanation} />
+            </p>
           </div>
         </div>
       )}

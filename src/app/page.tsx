@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { PrimaryButton } from "@/components/primary-button";
+import { GlossaryText } from "@/components/glossary/glossary-text";
 import { HeroExercise } from "@/components/landing/hero-exercise";
 import { LANDING_EXERCISE_ID } from "@/lib/challenge";
 import { shareableExercise } from "@/lib/challenge-source";
@@ -156,7 +157,9 @@ export default function Home() {
             {CONCEPTS.map((c) => (
               <li key={c.name} className="bg-surface p-5 sm:p-6">
                 <h3 className="text-base">{c.name}</h3>
-                <p className="mt-2 text-sm">{c.detail}</p>
+                <p className="mt-2 text-sm">
+                  <GlossaryText text={c.detail} />
+                </p>
               </li>
             ))}
           </ul>
@@ -171,7 +174,9 @@ export default function Home() {
               <div key={m.name} className="card">
                 <p className="eyebrow">{m.eyebrow}</p>
                 <h3 className="mt-2 text-lg">{m.name}</h3>
-                <p className="mt-2 text-sm">{m.detail}</p>
+                <p className="mt-2 text-sm">
+                  <GlossaryText text={m.detail} />
+                </p>
               </div>
             ))}
           </div>

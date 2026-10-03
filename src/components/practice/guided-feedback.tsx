@@ -1,3 +1,4 @@
+import { GlossaryText } from "@/components/glossary/glossary-text";
 import { CheckRow, Verdict } from "@/components/verdict";
 import type { GuidedGradeResult, GuidedStepId } from "@/lib/guided-grading";
 
@@ -53,7 +54,9 @@ export function GuidedFeedback({
         </p>
       )}
 
-      <p className="mt-3 text-sm text-muted">{result.explanation}</p>
+      <p className="mt-3 text-sm text-muted">
+        <GlossaryText text={result.explanation} />
+      </p>
 
       <div className="mt-6 border-t border-line pt-5">
         <button type="button" onClick={onNext} className="btn-primary">

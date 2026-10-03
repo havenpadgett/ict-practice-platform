@@ -8,6 +8,10 @@ export function DisclaimerFooter() {
       <Link href="/about" className="underline-offset-4 hover:text-foreground hover:underline">
         How it works
       </Link>
+      <span aria-hidden> · </span>
+      <Link href="/glossary" className="underline-offset-4 hover:text-foreground hover:underline">
+        Glossary
+      </Link>
     </footer>
   );
 }

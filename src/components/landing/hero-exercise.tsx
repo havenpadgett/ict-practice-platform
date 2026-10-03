@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { GlossaryText } from "@/components/glossary/glossary-text";
 import { CandlestickChart } from "@/components/practice/candlestick-chart";
 import { ExerciseControls } from "@/components/practice/exercise-controls";
 import { ManualEntry } from "@/components/practice/manual-entry";
@@ -32,7 +33,9 @@ export function HeroExercise({ exercise }: { exercise: PublicZoneExercise }) {
           {conceptShortName(exercise.concept)} · {DIFFICULTY_LABELS[exercise.difficulty]}
         </p>
       </div>
-      <p className="mt-2 px-1 text-base text-foreground sm:text-lg">{exercise.prompt}</p>
+      <p className="mt-2 px-1 text-base text-foreground sm:text-lg">
+        <GlossaryText text={exercise.prompt} />
+      </p>
 
       <div className="mt-3">
         <CandlestickChart
@@ -62,7 +65,11 @@ export function HeroExercise({ exercise }: { exercise: PublicZoneExercise }) {
         ) : c.result ? (
           <div>
             <Verdict verdict={c.result.verdict} />
-            {c.result.failureMessage && <p className="mt-2 text-sm text-foreground">{c.result.failureMessage}</p>}
+            {c.result.failureMessage && (
+              <p className="mt-2 text-sm text-foreground">
+                <GlossaryText text={c.result.failureMessage} />
+              </p>
+            )}
             {c.result.checks && c.result.checks.length > 0 && (
               <ul className="mt-3 space-y-2.5">
                 {c.result.checks.map((check) => (
@@ -72,7 +79,9 @@ export function HeroExercise({ exercise }: { exercise: PublicZoneExercise }) {
                 ))}
               </ul>
             )}
-            <p className="mt-3 text-sm text-muted">{c.result.explanation}</p>
+            <p className="mt-3 text-sm text-muted">
+              <GlossaryText text={c.result.explanation} />
+            </p>
 
             <div className="mt-5 border-t border-line pt-4">
               <p className="text-sm text-foreground">

@@ -5,6 +5,7 @@
 // answer was fundamentally sound, just not optimal, and is drawn as its own
 // middle state rather than folded into pass or fail.
 
+import { GlossaryText } from "@/components/glossary/glossary-text";
 import type { Verdict3 } from "@/lib/verdict";
 
 type IconStatus = "correct" | "could_improve" | "incorrect" | "info";
@@ -64,7 +65,7 @@ export function CheckRow({ verdict, label, children }: { verdict: Verdict3 | nul
         <p className="text-sm font-medium text-foreground">
           {label} {verdict !== null && <span className={tone}>· {DEFAULT_LABEL[verdict].toLowerCase()}</span>}
         </p>
-        {children && <p className="mt-0.5 text-sm text-muted">{children}</p>}
+        {children && <p className="mt-0.5 text-sm text-muted">{typeof children === "string" ? <GlossaryText text={children} /> : children}</p>}
       </div>
     </li>
   );

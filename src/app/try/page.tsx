@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
+import { GlossaryText } from "@/components/glossary/glossary-text";
 import { LoadingState } from "@/components/loading-state";
 import { RecognitionExercise, type RecognitionReveal } from "@/components/practice/recognition-exercise";
 import { useAuth } from "@/contexts/auth-context";
@@ -167,7 +168,9 @@ export default function TryPage() {
                 exercise={exercise}
                 prompt={
                   <div>
-                    <p className="text-lg leading-snug text-foreground sm:text-xl">{exercise.prompt}</p>
+                    <p className="text-lg leading-snug text-foreground sm:text-xl">
+                      <GlossaryText text={exercise.prompt} />
+                    </p>
                     <p className="mt-1.5 text-xs text-muted">
                       {DIFFICULTY_LABELS[exercise.difficulty]} · {conceptShortName(exercise.concept)}
                     </p>

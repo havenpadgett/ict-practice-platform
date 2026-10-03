@@ -12,6 +12,8 @@ import { RecognitionExercise } from "@/components/practice/recognition-exercise"
 import { SessionLengthPicker } from "@/components/practice/session-length-picker";
 import { SessionSummary } from "@/components/practice/session-summary";
 import { SaveStatus } from "@/components/save-status";
+import { GlossaryScope } from "@/components/glossary/term";
+import { GlossaryText } from "@/components/glossary/glossary-text";
 import { ShareButton } from "@/components/share-button";
 import { gradeFreeTradeScenario, gradeGuided, gradeRecognition, loadSessionExercises } from "@/app/practice/actions";
 import { getExerciseMeta } from "@/data/catalog";
@@ -789,7 +791,9 @@ export default function PracticePage() {
   ) : null;
   const prompt = (
     <div>
-      <p className="text-lg leading-snug text-foreground sm:text-xl">{exercise.prompt}</p>
+      <p className="text-lg leading-snug text-foreground sm:text-xl">
+        <GlossaryText text={exercise.prompt} />
+      </p>
       <p className="mt-1.5 text-xs text-muted tabular-nums">
         Score {session.correct_count}/{attemptedCount} · {DIFFICULTY_LABELS[exercise.difficulty]} · {conceptShortName(exercise.concept)}
       </p>
@@ -799,101 +803,103 @@ export default function PracticePage() {
   return (
     <div className="flex flex-1 flex-col">
       <div className="page max-w-7xl pt-6 sm:pt-8">
-        {/* Everything above the chart is quiet: where you are (eyebrow +
-            thin progress line). The chart is the focus. */}
-        <div className="flex items-baseline justify-between gap-4">
-          <h1 className="eyebrow">
-            {conceptMeta.title}
-            {isMixedKind && <> · {getConceptMeta(exercise.concept).pickerLabel}</>}
-          </h1>
-          <div className="flex items-baseline gap-4">
-            <p className="eyebrow tabular-nums">
-              {session.current_index + 1} / {session.exercise_order.length}
-            </p>
-            {/* Leaves the session saved: the picker offers Continue. */}
-            <button type="button" onClick={() => setShowPicker(true)} className="btn-link -my-3 justify-center text-xs no-underline hover:underline">
-              Exit
-            </button>
+        <GlossaryScope scopeKey={`${session.session_id}:${session.current_index}`}>
+          {/* Everything above the chart is quiet: where you are (eyebrow +
+              thin progress line). The chart is the focus. */}
+          <div className="flex items-baseline justify-between gap-4">
+            <h1 className="eyebrow">
+              {conceptMeta.title}
+              {isMixedKind && <> · {getConceptMeta(exercise.concept).pickerLabel}</>}
+            </h1>
+            <div className="flex items-baseline gap-4">
+              <p className="eyebrow tabular-nums">
+                {session.current_index + 1} / {session.exercise_order.length}
+              </p>
+              {/* Leaves the session saved: the picker offers Continue. */}
+              <button type="button" onClick={() => setShowPicker(true)} className="btn-link -my-3 justify-center text-xs no-underline hover:underline">
+                Exit
+              </button>
+            </div>
           </div>
-        </div>
-        <div
-          className="mt-3 mb-6 h-0.5 overflow-hidden rounded-full bg-line"
-          role="progressbar"
-          aria-label="Session progress"
-          aria-valuemin={0}
-          aria-valuemax={session.exercise_order.length}
-          aria-valuenow={session.current_index}
-        >
           <div
-            className="h-full bg-accent transition-[width]"
-            style={{ width: `${(session.current_index / session.exercise_order.length) * 100}%` }}
-          />
-        </div>
-
-        {exercise.answer_type === "free" ? (
-          restored?.key === progressKey && (
-            <FreeTradeExercise
-              key={exercise.exercise_id}
-              exercise={exercise}
-              prompt={prompt}
-              footer={footer}
-              initialDraft={restored.draft}
-              initialGraded={restored.graded}
-              onDraftChange={(draft) => persistProgress({ draft })}
-              onGrade={gradeFreeTradeAttempt}
-              onNext={handleNext}
-              nextLabel={nextLabel}
+            className="mt-3 mb-6 h-0.5 overflow-hidden rounded-full bg-line"
+            role="progressbar"
+            aria-label="Session progress"
+            aria-valuemin={0}
+            aria-valuemax={session.exercise_order.length}
+            aria-valuenow={session.current_index}
+          >
+            <div
+              className="h-full bg-accent transition-[width]"
+              style={{ width: `${(session.current_index / session.exercise_order.length) * 100}%` }}
             />
-          )
-        ) : exercise.answer_type === "guided" ? (
-          restored?.key === progressKey && (
-            <GuidedExercise
-              key={exercise.exercise_id}
+          </div>
+
+          {exercise.answer_type === "free" ? (
+            restored?.key === progressKey && (
+              <FreeTradeExercise
+                key={exercise.exercise_id}
+                exercise={exercise}
+                prompt={prompt}
+                footer={footer}
+                initialDraft={restored.draft}
+                initialGraded={restored.graded}
+                onDraftChange={(draft) => persistProgress({ draft })}
+                onGrade={gradeFreeTradeAttempt}
+                onNext={handleNext}
+                nextLabel={nextLabel}
+              />
+            )
+          ) : exercise.answer_type === "guided" ? (
+            restored?.key === progressKey && (
+              <GuidedExercise
+                key={exercise.exercise_id}
+                exercise={exercise}
+                prompt={prompt}
+                footer={footer}
+                initialDraft={restored.draft}
+                initialGraded={restored.graded}
+                onDraftChange={(draft) => persistProgress({ draft })}
+                onGrade={gradeGuidedAnswer}
+                onNext={handleNext}
+                nextLabel={nextLabel}
+                share={share}
+              />
+            )
+          ) : (
+            <RecognitionExercise
               exercise={exercise}
               prompt={prompt}
-              footer={footer}
-              initialDraft={restored.draft}
-              initialGraded={restored.graded}
-              onDraftChange={(draft) => persistProgress({ draft })}
-              onGrade={gradeGuidedAnswer}
+              userRegion={userRegion}
+              onUserRegionChange={setUserRegion}
+              userLevel={userLevel}
+              onUserLevelChange={setUserLevel}
+              userChoice={userChoice}
+              onUserChoiceChange={setUserChoice}
+              result={result}
+              reveal={reveal}
+              isRetry={retrying}
+              grading={grading}
+              gradeError={gradeError}
+              canRetryGrade={pendingAnswer !== null}
+              onRetryGrade={retryGrade}
+              onSkip={handleNext}
+              onSubmit={handleSubmit}
+              onNoAnswer={handleNoAnswer}
               onNext={handleNext}
               nextLabel={nextLabel}
+              onRetryChart={handleRetryChart}
+              footer={footer}
               share={share}
+              confidence={confidence}
+              onConfidenceChange={setConfidence}
             />
-          )
-        ) : (
-          <RecognitionExercise
-            exercise={exercise}
-            prompt={prompt}
-            userRegion={userRegion}
-            onUserRegionChange={setUserRegion}
-            userLevel={userLevel}
-            onUserLevelChange={setUserLevel}
-            userChoice={userChoice}
-            onUserChoiceChange={setUserChoice}
-            result={result}
-            reveal={reveal}
-            isRetry={retrying}
-            grading={grading}
-            gradeError={gradeError}
-            canRetryGrade={pendingAnswer !== null}
-            onRetryGrade={retryGrade}
-            onSkip={handleNext}
-            onSubmit={handleSubmit}
-            onNoAnswer={handleNoAnswer}
-            onNext={handleNext}
-            nextLabel={nextLabel}
-            onRetryChart={handleRetryChart}
-            footer={footer}
-            share={share}
-            confidence={confidence}
-            onConfidenceChange={setConfidence}
-          />
-        )}
+          )}
 
-        {/* Unanswered = unfinished; once graded there's nothing to lose. A
-            retry is never recorded, so it has nothing to lose either. */}
-        <NavigationGuard active={result === null && !flowGraded && !retrying} />
+          {/* Unanswered = unfinished; once graded there's nothing to lose. A
+              retry is never recorded, so it has nothing to lose either. */}
+          <NavigationGuard active={result === null && !flowGraded && !retrying} />
+        </GlossaryScope>
       </div>
 
       <DisclaimerFooter />

@@ -206,6 +206,17 @@ h4 {
     @apply text-[10px] font-semibold tracking-[0.06em];
   }
 
+  /* ---- Glossary terms -------------------------------------------------- */
+  /* A term with a definition on hover, focus or tap: a quiet dotted
+   * underline, no color, so a paragraph of them still reads as prose. */
+  .term {
+    @apply inline cursor-help rounded-sm p-0 text-inherit underline decoration-dotted decoration-muted underline-offset-4 hover:decoration-foreground;
+    font: inherit;
+    text-align: inherit;
+    background: none;
+    border: 0;
+  }
+
   /* ---- Status text ---------------------------------------------------- */
   .text-error {
     @apply text-sm text-danger;
