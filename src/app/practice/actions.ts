@@ -28,7 +28,9 @@ import { createClient } from "@/lib/supabase/server";
 
 type Failure = { ok: false; error: string };
 
-export type AttemptContext = { sessionId: string; responseTimeMs: number };
+/** What the browser reports about an attempt. confidence is the optional
+ * 1-3 rating given before submitting; anything else is read as skipped. */
+export type AttemptContext = { sessionId: string; responseTimeMs: number; confidence?: number | null };
 
 export type RecognitionGrading = {
   ok: true;

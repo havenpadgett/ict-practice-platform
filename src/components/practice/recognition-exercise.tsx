@@ -9,6 +9,7 @@ import { FeedbackPanel } from "@/components/practice/feedback-panel";
 import { ManualEntry } from "@/components/practice/manual-entry";
 import type { ZoneAnswer } from "@/data/exercises";
 import { getConceptMeta } from "@/lib/concepts";
+import type { Confidence } from "@/lib/confidence";
 import type { GradeResult, UserRegion } from "@/lib/grading";
 import type { PublicChoiceExercise, PublicLevelExercise, PublicZoneExercise } from "@/lib/public-exercise";
 
@@ -43,6 +44,8 @@ export function RecognitionExercise({
   footer,
   feedbackActions,
   share,
+  confidence,
+  onConfidenceChange,
 }: {
   exercise: PublicZoneExercise | PublicLevelExercise | PublicChoiceExercise;
   prompt: ReactNode;
@@ -73,6 +76,9 @@ export function RecognitionExercise({
   feedbackActions?: ReactNode;
   /** A share action for the chart, shown with the feedback. */
   share?: ReactNode;
+  /** The optional confidence rating, given before submitting. */
+  confidence?: Confidence | null;
+  onConfidenceChange?: (value: Confidence | null) => void;
 }) {
   const [showWhy, setShowWhy] = useState(false);
   const answering = result === null && !grading;
@@ -152,7 +158,15 @@ export function RecognitionExercise({
     );
   } else if (exercise.answer_type === "choice") {
     controls = (
-      <ChoiceControls options={exercise.options} selected={userChoice} onSelect={onUserChoiceChange} onSubmit={onSubmit} canSubmit={canSubmit} />
+      <ChoiceControls
+        options={exercise.options}
+        selected={userChoice}
+        onSelect={onUserChoiceChange}
+        onSubmit={onSubmit}
+        canSubmit={canSubmit}
+        confidence={confidence}
+        onConfidenceChange={onConfidenceChange}
+      />
     );
   } else {
     controls = (
@@ -164,6 +178,8 @@ export function RecognitionExercise({
               : "Click or tap the chart to place a line. Drag to adjust it."
           }
           canSubmit={canSubmit}
+          confidence={confidence}
+          onConfidenceChange={onConfidenceChange}
           onSubmit={onSubmit}
           onNoAnswer={onNoAnswer}
           noAnswerLabel={exercise.noAnswerLabel}

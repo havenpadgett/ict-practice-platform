@@ -7,6 +7,7 @@ import { describeError } from "@/lib/errors";
 import type { GradeResult, UserAnswer, UserRegion } from "@/lib/grading";
 import type { PublicChoiceExercise, PublicLevelExercise, PublicZoneExercise } from "@/lib/public-exercise";
 import type { RecognitionReveal } from "@/components/practice/recognition-exercise";
+import type { Confidence } from "@/lib/confidence";
 
 export type PublicRecognition = PublicZoneExercise | PublicLevelExercise | PublicChoiceExercise;
 
@@ -14,7 +15,7 @@ export type PublicRecognition = PublicZoneExercise | PublicLevelExercise | Publi
  * drawn, the grading round-trip (the key comes back only with the verdict),
  * and where the graded attempt goes (src/hooks/use-record-result.ts). Shared
  * by the challenge page and the landing page's embedded exercise. */
-export function useChallengeRecognition(exercise: PublicRecognition, source: string, confidence: number | null = null) {
+export function useChallengeRecognition(exercise: PublicRecognition, source: string) {
   const recorder = useRecordResult();
   const started = useRef(0);
   useEffect(() => {
@@ -28,6 +29,7 @@ export function useChallengeRecognition(exercise: PublicRecognition, source: str
   const [reveal, setReveal] = useState<RecognitionReveal | null>(null);
   const [grading, setGrading] = useState(false);
   const [gradeError, setGradeError] = useState<string | null>(null);
+  const [confidence, setConfidence] = useState<Confidence | null>(null);
   const [pending, setPending] = useState<UserAnswer | null>(null);
   /** The answer that was graded, for the share card. */
   const [answered, setAnswered] = useState<UserAnswer | null>(null);
@@ -73,7 +75,7 @@ export function useChallengeRecognition(exercise: PublicRecognition, source: str
 
   return {
     recorder,
-    region, setRegion, level, setLevel, choice, setChoice,
+    region, setRegion, level, setLevel, choice, setChoice, confidence, setConfidence,
     result, reveal, grading, gradeError, answered,
     canRetryGrade: pending !== null,
     retryGrade: () => pending && void submit(pending),

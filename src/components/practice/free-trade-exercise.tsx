@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
 import { CandlestickChart } from "@/components/practice/candlestick-chart";
+import { ConfidencePicker } from "@/components/confidence-picker";
 import { ChartFrame, ExerciseLayout } from "@/components/practice/exercise-layout";
 import { FreeTradeFeedback } from "@/components/practice/free-trade-feedback";
 import { ManualEntry } from "@/components/practice/manual-entry";
@@ -16,6 +17,7 @@ import {
   type FreeTradeGradeResult,
   type FreeTradePosition,
 } from "@/lib/free-trade-grading";
+import type { Confidence } from "@/lib/confidence";
 import { protectiveStopBand } from "@/lib/verdict";
 
 type Speed = "slow" | "normal" | "fast";
@@ -73,6 +75,8 @@ type State = {
   trade: DraftTrade | null;
   activeField: LevelField;
   exit: FreeTradeExit | null;
+  /** The optional "how sure are you" rating, given when the trade is placed. */
+  confidence: Confidence | null;
 };
 
 type Action =
@@ -83,6 +87,7 @@ type Action =
   | { type: "set_active_field"; field: LevelField }
   | { type: "set_level"; price: number }
   | { type: "cancel_trade" }
+  | { type: "set_confidence"; confidence: Confidence | null }
   | { type: "confirm_trade" }
   | { type: "end" };
 
@@ -94,6 +99,7 @@ const initialState: State = {
   trade: null,
   activeField: "stop",
   exit: null,
+  confidence: null,
 };
 
 function isPlacementValid(trade: DraftTrade | null): trade is DraftTrade & { stop: number; target: number } {
@@ -178,6 +184,8 @@ function reduce(exercise: FreeTradeExerciseData, state: State, action: Action): 
     case "cancel_trade":
       if (state.phase !== "placing") return state;
       return { ...state, phase: "watching", trade: null };
+    case "set_confidence":
+      return { ...state, confidence: action.confidence };
     case "confirm_trade":
       if (state.phase !== "placing" || !isPlacementValid(state.trade)) return state;
       return { ...state, phase: "in_trade" };
@@ -194,6 +202,8 @@ function formatPrice(price: number): string {
 export type FreeTradeAttempt = {
   position: FreeTradePosition | null;
   exit: FreeTradeExit | null;
+  /** Only given when a trade was placed; a No Trade has no rating. */
+  confidence: Confidence | null;
 };
 
 export type FreeTradeGradeResponse = { grade: FreeTradeGradeResult; key: FreeTradeAnswer };
@@ -216,7 +226,8 @@ function readDraft(d: unknown, hiddenCount: number): State | null {
   if (t !== null && (typeof t !== "object" || (t.direction !== "long" && t.direction !== "short") || typeof t.entry !== "number" || typeof t.entryIndex !== "number")) {
     return null;
   }
-  return { ...(x as unknown as State), playing: false };
+  const confidence = x.confidence === 1 || x.confidence === 2 || x.confidence === 3 ? x.confidence : null;
+  return { ...(x as unknown as State), playing: false, confidence };
 }
 
 function readGraded(g: unknown): FreeTradeGradeResponse | null {
@@ -284,10 +295,10 @@ export function FreeTradeExercise({
   const requestGrade = useCallback(async () => {
     const position = state.trade && isPlacementValid(state.trade) ? toPosition(state.trade) : null;
     setGrading(true);
-    const res = await onGrade({ position, exit: state.exit });
+    const res = await onGrade({ position, exit: state.exit, confidence: position ? state.confidence : null });
     setGrading(false);
     if (res) setGraded(res);
-  }, [state.trade, state.exit, onGrade]);
+  }, [state.trade, state.exit, state.confidence, onGrade]);
 
   // Grade exactly once when the scenario ends; a failure offers a retry.
   useEffect(() => {
@@ -556,6 +567,11 @@ export function FreeTradeExercise({
                     {stopError ?? targetError}
                   </p>
                 )}
+                <ConfidencePicker
+                  className="mt-4"
+                  value={state.confidence}
+                  onChange={(confidence) => dispatch({ type: "set_confidence", confidence })}
+                />
                 <div className="mt-4 flex flex-wrap gap-2">
                   <button
                     type="button"

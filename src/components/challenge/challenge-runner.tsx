@@ -12,6 +12,7 @@ import { useRecordResult } from "@/hooks/use-record-result";
 import { conceptShortName, DIFFICULTY_LABELS } from "@/lib/concepts";
 import { practiceMoreHref, signUpHref } from "@/lib/challenge";
 import { describeError } from "@/lib/errors";
+import type { Confidence } from "@/lib/confidence";
 import type { GuidedUserAnswer } from "@/lib/guided-grading";
 import type { PublicChoiceExercise, PublicGuidedExercise, PublicLevelExercise, PublicZoneExercise } from "@/lib/public-exercise";
 
@@ -125,6 +126,8 @@ function RecognitionChallenge({
       onSkip={() => router.push("/")}
       onSubmit={c.submitCurrent}
       onNoAnswer={c.submitNone}
+      confidence={c.confidence}
+      onConfidenceChange={c.setConfidence}
       onNext={() => {}}
       nextLabel=""
       onRetryChart={() => {}}
@@ -157,10 +160,10 @@ function GuidedChallenge({
   const [graded, setGraded] = useState<GuidedUserAnswer | null>(null);
   const practiceHref = practiceMoreHref(exercise.concept);
 
-  async function gradeGuided(answer: GuidedUserAnswer): Promise<GuidedGradeResponse | null> {
+  async function gradeGuided(answer: GuidedUserAnswer, confidence: Confidence | null): Promise<GuidedGradeResponse | null> {
     setGradeError(null);
     try {
-      const res = await gradeChallengeGuided(exercise.exercise_id, answer, { source, responseTimeMs: Date.now() - started.current });
+      const res = await gradeChallengeGuided(exercise.exercise_id, answer, { source, responseTimeMs: Date.now() - started.current, confidence });
       if (!res.ok) {
         setGradeError(res.error);
         return null;

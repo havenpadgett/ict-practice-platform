@@ -3,6 +3,7 @@
 // Server Functions are reachable by direct POST, so nothing here trusts the
 // shape of what the browser sends.
 
+import type { Confidence } from "@/lib/confidence";
 import type { FreeTradeExit, FreeTradePosition } from "@/lib/free-trade-grading";
 import { isStopOnLosingSide, isTargetOnWinningSide } from "@/lib/free-trade-grading";
 import type { UserAnswer } from "@/lib/grading";
@@ -20,9 +21,7 @@ export function isNumOrNull(x: unknown): x is number | null {
 }
 
 /** A confidence rating: 1 (a guess), 2 (fairly sure) or 3 (certain). Null
- * and anything else mean "skipped" (docs/ANALYTICS.md → Confidence). */
-export type Confidence = 1 | 2 | 3;
-
+ * and anything else mean "skipped" (src/lib/confidence.ts). */
 export function readConfidence(x: unknown): Confidence | null {
   return x === 1 || x === 2 || x === 3 ? x : null;
 }
@@ -79,10 +78,11 @@ export function isExit(p: unknown): p is FreeTradeExit | null {
 }
 
 /** Clamp what the browser reports about an attempt to storable values. */
-export function clampContext(c: { sessionId?: unknown; responseTimeMs?: unknown } | null | undefined) {
+export function clampContext(c: { sessionId?: unknown; responseTimeMs?: unknown; confidence?: unknown } | null | undefined) {
   return {
     sessionId: typeof c?.sessionId === "string" ? c.sessionId.slice(0, 100) : "",
     responseTimeMs: isNum(c?.responseTimeMs) ? Math.min(MAX_RESPONSE_MS, Math.max(0, Math.round(c.responseTimeMs))) : 0,
     attemptNumber: 0,
+    confidence: readConfidence(c?.confidence),
   };
 }

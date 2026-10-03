@@ -99,10 +99,13 @@ function seed(): Db {
       // Accuracy improves a little over the three weeks.
       const correct = r() < Math.min(0.95, (SKILL[e.concept] ?? 0.6) + (21 - d) * 0.008);
       const prior = db.attempts.filter((a) => a.exercise_id === e.exercise_id).length;
+      // About two thirds are rated. Feeling sure only loosely tracks being right.
+      const roll = r();
+      const confidence = r() < 0.34 ? null : correct ? (roll < 0.45 ? 3 : roll < 0.8 ? 2 : 1) : roll < 0.32 ? 3 : roll < 0.68 ? 2 : 1;
       db.attempts.push({
         id: crypto.randomUUID(), user_id: DEMO_USER.id, exercise_id: e.exercise_id, session_id: sessionId,
         concept: e.concept, difficulty: e.difficulty, answer_type: e.answer_type, is_correct: correct,
-        response_time_ms: Math.round(8000 + r() * 40000), attempt_number: prior + 1,
+        response_time_ms: Math.round(8000 + r() * 40000), attempt_number: prior + 1, confidence,
         created_at: new Date(start + (i + 1) * 90_000).toISOString(),
         ...answerFields(e, correct, r),
       });

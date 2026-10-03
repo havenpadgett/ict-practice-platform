@@ -19,6 +19,7 @@ import type { ZoneAnswer } from "@/data/exercises";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { DASHBOARD_COLUMNS, fetchAttempts, insertAttempt, nextAttemptNumber, type DbAttempt, type NewAttempt } from "@/lib/attempts";
 import { canShare, challengePath } from "@/lib/challenge";
+import type { Confidence } from "@/lib/confidence";
 import { describeError, type FriendlyError } from "@/lib/errors";
 import { modeFor, track, type SessionSource } from "@/lib/events";
 import { CONCEPT_LIST, conceptShortName, DIFFICULTY_LABELS, getConceptMeta, type Concept } from "@/lib/concepts";
@@ -59,6 +60,8 @@ export default function PracticePage() {
   const [userRegion, setUserRegion] = useState<UserRegion | null>(null);
   const [userLevel, setUserLevel] = useState<number | null>(null);
   const [userChoice, setUserChoice] = useState<string | null>(null);
+  /** The optional "how sure are you" rating for the exercise on screen. */
+  const [confidence, setConfidence] = useState<Confidence | null>(null);
   const [result, setResult] = useState<GradeResult | null>(null);
   /** The key to draw on the chart, returned by the server with the verdict. */
   const [reveal, setReveal] = useState<{ zone: ZoneAnswer | null; level: number | null } | null>(null);
@@ -130,7 +133,7 @@ export default function PracticePage() {
     if (!progressKey || !session) return;
     const p = loadProgress(session);
     progressRef.current = { draft: p?.draft ?? null, graded: p?.graded ?? null, started_at: p?.started_at ?? null };
-    const draft = (p?.draft ?? null) as { region?: unknown; level?: unknown; choice?: unknown } | null;
+    const draft = (p?.draft ?? null) as { region?: unknown; level?: unknown; choice?: unknown; confidence?: unknown } | null;
     const graded = (p?.graded ?? null) as { result?: unknown; reveal?: unknown } | null;
     if (draft && typeof draft === "object") {
       const r = draft.region as UserRegion | null | undefined;
@@ -140,6 +143,8 @@ export default function PracticePage() {
       }
       if (typeof draft.level === "number" && Number.isFinite(draft.level)) setUserLevel(draft.level);
       if (typeof draft.choice === "string") setUserChoice(draft.choice);
+      const savedConfidence = (draft as { confidence?: unknown }).confidence;
+      if (savedConfidence === 1 || savedConfidence === 2 || savedConfidence === 3) setConfidence(savedConfidence);
     }
     if (graded && typeof graded === "object") {
       if (graded.result && typeof graded.result === "object" && "isCorrect" in graded.result) {
@@ -171,11 +176,11 @@ export default function PracticePage() {
   // Autosave a recognition answer as it's drawn or picked.
   useEffect(() => {
     if (!currentLoaded || restored?.key !== progressKey) return;
-    if (userRegion === null && userLevel === null && userChoice === null && progressRef.current.draft === null) return;
-    persistProgress({ draft: { region: userRegion, level: userLevel, choice: userChoice } });
+    if (userRegion === null && userLevel === null && userChoice === null && confidence === null && progressRef.current.draft === null) return;
+    persistProgress({ draft: { region: userRegion, level: userLevel, choice: userChoice, confidence } });
     // persistProgress reads refs only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userRegion, userLevel, userChoice]);
+  }, [userRegion, userLevel, userChoice, confidence]);
 
   // Fetch the session's exercises from the server (without answer keys).
   // Each session frames its charts differently (src/lib/framing.ts), so
@@ -318,6 +323,7 @@ export default function PracticePage() {
     setUserRegion(null);
     setUserLevel(null);
     setUserChoice(null);
+    setConfidence(null);
     setResult(null);
     setReveal(null);
     setGradeError(null);
@@ -606,7 +612,7 @@ export default function PracticePage() {
     setGradeError(null);
     setPendingAnswer({ answer, responseTimeMs });
     try {
-      const res = await gradeRecognition(exerciseId, answer, { sessionId: session.session_id, responseTimeMs });
+      const res = await gradeRecognition(exerciseId, answer, { sessionId: session.session_id, responseTimeMs, confidence });
       if (!res.ok) {
         setGradeError(res.error);
         return;
@@ -654,6 +660,7 @@ export default function PracticePage() {
     setUserRegion(null);
     setUserLevel(null);
     setUserChoice(null);
+    setConfidence(null);
   }
 
   async function retryGrade() {
@@ -662,13 +669,14 @@ export default function PracticePage() {
 
   // Guided Entry's multi-step flow finalizes itself (Submit Setup or No
   // Trade at any step) and calls this once.
-  async function gradeGuidedAnswer(answer: GuidedUserAnswer): Promise<GuidedGradeResponse | null> {
+  async function gradeGuidedAnswer(answer: GuidedUserAnswer, guidedConfidence: Confidence | null): Promise<GuidedGradeResponse | null> {
     if (!session) return null;
     setGradeError(null);
     try {
       const res = await gradeGuided(exerciseId, answer, {
         sessionId: session.session_id,
         responseTimeMs: msSince(exerciseStartRef.current),
+        confidence: guidedConfidence,
       });
       if (!res.ok) {
         setGradeError(res.error);
@@ -694,6 +702,7 @@ export default function PracticePage() {
       const res = await gradeFreeTradeScenario(exerciseId, attempt.position, attempt.exit, {
         sessionId: session.session_id,
         responseTimeMs: msSince(exerciseStartRef.current),
+        confidence: attempt.confidence,
       });
       if (!res.ok) {
         setGradeError(res.error);
@@ -728,6 +737,7 @@ export default function PracticePage() {
     setUserRegion(null);
     setUserLevel(null);
     setUserChoice(null);
+    setConfidence(null);
     setResult(null);
     setReveal(null);
     setSaveError(null);
@@ -871,6 +881,8 @@ export default function PracticePage() {
             onRetryChart={handleRetryChart}
             footer={footer}
             share={share}
+            confidence={confidence}
+            onConfidenceChange={setConfidence}
           />
         )}
 

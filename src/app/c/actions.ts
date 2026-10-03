@@ -11,7 +11,7 @@
 import type { ZoneAnswer } from "@/data/exercises";
 import type { NewAttempt } from "@/lib/attempts";
 import { buildAnswerAttempt, buildGuidedAttempt } from "@/lib/attempt-rows";
-import { clampContext, isGuidedAnswer, isUserAnswer, readConfidence } from "@/lib/answer-validation";
+import { clampContext, isGuidedAnswer, isUserAnswer } from "@/lib/answer-validation";
 import { resolveChallenge } from "@/lib/challenge-source";
 import { gradeAttempt, type GradeResult, type UserAnswer } from "@/lib/grading";
 import { gradeGuidedAttempt, type GuidedGradeResult, type GuidedUserAnswer } from "@/lib/guided-grading";
@@ -43,7 +43,7 @@ const UNAVAILABLE: Failure = { ok: false, error: "This challenge isn't available
 const BAD_ANSWER: Failure = { ok: false, error: "That answer couldn't be read. Try again." };
 
 function attemptMeta(sessionId: string, ctx: ChallengeContext) {
-  return { ...clampContext({ sessionId, responseTimeMs: ctx?.responseTimeMs }), confidence: readConfidence(ctx?.confidence) };
+  return clampContext({ sessionId, responseTimeMs: ctx?.responseTimeMs, confidence: ctx?.confidence });
 }
 
 export async function gradeChallengeRecognition(

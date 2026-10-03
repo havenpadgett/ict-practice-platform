@@ -115,6 +115,8 @@ export function HeroExercise({ exercise }: { exercise: PublicZoneExercise }) {
               onNoAnswer={c.submitNone}
               noAnswerLabel={exercise.noAnswerLabel}
               onClear={c.region ? () => c.setRegion(null) : undefined}
+              confidence={c.confidence}
+              onConfidenceChange={c.setConfidence}
             />
             <ManualEntry kind="zone" candleCount={exercise.candles.length} onRegion={c.setRegion} />
           </>

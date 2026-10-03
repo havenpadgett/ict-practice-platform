@@ -111,6 +111,22 @@ describe("grading Server Functions", () => {
     });
   });
 
+  it("records the optional confidence rating on the row, and only a real one", async () => {
+    const rated = await gradeRecognition(zone.exercise_id, { type: "none" }, { ...ctx, confidence: 3 });
+    expect(rated).toMatchObject({ ok: true, row: { confidence: 3 } });
+    for (const junk of [0, 4, 2.5, "3", null, undefined, NaN]) {
+      // @ts-expect-error — direct POSTs can send anything
+      const res = await gradeRecognition(zone.exercise_id, { type: "none" }, { ...ctx, confidence: junk });
+      expect(res).toMatchObject({ ok: true, row: { confidence: null } });
+    }
+    const guidedRated = await gradeGuided(
+      exercises.find((e) => e.answer_type === "guided" && isPracticeReady(e))!.exercise_id,
+      { bias: "unclear", entry: null, stop: null, target: null, declaredTrade: false },
+      { ...ctx, confidence: 1 },
+    );
+    expect(guidedRated).toMatchObject({ ok: true, row: { confidence: 1 } });
+  });
+
   it("won't grade an unreviewed scenario or a malformed answer", async () => {
     expect(await gradeRecognition(unreviewed.exercise_id, { type: "none" }, ctx)).toMatchObject({ ok: false });
     // @ts-expect-error — deliberately malformed input, as a direct POST could send

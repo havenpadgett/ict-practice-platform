@@ -7,7 +7,9 @@ import { GuidedBiasControls } from "@/components/practice/guided-bias-controls";
 import { GuidedFeedback } from "@/components/practice/guided-feedback";
 import { GuidedLevelControls } from "@/components/practice/guided-level-controls";
 import { GuidedStepper, type StepperItem } from "@/components/practice/guided-stepper";
+import { ConfidencePicker } from "@/components/confidence-picker";
 import type { GuidedBias } from "@/data/exercises";
+import type { Confidence } from "@/lib/confidence";
 import { computeAchievedRR, type GuidedGradeResult, type GuidedUserAnswer } from "@/lib/guided-grading";
 import type { PublicGuidedExercise } from "@/lib/public-exercise";
 
@@ -27,6 +29,8 @@ export type GuidedDraft = {
   target: number | null;
   /** How the attempt was finalized: Submit setup (true) or No Trade. */
   declared?: boolean;
+  /** The optional "how sure are you" rating for the setup. */
+  confidence?: Confidence | null;
 };
 
 const STEPS: Step[] = ["bias", "entry", "stop", "target", "done"];
@@ -37,7 +41,7 @@ function readDraft(d: unknown): GuidedDraft | null {
   const x = d as Record<string, unknown>;
   const biasOk = x.bias === null || x.bias === "bullish" || x.bias === "bearish" || x.bias === "unclear";
   if (!STEPS.includes(x.step as Step) || !biasOk || !numOrNull(x.entry) || !numOrNull(x.stop) || !numOrNull(x.target)) return null;
-  return x as GuidedDraft;
+  return { ...(x as GuidedDraft), confidence: x.confidence === 1 || x.confidence === 2 || x.confidence === 3 ? x.confidence : null };
 }
 
 function readGraded(g: unknown): GuidedGradeResponse | null {
@@ -76,7 +80,7 @@ export function GuidedExercise({
   /** Called the instant the attempt is finalized (Submit Setup or No Trade
    * at any step). The parent grades it on the server and records it; null
    * means grading failed and the parent is showing why. */
-  onGrade: (answer: GuidedUserAnswer) => Promise<GuidedGradeResponse | null>;
+  onGrade: (answer: GuidedUserAnswer, confidence: Confidence | null) => Promise<GuidedGradeResponse | null>;
   onNext: () => void;
   nextLabel: string;
   /** Restored after a refresh: the flow so far, and the grade if it was
@@ -100,13 +104,14 @@ export function GuidedExercise({
   const [target, setTarget] = useState<number | null>(restored.draft?.target ?? null);
   const [graded, setGraded] = useState<GuidedGradeResponse | null>(restored.graded);
   const [declared, setDeclared] = useState<boolean | null>(restored.draft?.declared ?? null);
+  const [confidence, setConfidence] = useState<Confidence | null>(restored.draft?.confidence ?? null);
 
   // Autosave the flow as it goes.
   useEffect(() => {
-    onDraftChange?.({ step, bias, entry, stop, target, ...(declared !== null ? { declared } : {}) });
+    onDraftChange?.({ step, bias, entry, stop, target, confidence, ...(declared !== null ? { declared } : {}) });
     // onDraftChange is a fresh closure each parent render; the values are what matter.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, bias, entry, stop, target, declared]);
+  }, [step, bias, entry, stop, target, declared, confidence]);
   const [grading, setGrading] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
 
@@ -130,7 +135,7 @@ export function GuidedExercise({
     setDeclared(answer.declaredTrade);
     setGrading(true);
     setPending(answer);
-    const res = await onGrade(answer);
+    const res = await onGrade(answer, confidence);
     setGrading(false);
     if (res) {
       setGraded(res);
@@ -231,6 +236,9 @@ export function GuidedExercise({
           <div className="mb-5">
             <GuidedStepper steps={stepperItems} />
           </div>
+        )}
+        {step !== "done" && !grading && !pending && (
+          <ConfidencePicker className="mb-5" value={confidence} onChange={setConfidence} />
         )}
         {(grading || pending) && step !== "done" ? (
           grading ? (

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { AccuracyTrend } from "@/components/analytics/accuracy-trend";
 import { AdaptiveBreakdown } from "@/components/analytics/adaptive-breakdown";
 import { ConceptDifficultyView, ProcessVsOutcomeView, RealVsConstructedView } from "@/components/analytics/depth-views";
+import { ConfidenceView } from "@/components/analytics/confidence-view";
 import { AnalyticsEmptyState } from "@/components/analytics/empty-state";
 import { ExerciseAccuracyList } from "@/components/analytics/exercise-accuracy-list";
 import { FreeTradeStatsView } from "@/components/analytics/free-trade-stats";
@@ -19,6 +20,7 @@ import { formatResponseTime, getAccuracyTrend, getFreeTradeStats, getOverallStat
 import { analyticsInsight } from "@/lib/analytics-insight";
 import { aggregatesFromAttempts, aggregatesFromViews, fetchViewRows, type ViewRows } from "@/lib/analytics-views";
 import { fetchAttempts, type DbAttempt } from "@/lib/attempts";
+import { summarizeConfidence } from "@/lib/confidence";
 import { CONCEPT_LIST, conceptDisplayName, conceptShortName, DIFFICULTY_LABELS } from "@/lib/concepts";
 import { MIN_ATTEMPTS_FOR_ACCURACY } from "@/lib/practice-modes";
 import { conceptTrend, filterAttempts, rateByDifficulty, type ModeFilter } from "@/lib/progress";
@@ -162,6 +164,7 @@ function AnalyticsContent({ attempts, viewRows }: { attempts: DbAttempt[]; viewR
   const difficulty = rateByDifficulty(filtered);
   const hasTrade = filtered.some((a) => a.concept === "GuidedEntry" || a.concept === "FreeTrade");
   const hasReal = aggregates.realVsConstructed.real !== null;
+  const confidence = useMemo(() => summarizeConfidence(filtered), [filtered]);
 
   return (
     <div className="mt-8 space-y-10">
@@ -250,6 +253,14 @@ function AnalyticsContent({ attempts, viewRows }: { attempts: DbAttempt[]; viewR
                 />
               </Sub>
             )}
+          </Section>
+
+          <Section
+            id="an-confidence"
+            title="Confidence versus accuracy"
+            lede="How sure you said you were before submitting, against how often you were right."
+          >
+            <ConfidenceView summary={confidence} />
           </Section>
 
           {hasTrade && (
