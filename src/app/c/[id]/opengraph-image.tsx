@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { cardFonts } from "@/lib/card/fonts";
 import { ChartSvg } from "@/lib/card/chart";
 import { BRAND_COLORS, markDataUri } from "@/lib/brand";
 import { shareableExercise } from "@/lib/challenge-source";
@@ -22,7 +23,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
 
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", background: c.background, padding: 56 }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", background: c.background, padding: 56, fontFamily: "Geist" }}>
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: 380 }}>
           <div style={{ display: "flex", alignItems: "center" }}>
             <img src={markDataUri()} width={48} height={48} alt="" />
@@ -32,7 +33,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             <div style={{ display: "flex", fontSize: 22, letterSpacing: 3, color: c.muted, textTransform: "uppercase", marginBottom: 20 }}>
               {pub ? `${conceptDisplayName(pub.concept)} · ${DIFFICULTY_LABELS[pub.difficulty]}` : "Chart challenge"}
             </div>
-            <div style={{ display: "flex", fontSize: 52, lineHeight: 1.08, color: c.foreground, fontWeight: 700 }}>Can you read this chart?</div>
+            <div style={{ display: "flex", fontSize: 52, lineHeight: 1.08, color: c.foreground, fontWeight: 600 }}>Can you read this chart?</div>
             <div style={{ display: "flex", marginTop: 22, fontSize: 26, color: c.accent, fontWeight: 600 }}>Mark your answer. No account needed.</div>
           </div>
           <div style={{ display: "flex", fontSize: 20, color: c.muted }}>Educational use only.</div>
@@ -65,6 +66,6 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         </div>
       </div>
     ),
-    size,
+    { ...size, fonts: cardFonts },
   );
 }

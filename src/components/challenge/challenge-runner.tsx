@@ -27,8 +27,11 @@ export function ChallengeRunner({
   sharePath,
   signedInCta,
   extra,
+  daily,
 }: {
   exercise: ChallengeExerciseData;
+  /** Set for the daily challenge: puts its date (and streak) on the card. */
+  daily?: { date: string; streak: number };
   /** Which public surface this is, sent with every grade ("challenge"). */
   source: string;
   /** The link someone would share to send this exact chart. */
@@ -39,9 +42,9 @@ export function ChallengeRunner({
   extra?: ReactNode;
 }) {
   if (exercise.answer_type === "guided") {
-    return <GuidedChallenge exercise={exercise} source={source} sharePath={sharePath} extra={extra} />;
+    return <GuidedChallenge exercise={exercise} source={source} sharePath={sharePath} extra={extra} daily={daily} />;
   }
-  return <RecognitionChallenge exercise={exercise} source={source} sharePath={sharePath} signedInCta={signedInCta} extra={extra} />;
+  return <RecognitionChallenge exercise={exercise} source={source} sharePath={sharePath} signedInCta={signedInCta} extra={extra} daily={daily} />;
 }
 
 function promptFor(exercise: ChallengeExerciseData) {
@@ -61,12 +64,14 @@ function RecognitionChallenge({
   sharePath,
   signedInCta,
   extra,
+  daily,
 }: {
   exercise: PublicZoneExercise | PublicLevelExercise | PublicChoiceExercise;
   source: string;
   sharePath: string;
   signedInCta?: ReactNode;
   extra?: ReactNode;
+  daily?: { date: string; streak: number };
 }) {
   const c = useChallengeRecognition(exercise, source);
   const { recorder } = c;
@@ -80,6 +85,15 @@ function RecognitionChallenge({
         error={recorder.error}
         signedIn={recorder.signedIn}
         onRetrySave={() => void recorder.retry()}
+        card={
+          c.answered
+            ? {
+                request: { kind: "result", exerciseId: exercise.exercise_id, answer: { mode: "recognition", answer: c.answered }, ...(daily ? { daily } : {}) },
+                filename: `${exercise.exercise_id}-result.png`,
+                alt: `Share card: ${conceptShortName(exercise.concept)} result, ${c.result.verdict.replace("_", " ")}`,
+              }
+            : undefined
+        }
       />
       {extra}
     </>
@@ -125,11 +139,13 @@ function GuidedChallenge({
   source,
   sharePath,
   extra,
+  daily,
 }: {
   exercise: PublicGuidedExercise;
   source: string;
   sharePath: string;
   extra?: ReactNode;
+  daily?: { date: string; streak: number };
 }) {
   const router = useRouter();
   const recorder = useRecordResult();
@@ -138,7 +154,7 @@ function GuidedChallenge({
     started.current = Date.now();
   }, []);
   const [gradeError, setGradeError] = useState<string | null>(null);
-  const [graded, setGraded] = useState(false);
+  const [graded, setGraded] = useState<GuidedUserAnswer | null>(null);
   const practiceHref = practiceMoreHref(exercise.concept);
 
   async function gradeGuided(answer: GuidedUserAnswer): Promise<GuidedGradeResponse | null> {
@@ -149,7 +165,7 @@ function GuidedChallenge({
         setGradeError(res.error);
         return null;
       }
-      setGraded(true);
+      setGraded(answer);
       void recorder.record(res.row);
       return { grade: res.grade, reveal: res.reveal };
     } catch (err) {
@@ -178,6 +194,11 @@ function GuidedChallenge({
                 error={recorder.error}
                 signedIn={recorder.signedIn}
                 onRetrySave={() => void recorder.retry()}
+                card={{
+                  request: { kind: "result", exerciseId: exercise.exercise_id, answer: { mode: "guided", answer: graded }, ...(daily ? { daily } : {}) },
+                  filename: `${exercise.exercise_id}-result.png`,
+                  alt: `Share card: ${conceptShortName(exercise.concept)} result`,
+                }}
               />
               {extra}
             </>

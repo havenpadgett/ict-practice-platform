@@ -1,9 +1,19 @@
 // The one-line takeaway on the session summary: where the misses came
 // from, in words. Pure, so it's testable without a page.
 
+import type { CardAnswer } from "@/lib/card/model";
 import { conceptShortName } from "@/lib/concepts";
+import type { Verdict3 } from "@/lib/verdict";
 
-export type SessionOutcome = { exercise_id: string; correct: boolean; failure_reason: string | null };
+export type SessionOutcome = {
+  exercise_id: string;
+  correct: boolean;
+  failure_reason: string | null;
+  /** The three-state verdict, where the session recorded it (summary strip). */
+  verdict?: Verdict3;
+  /** What the learner marked, as recorded, for the share card's chart. */
+  mark?: CardAnswer;
+};
 
 /** What a failure reason means, as a short phrase. */
 const FAILURE_PHRASES: Record<string, string> = {

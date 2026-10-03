@@ -27,6 +27,7 @@ import type { GuidedUserAnswer } from "@/lib/guided-grading";
 import { recordSessionCompletion } from "@/lib/profiles";
 import type { PublicExercise } from "@/lib/public-exercise";
 import { mistakeCounts, mistakeSessionIds } from "@/lib/mistakes";
+import { markFromRow } from "@/lib/session-share";
 import { buildAdaptiveSession, recommendSession, scoreConcepts } from "@/lib/recommendations";
 import { buildMixedSessionIds, buildSessionExerciseIds, type SessionLength } from "@/lib/session-builder";
 import {
@@ -587,7 +588,10 @@ export default function PracticePage() {
       ...session,
       correct_count: session.correct_count + (isCorrect ? 1 : 0),
       missed_exercise_ids: isCorrect ? session.missed_exercise_ids : [...session.missed_exercise_ids, exerciseId],
-      outcomes: [...(session.outcomes ?? []), { exercise_id: exerciseId, correct: isCorrect, failure_reason: row.failure_reason }],
+      outcomes: [
+        ...(session.outcomes ?? []),
+        { exercise_id: exerciseId, correct: isCorrect, failure_reason: row.failure_reason, verdict: row.verdict ?? undefined, mark: markFromRow(row) ?? undefined },
+      ],
     };
     saveSession(updatedSession);
     setSession(updatedSession);

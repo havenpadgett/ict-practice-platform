@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { ShareButton } from "@/components/share-button";
+import { ShareCard } from "@/components/share-card";
+import type { CardRequest } from "@/lib/card/model";
 import type { RecordState } from "@/hooks/use-record-result";
 import { conceptShortName } from "@/lib/concepts";
 import { signUpHref } from "@/lib/challenge";
@@ -16,7 +18,7 @@ export function ChallengeAfter({
   error,
   signedIn,
   onRetrySave,
-  cardAction,
+  card,
 }: {
   concept: string;
   sharePath: string;
@@ -24,8 +26,8 @@ export function ChallengeAfter({
   error: string | null;
   signedIn: boolean;
   onRetrySave: () => void;
-  /** The share-card download, where there is one. */
-  cardAction?: React.ReactNode;
+  /** What to draw on the share card for this result; absent = no card. */
+  card?: { request: CardRequest; filename: string; alt: string };
 }) {
   return (
     <div className="mt-4 space-y-4">
@@ -35,7 +37,7 @@ export function ChallengeAfter({
           title={`${conceptShortName(concept)} chart challenge`}
           text="Can you read this chart? Mark your answer and see how it compares."
         />
-        {cardAction}
+        {card && <ShareCard request={card.request} filename={card.filename} alt={card.alt} label="Create result card" />}
       </div>
 
       {signedIn ? (

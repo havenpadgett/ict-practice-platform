@@ -29,6 +29,8 @@ export function useChallengeRecognition(exercise: PublicRecognition, source: str
   const [grading, setGrading] = useState(false);
   const [gradeError, setGradeError] = useState<string | null>(null);
   const [pending, setPending] = useState<UserAnswer | null>(null);
+  /** The answer that was graded, for the share card. */
+  const [answered, setAnswered] = useState<UserAnswer | null>(null);
 
   async function submit(answer: UserAnswer) {
     setGrading(true);
@@ -45,6 +47,7 @@ export function useChallengeRecognition(exercise: PublicRecognition, source: str
         return;
       }
       setPending(null);
+      setAnswered(answer);
       setResult(res.grade);
       setReveal(res.reveal);
       void recorder.record(res.row);
@@ -71,7 +74,7 @@ export function useChallengeRecognition(exercise: PublicRecognition, source: str
   return {
     recorder,
     region, setRegion, level, setLevel, choice, setChoice,
-    result, reveal, grading, gradeError,
+    result, reveal, grading, gradeError, answered,
     canRetryGrade: pending !== null,
     retryGrade: () => pending && void submit(pending),
     submitCurrent, submitNone,

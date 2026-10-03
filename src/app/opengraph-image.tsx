@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { cardFonts } from "@/lib/card/fonts";
 import { BRAND_COLORS, markDataUri } from "@/lib/brand";
 import { SITE_NAME } from "@/lib/site";
 
@@ -14,7 +15,7 @@ export default function OpengraphImage() {
   const c = BRAND_COLORS;
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", background: c.background, padding: 72 }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", background: c.background, padding: 72, fontFamily: "Geist" }}>
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center" }}>
             <img src={markDataUri()} width={56} height={56} alt="" />
@@ -24,8 +25,8 @@ export default function OpengraphImage() {
             <div style={{ display: "flex", fontSize: 26, letterSpacing: 4, color: c.muted, textTransform: "uppercase", marginBottom: 28 }}>
               ICT concepts · NQ futures · Practice
             </div>
-            <div style={{ display: "flex", fontSize: 68, lineHeight: 1.06, color: c.foreground, fontWeight: 700 }}>Stop watching setups.</div>
-            <div style={{ display: "flex", fontSize: 68, lineHeight: 1.06, color: c.accent, fontWeight: 700 }}>Start spotting them.</div>
+            <div style={{ display: "flex", fontSize: 68, lineHeight: 1.06, color: c.foreground, fontWeight: 600 }}>Stop watching setups.</div>
+            <div style={{ display: "flex", fontSize: 68, lineHeight: 1.06, color: c.accent, fontWeight: 600 }}>Start spotting them.</div>
             <div style={{ display: "flex", marginTop: 28, fontSize: 30, color: c.muted, maxWidth: 640 }}>
               Mark the answer on the chart and get graded feedback that explains the rule.
             </div>
@@ -37,6 +38,6 @@ export default function OpengraphImage() {
         </div>
       </div>
     ),
-    size,
+    { ...size, fonts: cardFonts },
   );
 }
