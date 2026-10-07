@@ -39,7 +39,7 @@ function Entry({ a }: { a: StoredScenarioAttempt }) {
           </p>
         </div>
         <p className="mt-1 text-xs tabular-nums">
-          {when(a.created_at)} · {a.decision ? a.decision.replace("_", " ") : "no decision stage"} · {OUTCOME[a.outcome]}
+          {when(a.created_at)} · {a.decision ? a.decision.replace("_", " ") : "read-only exercise"} · {OUTCOME[a.outcome]}
           {a.result_r !== null ? ` · ${r(a.result_r)}` : ""}
           {a.confidence !== null ? ` · confidence ${a.confidence}/5` : ""}
           {a.source === "device" ? " · on this device" : ""}

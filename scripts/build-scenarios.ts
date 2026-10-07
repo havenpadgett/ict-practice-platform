@@ -4,6 +4,8 @@
 //                                              print the candles of one timeframe, to author references against
 //   npm run scenarios -- structure <id> <tf> [<day> <HH:MM> <day> <HH:MM>]
 //                                              print swings and gaps on that timeframe
+//   npm run scenarios -- new <id> <valid|noTrade>
+//                                              write a starting spec for <id> and register it
 // A scenario that fails validation is never written. Everything built here is
 // seeded data and says so (docs/ENGINE.md → Content).
 
@@ -22,7 +24,19 @@ function window(): { from?: Clock; to?: Clock } {
   return d1 && h1 && d2 && h2 ? { from: [Number(d1), h1], to: [Number(d2), h2] } : {};
 }
 
-if (cmd === "inspect" || cmd === "structure") {
+if (cmd === "new") {
+  if (!id || !/^sim-\d{3}$/.test(id)) throw new Error("usage: npm run scenarios -- new sim-026 [valid|noTrade]");
+  const file = path.resolve(__dirname, `scenarios/specs/${id}.ts`);
+  if (fs.existsSync(file)) throw new Error(`${file} already exists`);
+  const name = `sim${id.slice(4)}`;
+  fs.writeFileSync(file, scaffold(id, name, tf === "noTrade"));
+  const indexFile = path.resolve(__dirname, "scenarios/specs/index.ts");
+  const idx = fs.readFileSync(indexFile, "utf8");
+  const imports = `import { ${name} } from "./${id}";\n`;
+  const updated = idx.replace("\nexport const SPECS", `${imports}\nexport const SPECS`).replace(/(SPECS: ScenarioSpec\[\] = \[)([^\]]*)\]/, (_m, a, b) => `${a}${b.trim() ? `${b.trim()}, ` : ""}${name}]`);
+  fs.writeFileSync(indexFile, updated);
+  console.log(`Wrote ${path.relative(process.cwd(), file)} and registered ${name}. Then:\n  npm run scenarios -- structure ${id} 5m 11 09:15 11 10:30   (what the path produced)\n  npm run scenarios                                           (build + validate)`);
+} else if (cmd === "inspect" || cmd === "structure") {
   const spec = SPECS.find((s) => s.id === id);
   if (!spec) throw new Error(`no spec ${id}. Known: ${SPECS.map((s) => s.id).join(", ")}`);
   const built = buildScenario({ ...spec, build: () => ({ title: "inspect" }) as never, ideal: undefined });
@@ -83,4 +97,79 @@ export type { Scenario };
   fs.writeFileSync(path.join(outDir, "registry.ts"), registry);
   fs.writeFileSync(path.join(outDir, "catalog.json"), JSON.stringify(catalog, null, 1) + "\n");
   console.log(`Wrote ${ids.length} scenarios to ${path.relative(process.cwd(), outDir)}`);
+}
+
+function scaffold(id: string, name: string, noTrade: boolean): string {
+  return `import { band, confluence, line, px, set, swingRef, sweepSkeleton, zone, type ScenarioSpec } from "../lib";
+
+// ${noTrade ? "No-trade scenario: say what is on the chart and why there is nothing to do." : "Valid setup: say in one line what this one teaches that the others don't."}
+export const ${name}: ScenarioSpec = {
+  id: "${id}",
+  seed: ${Math.floor(Math.random() * 90000) + 1000},
+  calendar: { start: [2032, 2, 2], days: 13 },
+  startPrice: 20000,
+  backdrop: { kind: "uptrend", days: 11 },
+  // The story, as legs. sweepSkeleton is the usual sweep, displacement and retrace; write your own legs for anything else.
+  legs: sweepSkeleton({ day: 11, sign: 1, overnight: 120, displace: 62, retrace: 60, end: (h) => h.hi([10, "18:00"], [10, "16:59"]) + 8, endAt: "10:58" }),
+  anchorDay: 11,
+  decision: [11, "09:50"],
+  end: [11, "11:30"],
+  checkpoints: { confirm: [11, "10:14"] },
+  // What a careful trader's order does in this data. The build refuses a spec whose ideal order doesn't.
+  ideal: ${noTrade ? "undefined" : `(c) => ({
+    expect: "target",
+    order: { direction: "long", entry: (c.fvg("5m", [11, "09:30"], "bullish", 2).priceHigh + c.fvg("5m", [11, "09:30"], "bullish", 2).priceLow) / 2, stop: c.extremes([11, "09:25"], [11, "09:38"]).low - 6, target: c.extremes([10, "18:00"], [10, "16:59"]).high - 2, placedAt: c.revealedAfter([11, "09:49"]) },
+  })`},
+  build: (c) => {
+    // Read structure off the data. Every finder throws a readable error if it isn't there.
+    const fvg = c.fvg("5m", [11, "09:30"], "bullish", 2);
+    const sweep = c.extremes([11, "09:25"], [11, "09:38"]);
+    const overnight = c.extremes([11, "18:00"], [11, "09:20"]);
+    const pdh = c.extremes([10, "18:00"], [10, "16:59"]);
+    return {
+      title: "TODO a name that doesn't give the answer away",
+      difficulty: 2,
+      type: "${noTrade ? "no_trade" : "valid_setup"}",
+      instrument: "NQ (seeded)",
+      skills: { htf_bias: 0.6, liquidity: 0.8, entry_models: 0.8, confluence: 0.6, execution: 0.6 },
+      tags: ["sweep"],
+      prompt: "It is 09:50 ET. Read the chart and decide.",
+      intro: { beginner: "TODO one or two sentences that don't hint at the answer.", advanced: "09:50 ET." },
+      whyNot: [{ label: "TODO the tempting wrong option", why: "TODO why not." }],
+      reference: {
+        summary: "TODO the whole read in two sentences.",
+        biasTimeframe: "4H",
+        bias: set("TODO", { bullish: 1, neutral: 0.4 }),
+        decision: set("TODO", ${noTrade ? "{ no_trade: 1, wait: 0.8, long: 0.1 }" : "{ long: 1, wait: 0.75, no_trade: 0.1 }"}),
+        answers: { take: set("TODO", ${noTrade ? "{ skip: 1, take: 0.05 }" : "{ take: 1, skip: 0.3 }"}), draw: set("TODO", { buy_side: 1, unclear: 0.3 }) },
+        annotations: [
+          line("overnight-low", "key", \`Overnight low \${px(overnight.low)}\`, overnight.low, "TODO", { priceTolerance: 14 }),
+          line("pdh", "key", \`Previous day high \${px(pdh.high)}\`, pdh.high, "TODO", { scope: "external", priceTolerance: 14 }),
+          swingRef("sweep-low", "swing_low", "supporting", \`Sweep low \${px(sweep.low)}\`, { price: sweep.low, t: sweep.lowT }, "TODO", { priceTolerance: 10, timeTolerance: 20 }),
+          zone("fvg-5m", "fvg", "key", "5m bullish FVG", fvg, "TODO", { candidate: true }),
+        ],
+        confluences: [
+          confluence("a", "strongest", "TODO", "TODO"),
+          confluence("b", "strongest", "TODO", "TODO"),
+          confluence("c", "supporting", "TODO", "TODO"),
+          confluence("d", "misleading", "TODO", "TODO"),
+        ],
+        ranges: { expected_target: [band("previous day high", pdh.high - 8, pdh.high + 8, 25, { ideal: pdh.high })] },
+        dealingRange: null,
+        trade: ${noTrade ? "null" : `{
+          direction: "long",
+          entry: [band("the 5m FVG", fvg.priceLow, fvg.priceHigh, 8, { ideal: (fvg.priceLow + fvg.priceHigh) / 2 })],
+          confirmedAtRevealed: c.revealedAtClose("5m", [11, "09:35"]),
+          confirmationLabel: "the displacement that closed above the last 5m high",
+          stop: { invalidation: sweep.low, buffer: 9 },
+          targets: [band("previous day high", pdh.high - 8, pdh.high + 8, 25, { ideal: pdh.high })],
+          minRR: 2,
+        }`},
+        lookFor: ["TODO"],
+      },
+      trapMistakes: {},
+    };
+  },
+};
+`;
 }

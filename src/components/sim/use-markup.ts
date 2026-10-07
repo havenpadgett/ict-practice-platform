@@ -1,50 +1,27 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { Annotation } from "@/lib/engine/types";
 
+type State = { annotations: Annotation[]; history: Annotation[][]; selectedId: string | null };
+
 /** Marks on a static chart (the staged modes): add, select, delete, undo,
- * clear. The replay's own reducer does the same inside its state machine. */
+ * clear. The replay's own reducer does the same inside its state machine.
+ * Every change is a functional update, so two marks made before a re-render
+ * both land. */
 export function useMarkup() {
-  const [annotations, setAnnotations] = useState<Annotation[]>([]);
-  const [history, setHistory] = useState<Annotation[][]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [counter, setCounter] = useState(1);
+  const [state, setState] = useState<State>({ annotations: [], history: [], selectedId: null });
+  // A ref, not state: ids stay distinct however quickly marks are made.
+  const counter = useRef(1);
 
-  const push = useCallback((next: Annotation[]) => {
-    setHistory((h) => [...h, annotations]);
-    setAnnotations(next);
-  }, [annotations]);
+  const add = useCallback((a: Omit<Annotation, "id">) => {
+    const id = `s${counter.current++}`;
+    setState((s) => ({ annotations: [...s.annotations, { ...a, id }], history: [...s.history, s.annotations], selectedId: null }));
+  }, []);
+  const select = useCallback((id: string | null) => setState((s) => ({ ...s, selectedId: id })), []);
+  const remove = useCallback(() => setState((s) => (s.selectedId ? { annotations: s.annotations.filter((a) => a.id !== s.selectedId), history: [...s.history, s.annotations], selectedId: null } : s)), []);
+  const undo = useCallback(() => setState((s) => (s.history.length === 0 ? s : { annotations: s.history[s.history.length - 1], history: s.history.slice(0, -1), selectedId: null })), []);
+  const clear = useCallback(() => setState((s) => (s.annotations.length === 0 ? s : { annotations: [], history: [...s.history, s.annotations], selectedId: null })), []);
 
-  return {
-    annotations,
-    selectedId,
-    canUndo: history.length > 0,
-    add: (a: Omit<Annotation, "id">) => {
-      push([...annotations, { ...a, id: `s${counter}` }]);
-      setCounter((c) => c + 1);
-      setSelectedId(null);
-    },
-    select: setSelectedId,
-    remove: () => {
-      if (!selectedId) return;
-      push(annotations.filter((a) => a.id !== selectedId));
-      setSelectedId(null);
-    },
-    undo: () => {
-      if (history.length === 0) return;
-      setAnnotations(history[history.length - 1]);
-      setHistory(history.slice(0, -1));
-      setSelectedId(null);
-    },
-    clear: () => {
-      if (annotations.length === 0) return;
-      push([]);
-      setSelectedId(null);
-    },
-    replace: (next: Annotation[]) => {
-      setAnnotations(next);
-      setHistory([]);
-    },
-  };
+  return { annotations: state.annotations, selectedId: state.selectedId, canUndo: state.history.length > 0, add, select, remove, undo, clear };
 }
