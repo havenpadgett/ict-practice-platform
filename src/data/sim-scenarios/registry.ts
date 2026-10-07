@@ -7,6 +7,13 @@ type Loader = () => Promise<{ default: unknown }>;
 
 export const SCENARIO_LOADERS: Record<string, Loader> = {
   "sim-001": () => import("./sim-001.json"),
+  "sim-002": () => import("./sim-002.json"),
+  "sim-003": () => import("./sim-003.json"),
+  "sim-004": () => import("./sim-004.json"),
+  "sim-005": () => import("./sim-005.json"),
+  "sim-006": () => import("./sim-006.json"),
+  "sim-007": () => import("./sim-007.json"),
+  "sim-008": () => import("./sim-008.json"),
 };
 
 export type { Scenario };

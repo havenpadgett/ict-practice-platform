@@ -326,7 +326,10 @@ export function scoreTrade(scenario: Scenario, response: { decision: Decision; o
   } else if (stop.score < 50) {
     mistakes.push("STOP_TOO_TIGHT");
   }
-  if (entryScore.chased) mistakes.push("CHASED_DISPLACEMENT");
+  if (entryScore.chased) {
+    mistakes.push("CHASED_DISPLACEMENT");
+    critical.push("chased a move that had already left the entry area");
+  }
   const targetDim = dims.find((d) => d.dimension === "target_selection");
   if (targetDim && targetDim.score === 0) mistakes.push("WRONG_DRAW");
   if (decision.score <= 35) critical.push("traded where the decision wasn't supported");
@@ -340,6 +343,17 @@ export function scoreTrade(scenario: Scenario, response: { decision: Decision; o
     const between = long ? p > entry && p < order.target : p < entry && p > order.target;
     if (between) {
       mistakes.push("IGNORED_OPPOSING_HTF");
+      break;
+    }
+  }
+
+  // A target at liquidity of the wrong scope: the far pool when the near one
+  // is the draw, or the reverse.
+  for (const r of ref.annotations) {
+    if (r.role !== "trap" || !r.scope || r.price === undefined) continue;
+    const tol = r.priceTolerance ?? Math.abs(r.price) * 0.0006;
+    if (long ? order.target >= r.price - tol : order.target <= r.price + tol) {
+      mistakes.push("INTERNAL_EXTERNAL_CONFUSION");
       break;
     }
   }

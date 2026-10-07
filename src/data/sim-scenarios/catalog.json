@@ -33,5 +33,235 @@
    "false_positive"
   ],
   "noTrade": false
+ },
+ {
+  "id": "sim-002",
+  "title": "Buy-side swept, short from the gap",
+  "difficulty": 2,
+  "type": "valid_setup",
+  "instrument": "NQ (seeded)",
+  "seeded": true,
+  "skills": {
+   "htf_bias": 0.6,
+   "liquidity": 0.9,
+   "entry_models": 0.9,
+   "confluence": 0.7,
+   "execution": 0.6,
+   "market_structure": 0.5,
+   "concept_recognition": 0.3
+  },
+  "tags": [
+   "sweep",
+   "displacement",
+   "fvg",
+   "mss",
+   "pdl-draw",
+   "short"
+  ],
+  "modes": [
+   "simulator",
+   "blind_chart",
+   "build_your_bias",
+   "htf_to_ltf",
+   "confluence",
+   "setup_or_trap",
+   "find_everything",
+   "false_positive"
+  ],
+  "noTrade": false
+ },
+ {
+  "id": "sim-003",
+  "title": "A wick is not a break",
+  "difficulty": 2,
+  "type": "almost_valid",
+  "instrument": "NQ (seeded)",
+  "seeded": true,
+  "skills": {
+   "confluence": 0.9,
+   "market_structure": 0.8,
+   "execution": 0.6,
+   "htf_bias": 0.4,
+   "liquidity": 0.5,
+   "entry_models": 0.5,
+   "concept_recognition": 0.3
+  },
+  "tags": [
+   "sweep",
+   "mss",
+   "no-confirmation",
+   "wick"
+  ],
+  "modes": [
+   "simulator",
+   "blind_chart",
+   "confluence",
+   "setup_or_trap"
+  ],
+  "noTrade": true
+ },
+ {
+  "id": "sim-004",
+  "title": "Right, and it still lost",
+  "difficulty": 2,
+  "type": "failed_setup",
+  "instrument": "NQ (seeded)",
+  "seeded": true,
+  "skills": {
+   "execution": 0.9,
+   "entry_models": 0.8,
+   "confluence": 0.7,
+   "liquidity": 0.7,
+   "htf_bias": 0.5,
+   "market_structure": 0.4,
+   "concept_recognition": 0.2
+  },
+  "tags": [
+   "sweep",
+   "displacement",
+   "fvg",
+   "failed-setup",
+   "process"
+  ],
+  "modes": [
+   "simulator",
+   "blind_chart",
+   "build_your_bias",
+   "htf_to_ltf",
+   "confluence",
+   "setup_or_trap",
+   "find_everything"
+  ],
+  "noTrade": false
+ },
+ {
+  "id": "sim-005",
+  "title": "Nothing to do here",
+  "difficulty": 2,
+  "type": "no_trade",
+  "instrument": "NQ (seeded)",
+  "seeded": true,
+  "skills": {
+   "execution": 0.9,
+   "confluence": 0.9,
+   "htf_bias": 0.5,
+   "liquidity": 0.4,
+   "market_structure": 0.4,
+   "concept_recognition": 0.2,
+   "entry_models": 0.3
+  },
+  "tags": [
+   "no-trade",
+   "chop",
+   "range"
+  ],
+  "modes": [
+   "simulator",
+   "blind_chart",
+   "confluence",
+   "setup_or_trap",
+   "false_positive"
+  ],
+  "noTrade": true
+ },
+ {
+  "id": "sim-006",
+  "title": "Against the higher timeframe",
+  "difficulty": 2,
+  "type": "conflicting_htf_ltf",
+  "instrument": "NQ (seeded)",
+  "seeded": true,
+  "skills": {
+   "htf_bias": 0.95,
+   "confluence": 0.8,
+   "liquidity": 0.6,
+   "execution": 0.6,
+   "entry_models": 0.5,
+   "market_structure": 0.4,
+   "concept_recognition": 0.2
+  },
+  "tags": [
+   "htf-bias",
+   "conflict",
+   "supply",
+   "sweep"
+  ],
+  "modes": [
+   "simulator",
+   "blind_chart",
+   "build_your_bias",
+   "confluence",
+   "setup_or_trap",
+   "false_positive"
+  ],
+  "noTrade": true
+ },
+ {
+  "id": "sim-007",
+  "title": "Four gaps, one that matters",
+  "difficulty": 2,
+  "type": "multiple_fvgs",
+  "instrument": "NQ (seeded)",
+  "seeded": true,
+  "skills": {
+   "entry_models": 0.95,
+   "concept_recognition": 0.7,
+   "confluence": 0.7,
+   "liquidity": 0.7,
+   "htf_bias": 0.5,
+   "execution": 0.5,
+   "market_structure": 0.4
+  },
+  "tags": [
+   "fvg",
+   "which-fvg",
+   "sweep",
+   "displacement"
+  ],
+  "modes": [
+   "simulator",
+   "blind_chart",
+   "build_your_bias",
+   "htf_to_ltf",
+   "confluence",
+   "setup_or_trap",
+   "find_everything",
+   "false_positive"
+  ],
+  "noTrade": false
+ },
+ {
+  "id": "sim-008",
+  "title": "Internal first, external never",
+  "difficulty": 2,
+  "type": "internal_external",
+  "instrument": "NQ (seeded)",
+  "seeded": true,
+  "skills": {
+   "liquidity": 0.95,
+   "execution": 0.8,
+   "entry_models": 0.6,
+   "htf_bias": 0.5,
+   "confluence": 0.5,
+   "market_structure": 0.5,
+   "concept_recognition": 0.3
+  },
+  "tags": [
+   "internal-liquidity",
+   "external-liquidity",
+   "equal-highs",
+   "target",
+   "draw"
+  ],
+  "modes": [
+   "simulator",
+   "blind_chart",
+   "htf_to_ltf",
+   "confluence",
+   "setup_or_trap",
+   "find_everything",
+   "false_positive"
+  ],
+  "noTrade": false
  }
 ]

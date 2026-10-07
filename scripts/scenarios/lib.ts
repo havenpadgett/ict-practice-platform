@@ -266,6 +266,11 @@ export type Ctx = {
   swingLow: (tf: Timeframe, clock: Clock, window?: number) => { price: number; t: number };
   /** The first FVG on `tf` whose middle candle is at/after `clock`. */
   fvg: (tf: Timeframe, clock: Clock, direction: "bullish" | "bearish", within?: number) => Geometry;
+  /** The latest `tf` FVG, in `direction`, whose range holds `price` (within
+   * `tol`): "the gap the sweep ran into". */
+  fvgAt: (tf: Timeframe, price: number, direction: "bullish" | "bearish", tol?: number) => Geometry;
+  /** The largest `tf` FVG in `direction` between two clocks. */
+  fvgIn: (tf: Timeframe, direction: "bullish" | "bearish", from: Clock, to: Clock) => Geometry;
   /** A single candle's range on `tf`. */
   candle: (tf: Timeframe, clock: Clock) => Geometry;
   /** High/low of an interval. */
@@ -342,6 +347,21 @@ function makeCtx(cal: Calendar, all: SimCandle[], anchorT: number): Ctx {
       }
       // The largest gap in the window is the one a person would mark.
       const best = found.reduce((a, b) => (b.high - b.low > a.high - a.low ? b : a));
+      return { priceLow: best.low, priceHigh: best.high, tStart: best.tStart, tEnd: best.tEnd };
+    },
+    fvgAt: (tf, price, direction, tol) => {
+      const s = series(tf);
+      const slack = tol ?? atr(s.slice(-60), 40) * 0.25;
+      const hits = fvgs(s, tf).filter((f) => f.direction === direction && price >= f.low - slack && price <= f.high + slack);
+      if (hits.length === 0) throw new Error(`no ${direction} ${tf} FVG holds ${price}`);
+      const best = hits[hits.length - 1];
+      return { priceLow: best.low, priceHigh: best.high, tStart: best.tStart, tEnd: best.tEnd };
+    },
+    fvgIn: (tf, direction, from, to) => {
+      const s = series(tf).filter((k) => k.t >= t(from) - 3 * TIMEFRAME_MINUTES[tf] && k.t <= t(to));
+      const hits = fvgs(s, tf).filter((f) => f.direction === direction && f.tStart >= t(from));
+      if (hits.length === 0) throw new Error(`no ${direction} ${tf} FVG between ${JSON.stringify(from)} and ${JSON.stringify(to)}`);
+      const best = hits.reduce((a, b) => (b.high - b.low > a.high - a.low ? b : a));
       return { priceLow: best.low, priceHigh: best.high, tStart: best.tStart, tEnd: best.tEnd };
     },
     candle: (tf, clock) => {
@@ -516,3 +536,65 @@ export function locate(price: number, range: { high: number; low: number }): "pr
 
 /** A price as a trader writes it: 21,377.5. */
 export const px = (n: number): string => n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+// ---- Narrative skeleton ----------------------------------------------------
+
+const hhmm = (minutes: number): string => `${String(Math.floor(minutes / 60) % 24).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+const toMin = (t: string): number => {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+};
+/** "09:34" plus 7 minutes. */
+export const shift = (t: string, minutes: number): string => hhmm(toMin(t) + minutes);
+
+export type Skeleton = {
+  /** The trading day the story happens on. */
+  day: number;
+  /** +1: sell-side liquidity swept and price rallies; -1: the mirror. */
+  sign: 1 | -1;
+  /** Points the overnight session moves against the story (builds the pool). */
+  overnight: number;
+  bounce?: number;
+  /** The final slide into the pool before the sweep, in points. */
+  approach?: number;
+  sweepBeyond?: number;
+  /** Clock the sweep ends and displacement begins. */
+  sweepAt?: string;
+  displace: number;
+  displaceMinutes?: number;
+  pause?: number;
+  push?: number;
+  retrace: number;
+  /** Where the story ends up, and when. */
+  end: (h: Hist) => number;
+  endAt: string;
+  vol?: number;
+  /** Replace the finishing leg with several (a failed setup, a second leg...). */
+  finish?: Leg[];
+};
+
+/** The common shape of a sweep-and-displace story as legs, so a spec reads
+ * as a story with numbers rather than a column of legs. Every scenario still
+ * writes its own reference, explanation and decision logic. */
+export function sweepSkeleton(o: Skeleton): Leg[] {
+  const s = o.sign;
+  const at = o.sweepAt ?? "09:34";
+  const dm = o.displaceMinutes ?? 6;
+  const start = shift(at, -19);
+  const day = o.day;
+  const vol = o.vol ?? 1.6;
+  const extreme = (h: Hist) => (s > 0 ? h.lo([day, "18:00"], [day, start]) - (o.sweepBeyond ?? 14) : h.hi([day, "18:00"], [day, start]) + (o.sweepBeyond ?? 14));
+  const legs: Leg[] = [
+    { to: (h) => h.price - s * o.overnight, until: [day, "03:00"], vol: 1.4 },
+    { to: (h) => h.price + s * (o.bounce ?? 20), until: [day, "07:30"], vol: 1.4 },
+    { to: (h) => h.price - s * (o.approach ?? 45), until: [day, start], vol },
+    { to: extreme, until: [day, at], vol: 2 },
+    { to: (h) => h.price + s * o.displace, until: [day, shift(at, dm)], vol: 0.8 },
+    { to: (h) => h.price - s * (o.pause ?? 5), until: [day, shift(at, dm + 7)], vol: 1.4 },
+    { to: (h) => h.price + s * (o.push ?? 34), until: [day, shift(at, dm + 16)], vol: 1.5 },
+    { to: (h) => h.price - s * o.retrace, until: [day, shift(at, dm + 28)], vol },
+  ];
+  if (o.finish) legs.push(...o.finish);
+  else legs.push({ to: o.end, until: [day, o.endAt], vol: 1.8 });
+  return legs;
+}

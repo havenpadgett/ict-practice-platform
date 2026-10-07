@@ -238,3 +238,34 @@ describe("review", () => {
     expect(new Set(r.skillEvidence.map((e) => e.skill))).toEqual(new Set(["execution", "confluence"]));
   });
 });
+
+describe("internal versus external liquidity (sim-008)", () => {
+  it("names the confusion when the target sits at the far pool", async () => {
+    const mod = await import("@/data/sim-scenarios/sim-008.json");
+    const s8 = mod.default as unknown as Scenario;
+    const stream = s8.data.stream.map(fromRow);
+    const placedAt = stream.findIndex((c) => c.t === etMinutes(2030, 8, 20, 10, 20));
+    const refs = s8.reference.annotations;
+    const fvg = refs.find((r) => r.id === "fvg-5m")!;
+    const pdh = refs.find((r) => r.id === "pdh")!;
+    const eq = refs.find((r) => r.id === "eq-highs")!;
+    const sweep = refs.find((r) => r.id === "sweep-low")!;
+    const base8 = { direction: "long" as const, entry: ((fvg.priceLow as number) + (fvg.priceHigh as number)) / 2 + 4, stop: (sweep.price as number) - 6, placedAt };
+    const run = (target: number) =>
+      scoreAttempt(s8, MODES.simulator, {
+        scenarioId: s8.id,
+        modeId: "simulator",
+        confidence: null,
+        responseTimeMs: 1,
+        stages: { replay: { kind: "replay", annotations: [], bias: "bullish", decision: "long", order: { ...base8, target }, waits: 0, decidedAtRevealed: placedAt } },
+      });
+    const near = run((eq.price as number) - 3);
+    const far = run((pdh.price as number) - 2);
+    expect(near.mistakes).not.toContain("INTERNAL_EXTERNAL_CONFUSION");
+    expect(far.mistakes).toContain("INTERNAL_EXTERNAL_CONFUSION");
+    expect(near.outcome.status === "closed" && near.outcome.exit).toBe("target");
+    expect(far.outcome.status === "closed" && far.outcome.exit).toBe("stop");
+    // Same bias, same entry, same stop: the far target is the one that costs score.
+    expect(far.score).toBeLessThan(near.score);
+  });
+});

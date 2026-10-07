@@ -17,7 +17,7 @@ export const sim001: ScenarioSpec = {
     { to: (h) => h.price + 62, until: [11, "09:40"], vol: 0.8 },
     { to: (h) => h.price - 5, until: [11, "09:47"], vol: 1.4 },
     { to: (h) => h.price + 34, until: [11, "09:56"], vol: 1.5 },
-    { to: (h) => h.price - 48, until: [11, "10:08"], vol: 1.6 },
+    { to: (h) => h.price - 64, until: [11, "10:08"], vol: 1.6 },
     { to: (h) => h.hi([10, "18:00"], [10, "16:59"]) + 8, until: [11, "10:55"], vol: 1.8 },
   ],
   anchorDay: 11,
@@ -26,7 +26,7 @@ export const sim001: ScenarioSpec = {
   checkpoints: { confirm: [11, "10:14"] },
   ideal: (c) => ({
     expect: "target",
-    order: { direction: "long", entry: c.fvg("5m", [11, "09:30"], "bullish", 2).priceHigh - 4, stop: c.extremes([11, "09:25"], [11, "09:38"]).low - 6, target: c.extremes([10, "18:00"], [10, "16:59"]).high - 2, placedAt: c.revealedAfter([11, "09:49"]) },
+    order: { direction: "long", entry: (c.fvg("5m", [11, "09:30"], "bullish", 2).priceHigh + c.fvg("5m", [11, "09:30"], "bullish", 2).priceLow) / 2, stop: c.extremes([11, "09:25"], [11, "09:38"]).low - 6, target: c.extremes([10, "18:00"], [10, "16:59"]).high - 2, placedAt: c.revealedAfter([11, "09:49"]) },
   }),
   build: (c) => {
     const fvg = c.fvg("5m", [11, "09:30"], "bullish", 2);

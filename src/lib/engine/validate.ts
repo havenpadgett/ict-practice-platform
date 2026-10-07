@@ -9,7 +9,7 @@ import { SCORED_KINDS } from "@/lib/engine/accept";
 import { supportedModes } from "@/lib/engine/modes";
 import { fvgs, swings } from "@/lib/engine/structure";
 import { bucketStart, TIMEFRAMES, TIMEFRAME_MINUTES, type Timeframe } from "@/lib/engine/time";
-import { simulateOrder } from "@/lib/engine/trade";
+import { plannedRR, simulateOrder } from "@/lib/engine/trade";
 import type { Order, RefAnnotation, Scenario } from "@/lib/engine/types";
 
 function ascending(candles: SimCandle[], label: string, errors: string[]): void {
@@ -142,6 +142,12 @@ export function validateScenario(s: Scenario, options: ValidateOptions = {}): st
     const outcome = simulateOrder(options.ideal.order, stream, s.data.streamTimeframe);
     const got = outcome.status === "closed" ? (outcome.exit === "target" ? "target" : outcome.exit === "stop" ? "stop" : "end") : "unfilled";
     if (got !== options.ideal.expect) errors.push(`ideal order should end at ${options.ideal.expect} but ended at ${got}`);
+    const o = options.ideal.order;
+    if (trade && o.entry !== null) {
+      const rr = plannedRR(o.direction, o.entry, o.stop, o.target);
+      if (rr === null || rr < trade.minRR) errors.push(`the ideal order plans ${rr === null ? "no" : rr.toFixed(2)}R, under the ${trade.minRR}R minimum the reference asks for`);
+      if (outcome.status === "closed" && outcome.fillIndex < (trade.confirmedAtRevealed ?? 0) && trade.confirmedAtRevealed !== null) errors.push("the ideal order fills before confirmation");
+    }
   }
 
   if (supportedModes(s).length < 3) errors.push("scenario supports fewer than three modes");
