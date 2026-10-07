@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import type { Candle, DealingRange } from "@/data/exercises";
+import { CandleMarks } from "@/components/chart/candle-marks";
 import { ChartTimeBackground, ChartTimeLabels } from "@/components/practice/chart-time-layer";
 import { useRenderedWidth } from "@/hooks/use-rendered-width";
 import type { UserRegion } from "@/lib/grading";
@@ -194,43 +195,6 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
   const slotW = slotWidth(layout);
   // Null for constructed exercises without timestamps — no time layer.
   const timeContext = useMemo(() => buildTimeContext(candles), [candles]);
-  const candleMarks = useMemo(() => {
-    const b = plotBounds(layout);
-    const w = slotWidth(layout);
-    return candles.map((candle, index) => {
-      const x = b.left + w * index + w / 2;
-      const bodyTop = priceToY(layout, Math.max(candle.open, candle.close));
-      const bodyBottom = priceToY(layout, Math.min(candle.open, candle.close));
-      const up = candle.close >= candle.open;
-      const bodyWidth = Math.max(1.5, w * 0.62);
-      return (
-        // Index, not time: multi-day real data repeats "HH:MM" labels.
-        <g key={index}>
-          <line
-            x1={x}
-            x2={x}
-            y1={priceToY(layout, candle.high)}
-            y2={priceToY(layout, candle.low)}
-            className={up ? "stroke-candle-up" : "stroke-candle-down"}
-            strokeWidth={1}
-            shapeRendering="crispEdges"
-          />
-          <rect
-            x={x - bodyWidth / 2}
-            y={bodyTop}
-            width={bodyWidth}
-            height={Math.max(1, bodyBottom - bodyTop)}
-            rx={Math.min(1, bodyWidth / 6)}
-            // Up candles hollow, down candles solid: direction reads from
-            // shape as well as color.
-            className={up ? "fill-surface stroke-candle-up" : "fill-candle-down"}
-            strokeWidth={up ? 1 : undefined}
-          />
-        </g>
-      );
-    });
-  }, [candles, layout]);
-
   // Browser pointer events report coordinates in real screen pixels, but our
   // layout math lives in the SVG's viewBox units. This converts one to the
   // other using the ratio between the element's rendered size and its
@@ -465,7 +429,7 @@ export function CandlestickChart(props: ZoneProps | LevelProps | ChoiceProps | G
       )}
 
       {/* Candles */}
-      {candleMarks}
+      <CandleMarks candles={candles} layout={layout} />
 
       {timeContext && <ChartTimeLabels ctx={timeContext} bounds={bounds} slotW={slotW} hideDates={props.hideDates} />}
 

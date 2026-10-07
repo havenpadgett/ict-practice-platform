@@ -1,4 +1,4 @@
-import { band, confluence, line, px, set, swingRef, zone, type ScenarioSpec } from "../lib";
+import { band, confluence, line, locate, px, set, swingRef, zone, type ScenarioSpec } from "../lib";
 
 // Valid setup. HTF uptrend, an overnight pullback into a 1H gap, a sweep of
 // the overnight low at the open, displacement that closes through the last
@@ -37,6 +37,9 @@ export const sim001: ScenarioSpec = {
     const oneHourGap = c.fvg("1H", [10, "10:00"], "bullish", 2);
     const bearGap = c.fvg("5m", [11, "09:50"], "bearish", 3);
     const asiaHigh = c.extremes([11, "18:00"], [11, "03:00"]);
+    const noiseGap = c.fvg("5m", [11, "09:45"], "bullish", 1);
+    const dayRange = c.extremes([10, "18:00"], [10, "16:59"]);
+    const where = locate(c.close([11, "09:49"]), { high: dayRange.high, low: dayRange.low });
 
     return {
       title: "Sweep, displace, retrace",
@@ -62,16 +65,21 @@ export const sim001: ScenarioSpec = {
         answers: {
           draw: set("The previous day high is the obvious pool above, and displacement points straight at it.", { buy_side: 1, unclear: 0.3 }),
           take: set("This has liquidity taken, displacement, a defined entry and a draw.", { take: 1, skip: 0.3 }),
+          location: set(
+            "Against yesterday's range price is in premium: the retrace into discount already happened overnight, and the open swept it. A premium reading with a bullish bias means expect a pullback before the draw, not a reason to flip.",
+            { [where]: 1, equilibrium: where === "premium" ? 0.3 : 0 },
+          ),
         },
         annotations: [
           line("overnight-low", "key", `Overnight low ${px(overnight.low)}`, overnight.low, "Obvious sell-side liquidity, and exactly where the open swept it.", { priceTolerance: 14, decisionNote: "The sweep is the trigger. Without it this is just a long in a trend." }),
           line("pdh", "key", `Previous day high ${px(pdh.high)}`, pdh.high, "The pool above and the draw: stops resting over yesterday's high.", { scope: "external", priceTolerance: 14, decisionNote: "Sets the target, and with the entry sets whether the trade clears 2R." }),
           swingRef("sweep-low", "swing_low", "supporting", `Sweep low ${px(sweep.low)}`, { price: sweep.low, t: sweep.lowT }, "The extreme of the sweep. If it breaks the idea is wrong, so this is the stop reference.", { priceTolerance: 10, timeTolerance: 20 }),
-          zone("fvg-5m", "fvg", "key", "5m bullish FVG from the displacement", fvg, "The displacement candle left a gap and closed through the last 5m high. A retrace into it is the entry model.", { group: "poi", decisionNote: "The edge is in the retrace. A fill here is a better price and a shorter stop than anything after the move." }),
-          zone("ob-5m", "ob", "valid", "5m order block under the gap", ob, "The last down candle before the displacement. An acceptable alternative area, sitting below the gap.", { group: "poi" }),
+          zone("fvg-5m", "fvg", "key", "5m bullish FVG from the displacement", fvg, "The displacement candle left a gap and closed through the last 5m high. A retrace into it is the entry model.", { group: "poi", candidate: true, decisionNote: "The edge is in the retrace. A fill here is a better price and a shorter stop than anything after the move." }),
+          zone("ob-5m", "ob", "valid", "5m order block under the gap", ob, "The last down candle before the displacement. An acceptable alternative area, sitting below the gap.", { group: "poi", candidate: true }),
           zone("fvg-1h", "fvg", "supporting", "1H bullish FVG the sweep ran into", oneHourGap, "The sweep took the low inside a 1H gap: higher-timeframe support under the whole idea."),
-          zone("bear-gap", "fvg", "trap", "5m bearish FVG at 09:55", bearGap, "A gap against the move, left by the retrace. It looks like a setup and is just the pullback.", { whyNot: "A gap that forms against displacement is a retrace, not a reason to trade it." }),
-          line("asia-high", "irrelevant", `Asia high ${px(asiaHigh.high)}`, asiaHigh.high, "Real, but the overnight range sat below it and nothing here depends on it.", { priceTolerance: 14 }),
+          zone("bear-gap", "fvg", "trap", "5m bearish FVG at 09:55", bearGap, "A gap against the move, left by the retrace. It looks like a setup and is just the pullback.", { candidate: true, whyNot: "A gap that forms against displacement is a retrace, not a reason to trade it." }),
+          line("asia-high", "irrelevant", `Asia high ${px(asiaHigh.high)}`, asiaHigh.high, "Real, but the overnight range sat below it and nothing here depends on it.", { priceTolerance: 14, candidate: true }),
+          zone("noise-gap", "fvg", "irrelevant", "Small 5m gap at 09:45", noiseGap, "A gap a fraction of the size of the displacement's. Real, and too small to be anything a trade rests on.", { candidate: true }),
         ],
         confluences: [
           confluence("sweep", "strongest", "Sell-side liquidity (overnight low) swept", "Liquidity taken is the reason there was something to buy."),
@@ -87,7 +95,7 @@ export const sim001: ScenarioSpec = {
         ranges: {
           expected_target: [band("previous day high", pdh.high - 8, pdh.high + 8, 25, { ideal: pdh.high })],
         },
-        dealingRange: null,
+        dealingRange: { high: dayRange.high, low: dayRange.low, tf: "1D" },
         trade: {
           direction: "long",
           entry: [

@@ -45,6 +45,17 @@ export function PracticeIcon(props: IconProps) {
   );
 }
 
+/** A play head over a price line: replay it. */
+export function TrainIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M3 14l4-4 3 2 5-6" />
+      <path d="M3 17h14" />
+      <path d="M13 3.5v5l3.5-2.5z" />
+    </Svg>
+  );
+}
+
 /** Circular arrow: go back over it. */
 export function MistakesIcon(props: IconProps) {
   return (

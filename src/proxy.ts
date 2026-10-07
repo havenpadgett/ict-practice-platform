@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isDemoMode } from "@/lib/demo/gate";
 import { getSupabaseKey, getSupabaseUrl } from "@/lib/supabase/env";
 
-const PROTECTED_PATHS = ["/dashboard", "/practice", "/mistakes", "/analytics", "/review", "/admin", "/api/export"];
+const PROTECTED_PATHS = ["/dashboard", "/practice", "/train", "/mistakes", "/analytics", "/review", "/admin", "/api/export"];
 
 export async function proxy(request: NextRequest) {
   // DEMO MODE (src/lib/demo/gate.ts): the demo reviewer is always signed in.
@@ -61,5 +61,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/practice/:path*", "/mistakes/:path*", "/analytics/:path*", "/review/:path*", "/admin/:path*", "/api/export/:path*"],
+  matcher: ["/dashboard/:path*", "/practice/:path*", "/train/:path*", "/mistakes/:path*", "/analytics/:path*", "/review/:path*", "/admin/:path*", "/api/export/:path*"],
 };

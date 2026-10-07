@@ -51,6 +51,16 @@ export function Verdict({ verdict, label }: { verdict: Verdict3; label?: string 
   );
 }
 
+/** A small verdict mark for dense rows: icon plus word, same tones. */
+export function VerdictInline({ verdict }: { verdict: Verdict3 }) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${TONE[verdict]}`}>
+      <Icon status={verdict} size={14} />
+      {DEFAULT_LABEL[verdict]}
+    </span>
+  );
+}
+
 /** One line in a list of graded steps or checks. `verdict: null` is a
  * measurement shown for information, with a neutral dash and no verdict. */
 export function CheckRow({ verdict, label, children }: { verdict: Verdict3 | null; label: string; children?: React.ReactNode }) {

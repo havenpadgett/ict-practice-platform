@@ -4,13 +4,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { BrandMark } from "@/components/brand-mark";
 import { Menu, MENU_ITEM } from "@/components/menu";
-import { AnalyticsIcon, ChevronDownIcon, DashboardIcon, MistakesIcon, PracticeIcon } from "@/components/nav/nav-icons";
+import { AnalyticsIcon, ChevronDownIcon, DashboardIcon, MistakesIcon, PracticeIcon, TrainIcon } from "@/components/nav/nav-icons";
 import { useAuth } from "@/contexts/auth-context";
 import { useOpenMistakeCount } from "@/hooks/use-open-mistake-count";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", Icon: DashboardIcon },
   { href: "/practice", label: "Practice", Icon: PracticeIcon },
+  { href: "/train", label: "Train", Icon: TrainIcon },
   { href: "/mistakes", label: "Mistakes", Icon: MistakesIcon },
   { href: "/analytics", label: "Analytics", Icon: AnalyticsIcon },
 ] as const;
@@ -141,7 +142,7 @@ export function TopNav() {
           aria-label="Primary"
           className="bottom-nav fixed inset-x-0 bottom-0 z-20 border-t border-line bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden"
         >
-          <ul className="grid grid-cols-4">
+          <ul className="grid grid-cols-5">
             {NAV_ITEMS.map(({ href, label, Icon }) => {
               const active = isActive(pathname, href);
               return (

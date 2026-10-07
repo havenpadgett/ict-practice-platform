@@ -25,10 +25,12 @@
   "modes": [
    "simulator",
    "blind_chart",
+   "build_your_bias",
    "htf_to_ltf",
    "confluence",
    "setup_or_trap",
-   "find_everything"
+   "find_everything",
+   "false_positive"
   ],
   "noTrade": false
  }

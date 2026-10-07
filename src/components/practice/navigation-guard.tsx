@@ -7,7 +7,7 @@ const MESSAGE = "Leave this exercise? Your answer so far is saved, so you can pi
 /** Asks before leaving the page while `active`: closing or reloading the
  * tab (the browser's own prompt) and clicking a link to another page
  * (in-app navigation never fires beforeunload, so links are caught here). */
-export function NavigationGuard({ active }: { active: boolean }) {
+export function NavigationGuard({ active, message = MESSAGE }: { active: boolean; message?: string }) {
   useEffect(() => {
     if (!active) return;
     function onBeforeUnload(e: BeforeUnloadEvent) {
@@ -24,7 +24,7 @@ export function NavigationGuard({ active }: { active: boolean }) {
       const url = new URL(link.href, window.location.href);
       if (url.origin !== window.location.origin) return;
       if (url.pathname === window.location.pathname && url.search === window.location.search) return;
-      if (!window.confirm(MESSAGE)) {
+      if (!window.confirm(message)) {
         e.preventDefault();
         e.stopPropagation();
       }
@@ -35,6 +35,6 @@ export function NavigationGuard({ active }: { active: boolean }) {
       window.removeEventListener("beforeunload", onBeforeUnload);
       document.removeEventListener("click", onClick, true);
     };
-  }, [active]);
+  }, [active, message]);
   return null;
 }
