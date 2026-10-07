@@ -14,5 +14,10 @@ import { sim012 } from "./sim-012";
 import { sim013 } from "./sim-013";
 import { sim014 } from "./sim-014";
 import { sim015 } from "./sim-015";
+import { sim016 } from "./sim-016";
+import { sim017 } from "./sim-017";
+import { sim018 } from "./sim-018";
+import { sim019 } from "./sim-019";
+import { sim020 } from "./sim-020";
 
-export const SPECS: ScenarioSpec[] = [sim001, sim002, sim003, sim004, sim005, sim006, sim007, sim008, sim009, sim010, sim011, sim012, sim013, sim014, sim015];
+export const SPECS: ScenarioSpec[] = [sim001, sim002, sim003, sim004, sim005, sim006, sim007, sim008, sim009, sim010, sim011, sim012, sim013, sim014, sim015, sim016, sim017, sim018, sim019, sim020];

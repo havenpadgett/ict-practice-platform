@@ -21,6 +21,11 @@ export const SCENARIO_LOADERS: Record<string, Loader> = {
   "sim-013": () => import("./sim-013.json"),
   "sim-014": () => import("./sim-014.json"),
   "sim-015": () => import("./sim-015.json"),
+  "sim-016": () => import("./sim-016.json"),
+  "sim-017": () => import("./sim-017.json"),
+  "sim-018": () => import("./sim-018.json"),
+  "sim-019": () => import("./sim-019.json"),
+  "sim-020": () => import("./sim-020.json"),
 };
 
 export type { Scenario };

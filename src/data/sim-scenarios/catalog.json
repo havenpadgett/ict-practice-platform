@@ -494,5 +494,168 @@
    "false_positive"
   ],
   "noTrade": false
+ },
+ {
+  "id": "sim-016",
+  "title": "Bias is a coin flip",
+  "difficulty": 3,
+  "type": "no_trade",
+  "instrument": "NQ (seeded)",
+  "seeded": true,
+  "skills": {
+   "htf_bias": 0.95,
+   "confluence": 0.9,
+   "execution": 0.9,
+   "liquidity": 0.6,
+   "market_structure": 0.7,
+   "concept_recognition": 0.4,
+   "entry_models": 0.4
+  },
+  "tags": [
+   "no-bias",
+   "no-trade",
+   "two-sided",
+   "htf-range",
+   "false-structure"
+  ],
+  "modes": [
+   "simulator",
+   "blind_chart",
+   "confluence",
+   "setup_or_trap",
+   "false_positive"
+  ],
+  "noTrade": true
+ },
+ {
+  "id": "sim-017",
+  "title": "Under the supply",
+  "difficulty": 3,
+  "type": "conflicting_htf_ltf",
+  "instrument": "NQ (seeded)",
+  "seeded": true,
+  "skills": {
+   "htf_bias": 0.9,
+   "execution": 0.9,
+   "confluence": 0.8,
+   "liquidity": 0.6,
+   "entry_models": 0.6,
+   "market_structure": 0.4,
+   "concept_recognition": 0.2
+  },
+  "tags": [
+   "htf-bias",
+   "supply",
+   "counter-trend",
+   "target-selection",
+   "multiple-valid"
+  ],
+  "modes": [
+   "simulator",
+   "blind_chart",
+   "htf_to_ltf",
+   "confluence",
+   "setup_or_trap",
+   "find_everything"
+  ],
+  "noTrade": false
+ },
+ {
+  "id": "sim-018",
+  "title": "Two pools, both reached",
+  "difficulty": 3,
+  "type": "internal_external",
+  "instrument": "NQ (seeded)",
+  "seeded": true,
+  "skills": {
+   "liquidity": 0.95,
+   "execution": 0.85,
+   "entry_models": 0.6,
+   "htf_bias": 0.5,
+   "confluence": 0.5,
+   "market_structure": 0.5,
+   "concept_recognition": 0.2
+  },
+  "tags": [
+   "internal-liquidity",
+   "external-liquidity",
+   "equal-lows",
+   "target",
+   "multiple-valid",
+   "short"
+  ],
+  "modes": [
+   "simulator",
+   "blind_chart",
+   "htf_to_ltf",
+   "confluence",
+   "setup_or_trap",
+   "find_everything"
+  ],
+  "noTrade": false
+ },
+ {
+  "id": "sim-019",
+  "title": "Displacement from nowhere",
+  "difficulty": 3,
+  "type": "almost_valid",
+  "instrument": "NQ (seeded)",
+  "seeded": true,
+  "skills": {
+   "confluence": 0.95,
+   "liquidity": 0.85,
+   "market_structure": 0.7,
+   "execution": 0.8,
+   "entry_models": 0.6,
+   "htf_bias": 0.5,
+   "concept_recognition": 0.5
+  },
+  "tags": [
+   "no-liquidity",
+   "displacement",
+   "false-mss",
+   "confluence",
+   "no-trade"
+  ],
+  "modes": [
+   "simulator",
+   "blind_chart",
+   "confluence",
+   "setup_or_trap",
+   "false_positive"
+  ],
+  "noTrade": true
+ },
+ {
+  "id": "sim-020",
+  "title": "Stopped on the wick",
+  "difficulty": 3,
+  "type": "failed_setup",
+  "instrument": "NQ (seeded)",
+  "seeded": true,
+  "skills": {
+   "execution": 0.95,
+   "entry_models": 0.8,
+   "confluence": 0.6,
+   "liquidity": 0.8,
+   "htf_bias": 0.5,
+   "market_structure": 0.4,
+   "concept_recognition": 0.2
+  },
+  "tags": [
+   "failed-setup",
+   "stop-hunt",
+   "stop-placement",
+   "process"
+  ],
+  "modes": [
+   "simulator",
+   "blind_chart",
+   "htf_to_ltf",
+   "confluence",
+   "setup_or_trap",
+   "find_everything"
+  ],
+  "noTrade": false
  }
 ]
