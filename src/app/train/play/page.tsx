@@ -7,7 +7,10 @@ import { ErrorBanner } from "@/components/error-banner";
 import { LoadingState } from "@/components/loading-state";
 import { ReplayRunner } from "@/components/sim/replay-runner";
 import { StagedRunner } from "@/components/sim/staged-runner";
+import { useExperience } from "@/contexts/experience-context";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import { useTraining } from "@/hooks/use-training";
+import { explanationTier } from "@/lib/engine/tier";
 import { getMode } from "@/lib/engine/modes";
 import { nextScenarioFor } from "@/lib/engine/pick";
 import { scenarioMeta } from "@/lib/engine/store";
@@ -21,6 +24,9 @@ function Play() {
   const mode = getMode(modeId);
   const meta = scenarioMeta(scenarioId);
   const { user, loading } = useRequireAuth();
+  const training = useTraining();
+  const { level } = useExperience();
+  const tier = explanationTier(training.classification?.level ?? null, level);
   const [scenario, setScenario] = useState<PublicScenario | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [nextId, setNextId] = useState<string | null>(null);
@@ -67,9 +73,9 @@ function Play() {
   return (
     <main className="mx-auto w-full max-w-7xl px-4 pt-6 pb-16 sm:px-6 sm:pt-8">
       {replayLike ? (
-        <ReplayRunner key={`${scenario.id}-${attempt}`} scenario={scenario} mode={mode} nextHref={nextHref} againHref={againHref} />
+        <ReplayRunner key={`${scenario.id}-${attempt}`} scenario={scenario} mode={mode} tier={tier} nextHref={nextHref} againHref={againHref} />
       ) : (
-        <StagedRunner key={`${scenario.id}-${attempt}`} scenario={scenario} mode={mode} nextHref={nextHref} againHref={againHref} />
+        <StagedRunner key={`${scenario.id}-${attempt}`} scenario={scenario} mode={mode} tier={tier} nextHref={nextHref} againHref={againHref} />
       )}
     </main>
   );

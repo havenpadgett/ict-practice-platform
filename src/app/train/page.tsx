@@ -36,6 +36,24 @@ export default function TrainPage() {
         Charts you read with only what was available at the time, scored on how you read and executed them. A trade that loses can still be a well-made trade, and a winner can be a bad one.
       </p>
 
+      <nav aria-label="Training sections" className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+        <Link href="/train/placement" className="btn-link">
+          Placement test
+        </Link>
+        <Link href="/train/weakness" className="btn-link">
+          Train my weaknesses
+        </Link>
+        <Link href="/train/skills" className="btn-link">
+          Skill tree
+        </Link>
+        <Link href="/train/setups" className="btn-link">
+          Setups
+        </Link>
+        <Link href="/train/journal" className="btn-link">
+          Journal
+        </Link>
+      </nav>
+
       <ul className="mt-8 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
         {TRAINING_MODES.map((id) => {
           const mode = MODES[id];

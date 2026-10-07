@@ -26,7 +26,6 @@ export const sim016: ScenarioSpec = {
     const am = c.extremes([11, "09:30"], [11, "11:34"]);
     const overnight = c.extremes([11, "18:00"], [11, "09:29"]);
     const pdh = c.extremes([10, "18:00"], [10, "16:59"]);
-    const pdl = pdh;
     const gapUp = c.fvgIn("5m", "bullish", [11, "09:35"], [11, "10:00"]);
     const gapDown = c.fvgIn("5m", "bearish", [11, "10:00"], [11, "10:30"]);
     const gapUp2 = c.fvgIn("5m", "bullish", [11, "10:30"], [11, "11:10"]);

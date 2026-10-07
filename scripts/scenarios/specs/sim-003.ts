@@ -1,4 +1,4 @@
-import { band, confluence, line, px, set, swingRef, zone, type ScenarioSpec } from "../lib";
+import { confluence, line, px, set, swingRef, type ScenarioSpec } from "../lib";
 
 // Almost valid. The sell-side low is swept and price pops, but the pop never
 // closes through the last 5m high: a wick through, not a break of structure.
@@ -33,7 +33,6 @@ export const sim003: ScenarioSpec = {
     const closes = c.series("5m").filter((k) => k.t >= c.t([11, "09:35"]) && k.t <= c.t([11, "09:45"])).map((k) => k.c);
     if (closes.some((x) => x >= level.high)) throw new Error("a 5m candle closed through the level: it is a break, not a wick");
     const pdh = c.extremes([10, "18:00"], [10, "16:59"]);
-    const pdhSwing = { price: pdh.high, t: pdh.highT };
 
     return {
       title: "A wick is not a break",

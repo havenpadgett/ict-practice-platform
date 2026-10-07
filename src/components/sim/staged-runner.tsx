@@ -23,7 +23,7 @@ const snap = (p: number) => Math.round(p / 0.25) * 0.25;
 const noop = () => {};
 
 /** Fetches stream candles until `needed` are held, a chunk at a time. */
-function useCandles(scenario: PublicScenario, needed: number): { candles: SimCandle[]; ready: boolean; error: string | null } {
+export function useCandles(scenario: PublicScenario, needed: number): { candles: SimCandle[]; ready: boolean; error: string | null } {
   const [candles, setCandles] = useState<SimCandle[]>(() => scenario.stream.map(fromRow));
   const [error, setError] = useState<string | null>(null);
   const have = candles.length;
@@ -150,7 +150,7 @@ export function StagedRunner({ scenario, mode, tier, nextHref, againHref }: { sc
   );
 }
 
-function StageView({
+export function StageView({
   scenario,
   stage,
   candles,

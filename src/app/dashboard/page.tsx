@@ -8,6 +8,7 @@ import { OnboardingPrompt } from "@/components/experience/onboarding-prompt";
 import { ErrorBanner } from "@/components/error-banner";
 import { LoadingState } from "@/components/loading-state";
 import { RecommendedSession } from "@/components/recommended-session";
+import { LessonsGate, TrainingDashboard } from "@/components/train/training-dashboard";
 import { MetricStrip } from "@/components/metric-strip";
 import { SkillRows, type SkillRow } from "@/components/skill-rows";
 import { useRequireAuth } from "@/hooks/use-require-auth";
@@ -119,8 +120,11 @@ export default function DashboardPage() {
       ) : attempts && attempts.length === 0 ? (
         // A brand-new account: no empty stat tiles, just where to begin.
         <div className="mt-8 space-y-6">
-          <RecommendedSession recommendation={recommendSession(attempts)} />
-          <DailyCard />
+          <TrainingDashboard />
+          <LessonsGate>
+            <RecommendedSession recommendation={recommendSession(attempts)} />
+            <DailyCard />
+          </LessonsGate>
           <p className="text-sm text-muted">
             Accuracy, streaks and per-concept progress appear here after your first session. Each exercise takes about a
             minute, and every answer comes with an explanation.
@@ -175,9 +179,13 @@ function DashboardContent({ attempts, streak }: { attempts: DbAttempt[]; streak:
 
   return (
     <div className="mt-8 space-y-section">
+      <TrainingDashboard />
+
       <div className="space-y-4">
-        <RecommendedSession recommendation={recommendation} />
-        <DailyCard />
+        <LessonsGate>
+          <RecommendedSession recommendation={recommendation} />
+          <DailyCard />
+        </LessonsGate>
         {mistakes.open + mistakes.due > 0 && (
           <div className="flex flex-col gap-3 rounded-lg border border-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>

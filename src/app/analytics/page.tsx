@@ -5,6 +5,7 @@ import { AccuracyTrend } from "@/components/analytics/accuracy-trend";
 import { AdaptiveBreakdown } from "@/components/analytics/adaptive-breakdown";
 import { ConceptDifficultyView, ProcessVsOutcomeView, RealVsConstructedView } from "@/components/analytics/depth-views";
 import { ConfidenceView } from "@/components/analytics/confidence-view";
+import { TrainAnalytics } from "@/components/analytics/train-analytics";
 import { AnalyticsEmptyState } from "@/components/analytics/empty-state";
 import { ExerciseAccuracyList } from "@/components/analytics/exercise-accuracy-list";
 import { FreeTradeStatsView } from "@/components/analytics/free-trade-stats";
@@ -262,6 +263,8 @@ function AnalyticsContent({ attempts, viewRows }: { attempts: DbAttempt[]; viewR
           >
             <ConfidenceView summary={confidence} />
           </Section>
+
+          <TrainAnalytics />
 
           {hasTrade && (
             <Section id="an-trade" title="Trade practice" lede="Graded on process, not on whether the trade won.">
