@@ -83,7 +83,7 @@ export function ScenarioChart(props: ScenarioChartProps) {
   const [hover, setHover] = useState<Pt | null>(null);
   const [box, setBox] = useState<{ a: Pt; b: Pt } | null>(null);
   const drag = useRef<
-    | { kind: "box"; a: Pt }
+    | { kind: "box"; a: Pt; b: Pt }
     | { kind: "pan"; x: number; back: number }
     | { kind: "plan"; field: "entry" | "stop" | "target" }
     | null
@@ -192,7 +192,7 @@ export function ScenarioChart(props: ScenarioChartProps) {
       case "zone":
       case "fvg":
       case "ob":
-        drag.current = { kind: "box", a: p };
+        drag.current = { kind: "box", a: p, b: p };
         setBox({ a: p, b: p });
         break;
       case "swing_high":
@@ -227,7 +227,10 @@ export function ScenarioChart(props: ScenarioChartProps) {
     setHover(p);
     const d = drag.current;
     if (!d) return;
-    if (d.kind === "box") setBox({ a: d.a, b: p });
+    if (d.kind === "box") {
+      d.b = p;
+      setBox({ a: d.a, b: p });
+    }
     else if (d.kind === "pan") {
       const shift = Math.round((d.x - p.x) / Math.max(slot, 1));
       setBack(Math.max(0, Math.min(Math.max(0, series.length - 5), d.back - shift)));
@@ -241,11 +244,11 @@ export function ScenarioChart(props: ScenarioChartProps) {
     const d = drag.current;
     drag.current = null;
     if (e.pointerType !== "mouse") setHover(null);
-    if (d?.kind === "box" && box && (tool === "zone" || tool === "fvg" || tool === "ob")) {
-      const x1 = Math.min(box.a.x, box.b.x);
-      const x2 = Math.max(box.a.x, box.b.x);
-      const y1 = Math.min(box.a.y, box.b.y);
-      const y2 = Math.max(box.a.y, box.b.y);
+    if (d?.kind === "box" && (tool === "zone" || tool === "fvg" || tool === "ob")) {
+      const x1 = Math.min(d.a.x, d.b.x);
+      const x2 = Math.max(d.a.x, d.b.x);
+      const y1 = Math.min(d.a.y, d.b.y);
+      const y2 = Math.max(d.a.y, d.b.y);
       if (x2 - x1 >= DRAG_THRESHOLD && y2 - y1 >= DRAG_THRESHOLD) {
         const endT = timeAtX(x2) + tfMin - 1;
         props.onCreate({ kind: tool, priceLow: snap(yToPrice(layout, y2)), priceHigh: snap(yToPrice(layout, y1)), tStart: timeAtX(x1), tEnd: endT, tf });

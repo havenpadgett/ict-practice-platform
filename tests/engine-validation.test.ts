@@ -55,6 +55,14 @@ describe("what the browser may see", () => {
     }
   });
 
+  it("names candidates by what and where, never by what they mean", () => {
+    const pub = toPublicScenario(s);
+    const labels = pub.candidates.map((c) => c.label).join(" | ");
+    for (const r of s.reference.annotations.filter((a) => a.candidate)) expect(labels).not.toContain(r.label);
+    expect(labels).not.toMatch(/trap|matter|noise|small|looks valid|alternative|supports/i);
+    expect(pub.candidates.length).toBeGreaterThanOrEqual(3);
+  });
+
   it("exposes the confluence labels without their relevance", () => {
     const pub = toPublicScenario(s);
     expect(pub.confluenceOptions.length).toBeGreaterThanOrEqual(4);

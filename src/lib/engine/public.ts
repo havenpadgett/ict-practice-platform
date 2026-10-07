@@ -5,7 +5,22 @@
 // revealed. Same stance as docs/ANSWER-KEYS.md; the same documented limit:
 // someone who calls the reveal action directly can read ahead.
 
-import type { PublicScenario, Scenario } from "@/lib/engine/types";
+import { formatClock } from "@/lib/engine/time";
+import type { PublicScenario, RefAnnotation, Scenario } from "@/lib/engine/types";
+
+const KIND_NAME: Record<string, string> = { fvg: "FVG", ob: "Order block", zone: "Zone", liquidity: "Level", swing_high: "Swing high", swing_low: "Swing low" };
+const n2 = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 2 });
+
+/** A neutral name for a candidate: what it is and where, never what it means.
+ * The reference label ("small gap", "Asia high") would answer the question. */
+function neutralLabel(a: RefAnnotation): string {
+  const name = KIND_NAME[a.kind] ?? a.kind;
+  if (a.priceLow !== undefined && a.priceHigh !== undefined) {
+    const when = a.tStart !== undefined && a.tEnd !== undefined ? ` · ${formatClock(a.tStart)}-${formatClock(a.tEnd)}` : "";
+    return `${name}${when} · ${n2(a.priceLow)} to ${n2(a.priceHigh)}`;
+  }
+  return `${name} · ${n2(a.price ?? 0)}${a.t !== undefined ? ` · ${formatClock(a.t)}` : ""}`;
+}
 
 /** The most candles one reveal call returns. */
 export const MAX_REVEAL = 240;
@@ -28,7 +43,7 @@ export function toPublicScenario(s: Scenario, revealed: number = s.cursorStart):
     confluenceOptions: s.reference.confluences.map((c) => ({ id: c.id, label: c.label })),
     candidates: s.reference.annotations
       .filter((a) => a.candidate)
-      .map((a) => ({ id: a.id, label: a.label, kind: a.kind, price: a.price, priceLow: a.priceLow, priceHigh: a.priceHigh, t: a.t, tStart: a.tStart, tEnd: a.tEnd })),
+      .map((a) => ({ id: a.id, label: neutralLabel(a), kind: a.kind, price: a.price, priceLow: a.priceLow, priceHigh: a.priceHigh, t: a.t, tStart: a.tStart, tEnd: a.tEnd })),
   };
 }
 

@@ -110,6 +110,7 @@ export function ReviewView({
   const refMarks = useMemo(() => [...ref.annotations, ...referenceTradeMarks(scenario)], [ref.annotations, scenario]);
 
   const outcome = result.outcome;
+  const hasTradeStage = Object.values(response.stages).some((r) => r.kind === "trade" || r.kind === "replay");
   const chartTrade: ChartTrade | null =
     outcome.status === "closed" && placed
       ? { direction: placed.order.direction, fillT: stream[outcome.fillIndex].t, fillPrice: outcome.fillPrice, exitT: stream[outcome.exitIndex].t, exitPrice: outcome.exitPrice, stop: placed.order.stop, target: placed.order.target }
@@ -132,6 +133,13 @@ export function ReviewView({
   const t = ref.trade;
   const entryUsed = outcome.status === "closed" ? outcome.fillPrice : placed?.order.entry ?? null;
 
+  const picked = (stage: string): string[] => {
+    const r = response.stages[stage];
+    return r && r.kind === "multi" ? r.values : [];
+  };
+  const confluencePicks = result.modeId === "confluence" ? picked("confluences") : null;
+  const filterPicks = result.modeId === "false_positive" ? picked("filter") : null;
+
   const definitions = tier === "define" ? [...new Set(refMarks.map((r) => r.kind))].map((k) => KIND_DEFINITION[k as AnnotationKind]).filter(Boolean) : [];
   const decisionNotes = tier === "decide" ? ref.annotations.filter((a) => a.decisionNote && (a.role === "key" || a.role === "valid")) : [];
 
@@ -144,9 +152,13 @@ export function ReviewView({
         </div>
         <div className="space-y-2">
           <Verdict verdict={result.verdict} />
-          <p className="text-sm">
-            <span className="text-foreground">{describeOutcome(outcome)}.</span> The score is about how you read and executed it; the result in R is reported beside it and never enters it.
-          </p>
+          {hasTradeStage ? (
+            <p className="text-sm">
+              <span className="text-foreground">{describeOutcome(outcome)}.</span> The score is about how you read and executed it; the result in R is reported beside it and never enters it.
+            </p>
+          ) : (
+            <p className="text-sm">Scored on how you read the chart: there was no trade to execute in this exercise.</p>
+          )}
           {outcome.status === "closed" && (
             <p className="text-xs tabular-nums">
               Planned {outcome.plannedRR.toFixed(1)}R · worst point against you {outcome.maeR.toFixed(2)}R · best point for you {outcome.mfeR.toFixed(2)}R · {outcome.bars} candles in the trade · checked at {TIMEFRAME_LABEL[outcome.granularity]} candles
@@ -275,6 +287,65 @@ export function ReviewView({
         </dl>
       </section>
 
+      {confluencePicks && (
+        <section aria-labelledby="confl">
+          <h2 id="confl" className="eyebrow">
+            Confluences: what carried the idea
+          </h2>
+          <ul className="mt-2 divide-y divide-line rounded-lg border border-line bg-surface">
+            {[...ref.confluences]
+              .sort((a, b) => RELEVANCE_ORDER[a.relevance] - RELEVANCE_ORDER[b.relevance])
+              .map((c) => {
+                const chosen = confluencePicks.includes(c.id);
+                const good = c.relevance === "strongest" || c.relevance === "supporting";
+                return (
+                  <li key={c.id} className="px-4 py-3 text-sm">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <p className="text-foreground">{c.label}</p>
+                      <p className="text-xs">
+                        <span className="text-foreground">{RELEVANCE_LABEL[c.relevance]}</span> · {chosen ? "you picked it" : "you left it out"}
+                        {good && !chosen && c.relevance === "strongest" ? " · missing confirmation" : ""}
+                        {!good && chosen ? " · a reason to doubt your read" : ""}
+                      </p>
+                    </div>
+                    <p className="mt-1 text-xs">{c.why}</p>
+                  </li>
+                );
+              })}
+          </ul>
+          <p className="mt-2 text-xs">More labels is not a better setup: what matters is whether each one actually supports the trade.</p>
+        </section>
+      )}
+
+      {filterPicks && (
+        <section aria-labelledby="filt">
+          <h2 id="filt" className="eyebrow">
+            Did it matter?
+          </h2>
+          <ul className="mt-2 divide-y divide-line rounded-lg border border-line bg-surface">
+            {ref.annotations
+              .filter((a) => a.candidate)
+              .map((a, i) => {
+                const matters = a.role === "key" || a.role === "valid" || a.role === "supporting";
+                const chosen = filterPicks.includes(a.id);
+                return (
+                  <li key={a.id} className="px-4 py-3 text-sm">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <p className="text-foreground">
+                        #{i + 1} · {a.label}
+                      </p>
+                      <p className="text-xs">
+                        <span className="text-foreground">{matters ? "It mattered" : "It didn't matter"}</span> · {chosen ? "you ticked it" : "you left it"} · {chosen === matters ? "right" : "wrong"}
+                      </p>
+                    </div>
+                    <p className="mt-1 text-xs">{a.why}</p>
+                  </li>
+                );
+              })}
+          </ul>
+        </section>
+      )}
+
       <section aria-labelledby="breakdown">
         <h2 id="breakdown" className="eyebrow">
           Process breakdown
@@ -362,6 +433,9 @@ export function ReviewView({
     </div>
   );
 }
+
+const RELEVANCE_ORDER = { strongest: 0, supporting: 1, irrelevant: 2, misleading: 3 } as const;
+const RELEVANCE_LABEL = { strongest: "Strongest confluence", supporting: "Supporting", irrelevant: "Irrelevant here", misleading: "Looks supportive, isn't" } as const;
 
 function outcomeStory(result: AttemptResult, total: number): string {
   const o = result.outcome;
