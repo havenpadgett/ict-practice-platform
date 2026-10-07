@@ -657,5 +657,172 @@
    "find_everything"
   ],
   "noTrade": false
+ },
+ {
+  "id": "sim-021",
+  "title": "The first tap doesn't count",
+  "difficulty": 3,
+  "type": "late_entry",
+  "instrument": "NQ (seeded)",
+  "seeded": true,
+  "skills": {
+   "execution": 0.95,
+   "entry_models": 0.85,
+   "confluence": 0.6,
+   "liquidity": 0.5,
+   "htf_bias": 0.4,
+   "market_structure": 0.3,
+   "concept_recognition": 0.2
+  },
+  "tags": [
+   "late-entry",
+   "patience",
+   "limit-order",
+   "fvg",
+   "second-chance"
+  ],
+  "modes": [
+   "simulator",
+   "blind_chart",
+   "htf_to_ltf",
+   "confluence",
+   "setup_or_trap",
+   "find_everything",
+   "false_positive"
+  ],
+  "noTrade": false
+ },
+ {
+  "id": "sim-022",
+  "title": "Expansion, then rest",
+  "difficulty": 3,
+  "type": "chop",
+  "instrument": "NQ (seeded)",
+  "seeded": true,
+  "skills": {
+   "execution": 0.95,
+   "confluence": 0.9,
+   "htf_bias": 0.5,
+   "liquidity": 0.5,
+   "market_structure": 0.6,
+   "concept_recognition": 0.4,
+   "entry_models": 0.3
+  },
+  "tags": [
+   "consolidation",
+   "no-trade",
+   "post-expansion",
+   "patience"
+  ],
+  "modes": [
+   "simulator",
+   "blind_chart",
+   "confluence",
+   "setup_or_trap",
+   "false_positive"
+  ],
+  "noTrade": true
+ },
+ {
+  "id": "sim-023",
+  "title": "Selling the low",
+  "difficulty": 3,
+  "type": "good_structure_bad_location",
+  "instrument": "NQ (seeded)",
+  "seeded": true,
+  "skills": {
+   "htf_bias": 0.8,
+   "liquidity": 0.8,
+   "confluence": 0.8,
+   "execution": 0.8,
+   "entry_models": 0.5,
+   "market_structure": 0.4,
+   "concept_recognition": 0.2
+  },
+  "tags": [
+   "location",
+   "room-to-draw",
+   "discount",
+   "pdl",
+   "short"
+  ],
+  "modes": [
+   "simulator",
+   "blind_chart",
+   "confluence",
+   "setup_or_trap",
+   "false_positive"
+  ],
+  "noTrade": true
+ },
+ {
+  "id": "sim-024",
+  "title": "London sweeps Asia",
+  "difficulty": 3,
+  "type": "valid_setup",
+  "instrument": "NQ (seeded)",
+  "seeded": true,
+  "skills": {
+   "liquidity": 0.9,
+   "entry_models": 0.8,
+   "confluence": 0.7,
+   "htf_bias": 0.7,
+   "execution": 0.6,
+   "market_structure": 0.5,
+   "concept_recognition": 0.2
+  },
+  "tags": [
+   "sweep",
+   "displacement",
+   "fvg",
+   "london",
+   "asia-range",
+   "session-liquidity"
+  ],
+  "modes": [
+   "simulator",
+   "blind_chart",
+   "htf_to_ltf",
+   "confluence",
+   "setup_or_trap",
+   "find_everything",
+   "false_positive"
+  ],
+  "noTrade": false
+ },
+ {
+  "id": "sim-025",
+  "title": "The week's low, and a shift",
+  "difficulty": 3,
+  "type": "valid_setup",
+  "instrument": "NQ (seeded)",
+  "seeded": true,
+  "skills": {
+   "htf_bias": 0.95,
+   "liquidity": 0.9,
+   "confluence": 0.8,
+   "entry_models": 0.7,
+   "execution": 0.7,
+   "market_structure": 0.7,
+   "concept_recognition": 0.3
+  },
+  "tags": [
+   "reversal",
+   "weekly-low",
+   "htf-shift",
+   "counter-trend",
+   "multiple-valid",
+   "sweep"
+  ],
+  "modes": [
+   "simulator",
+   "blind_chart",
+   "build_your_bias",
+   "htf_to_ltf",
+   "confluence",
+   "setup_or_trap",
+   "find_everything"
+  ],
+  "noTrade": false
  }
 ]
