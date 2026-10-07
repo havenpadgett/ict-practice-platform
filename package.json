@@ -19,7 +19,8 @@
     "backup:status": "node --experimental-strip-types scripts/backup-status.ts",
     "brand": "vite-node --config vitest.config.ts scripts/build-brand-assets.ts",
     "daily": "vite-node --config vitest.config.ts scripts/build-daily-schedule.ts --",
-    "monitoring:test": "vite-node --config vitest.config.ts scripts/sentry-test.ts"
+    "monitoring:test": "vite-node --config vitest.config.ts scripts/sentry-test.ts",
+    "scenarios": "vite-node --config vitest.config.ts scripts/build-scenarios.ts --"
   },
   "dependencies": {
     "@sentry/nextjs": "^11.4.0",

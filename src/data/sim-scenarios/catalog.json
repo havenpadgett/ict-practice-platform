@@ -1,0 +1,35 @@
+[
+ {
+  "id": "sim-001",
+  "title": "Sweep, displace, retrace",
+  "difficulty": 2,
+  "type": "valid_setup",
+  "instrument": "NQ (seeded)",
+  "seeded": true,
+  "skills": {
+   "htf_bias": 0.6,
+   "liquidity": 0.9,
+   "entry_models": 0.9,
+   "confluence": 0.7,
+   "execution": 0.6,
+   "market_structure": 0.5,
+   "concept_recognition": 0.3
+  },
+  "tags": [
+   "sweep",
+   "displacement",
+   "fvg",
+   "mss",
+   "pdh-draw"
+  ],
+  "modes": [
+   "simulator",
+   "blind_chart",
+   "htf_to_ltf",
+   "confluence",
+   "setup_or_trap",
+   "find_everything"
+  ],
+  "noTrade": false
+ }
+]
