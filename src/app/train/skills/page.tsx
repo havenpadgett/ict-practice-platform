@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { KnowledgeVsApplication } from "@/components/train/knowledge-vs-application";
 import { LoadingState } from "@/components/loading-state";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { useTraining } from "@/hooks/use-training";
@@ -42,6 +43,12 @@ export default function SkillsPage() {
       <p className="page-lede mt-2 max-w-2xl">
         Each concept has a mastery bar built from the scenarios that exercise it (and, where there are any, the recognition exercises that train it). Select a bar to practise it. A percentage appears after {MASTERY_MIN} attempts.
       </p>
+
+      {t.vector && (
+        <div className="mt-8">
+          <KnowledgeVsApplication vector={t.vector} />
+        </div>
+      )}
 
       <div className="mt-8 space-y-8">
         {SKILL_TREE.map((group) => (

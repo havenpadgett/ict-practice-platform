@@ -3,6 +3,7 @@
 // time, from the generated registry (scripts/build-scenarios.ts).
 
 import catalogJson from "@/data/sim-scenarios/catalog.json";
+import type { SessionId } from "@/lib/engine/session";
 import type { ModeId, ScenarioType, SkillId } from "@/lib/engine/types";
 
 export type ScenarioMeta = {
@@ -16,6 +17,8 @@ export type ScenarioMeta = {
   tags: string[];
   modes: ModeId[];
   noTrade: boolean;
+  /** The session the decision moment falls in (ET clock). */
+  session: SessionId;
 };
 
 export const SCENARIO_CATALOG = catalogJson as unknown as ScenarioMeta[];

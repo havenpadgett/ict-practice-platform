@@ -32,7 +32,8 @@
    "find_everything",
    "false_positive"
   ],
-  "noTrade": false
+  "noTrade": false,
+  "session": "ny_am"
  },
  {
   "id": "sim-002",
@@ -68,7 +69,8 @@
    "find_everything",
    "false_positive"
   ],
-  "noTrade": false
+  "noTrade": false,
+  "session": "ny_am"
  },
  {
   "id": "sim-003",
@@ -98,7 +100,8 @@
    "confluence",
    "setup_or_trap"
   ],
-  "noTrade": true
+  "noTrade": true,
+  "session": "ny_am"
  },
  {
   "id": "sim-004",
@@ -132,7 +135,8 @@
    "setup_or_trap",
    "find_everything"
   ],
-  "noTrade": false
+  "noTrade": false,
+  "session": "ny_am"
  },
  {
   "id": "sim-005",
@@ -162,7 +166,8 @@
    "setup_or_trap",
    "false_positive"
   ],
-  "noTrade": true
+  "noTrade": true,
+  "session": "ny_am"
  },
  {
   "id": "sim-006",
@@ -194,7 +199,8 @@
    "setup_or_trap",
    "false_positive"
   ],
-  "noTrade": true
+  "noTrade": true,
+  "session": "ny_am"
  },
  {
   "id": "sim-007",
@@ -228,7 +234,8 @@
    "find_everything",
    "false_positive"
   ],
-  "noTrade": false
+  "noTrade": false,
+  "session": "ny_am"
  },
  {
   "id": "sim-008",
@@ -262,7 +269,8 @@
    "find_everything",
    "false_positive"
   ],
-  "noTrade": false
+  "noTrade": false,
+  "session": "ny_am"
  },
  {
   "id": "sim-009",
@@ -296,7 +304,8 @@
    "setup_or_trap",
    "find_everything"
   ],
-  "noTrade": false
+  "noTrade": false,
+  "session": "ny_am"
  },
  {
   "id": "sim-010",
@@ -327,7 +336,8 @@
    "setup_or_trap",
    "false_positive"
   ],
-  "noTrade": true
+  "noTrade": true,
+  "session": "ny_am"
  },
  {
   "id": "sim-011",
@@ -359,7 +369,8 @@
    "setup_or_trap",
    "false_positive"
   ],
-  "noTrade": true
+  "noTrade": true,
+  "session": "ny_am"
  },
  {
   "id": "sim-012",
@@ -392,7 +403,8 @@
    "setup_or_trap",
    "find_everything"
   ],
-  "noTrade": false
+  "noTrade": false,
+  "session": "ny_am"
  },
  {
   "id": "sim-013",
@@ -427,7 +439,8 @@
    "find_everything",
    "false_positive"
   ],
-  "noTrade": false
+  "noTrade": false,
+  "session": "ny_pm"
  },
  {
   "id": "sim-014",
@@ -460,7 +473,8 @@
    "setup_or_trap",
    "find_everything"
   ],
-  "noTrade": false
+  "noTrade": false,
+  "session": "ny_am"
  },
  {
   "id": "sim-015",
@@ -493,7 +507,8 @@
    "find_everything",
    "false_positive"
   ],
-  "noTrade": false
+  "noTrade": false,
+  "session": "ny_am"
  },
  {
   "id": "sim-016",
@@ -525,7 +540,8 @@
    "setup_or_trap",
    "false_positive"
   ],
-  "noTrade": true
+  "noTrade": true,
+  "session": "ny_am"
  },
  {
   "id": "sim-017",
@@ -558,7 +574,8 @@
    "setup_or_trap",
    "find_everything"
   ],
-  "noTrade": false
+  "noTrade": false,
+  "session": "ny_am"
  },
  {
   "id": "sim-018",
@@ -592,7 +609,8 @@
    "setup_or_trap",
    "find_everything"
   ],
-  "noTrade": false
+  "noTrade": false,
+  "session": "ny_am"
  },
  {
   "id": "sim-019",
@@ -624,7 +642,8 @@
    "setup_or_trap",
    "false_positive"
   ],
-  "noTrade": true
+  "noTrade": true,
+  "session": "ny_am"
  },
  {
   "id": "sim-020",
@@ -656,7 +675,8 @@
    "setup_or_trap",
    "find_everything"
   ],
-  "noTrade": false
+  "noTrade": false,
+  "session": "ny_am"
  },
  {
   "id": "sim-021",
@@ -690,7 +710,8 @@
    "find_everything",
    "false_positive"
   ],
-  "noTrade": false
+  "noTrade": false,
+  "session": "ny_am"
  },
  {
   "id": "sim-022",
@@ -721,7 +742,8 @@
    "setup_or_trap",
    "false_positive"
   ],
-  "noTrade": true
+  "noTrade": true,
+  "session": "ny_pm"
  },
  {
   "id": "sim-023",
@@ -753,7 +775,8 @@
    "setup_or_trap",
    "false_positive"
   ],
-  "noTrade": true
+  "noTrade": true,
+  "session": "ny_am"
  },
  {
   "id": "sim-024",
@@ -788,7 +811,8 @@
    "find_everything",
    "false_positive"
   ],
-  "noTrade": false
+  "noTrade": false,
+  "session": "london"
  },
  {
   "id": "sim-025",
@@ -823,6 +847,7 @@
    "setup_or_trap",
    "find_everything"
   ],
-  "noTrade": false
+  "noTrade": false,
+  "session": "ny_am"
  }
 ]

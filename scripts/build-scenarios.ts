@@ -15,6 +15,7 @@ import { buildScenario, clockToT, inspect as structure, tToClock, type Clock } f
 import { SPECS } from "./scenarios/specs";
 import { supportedModes } from "../src/lib/engine/modes";
 import { validateScenario } from "../src/lib/engine/validate";
+import { sessionOf } from "../src/lib/engine/session";
 import type { Timeframe } from "../src/lib/engine/time";
 
 const outDir = path.resolve(__dirname, "../src/data/sim-scenarios");
@@ -73,6 +74,7 @@ if (cmd === "new") {
       tags: s.tags,
       modes: supportedModes(s),
       noTrade: s.reference.trade === null,
+      session: sessionOf(s.data.stream[Math.max(0, s.cursorStart - 1)][0]),
     });
     console.log(`✓ ${s.id}  ${s.title}  (${supportedModes(s).length} modes, ${s.data.stream.length} stream candles)`);
   }

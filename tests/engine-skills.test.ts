@@ -4,7 +4,7 @@ import { summarizeTraining } from "@/lib/engine/history";
 import { THRESHOLDS } from "@/lib/engine/skill-config";
 import { classify, computeSkillVector, currentPlacement, evidenceFromAttempts, leadSentence, weakestSkills, type EvidenceItem } from "@/lib/engine/skills";
 import { explanationTier } from "@/lib/engine/tier";
-import { pickWeaknessScenarios, recentScenarioIds, targetDifficulty } from "@/lib/engine/weakness";
+import { difficultyCeiling, pickWeaknessScenarios, recentScenarioIds, skillNeeds, targetDifficulty, tendencies } from "@/lib/engine/weakness";
 import type { ScenarioMeta } from "@/lib/engine/store";
 import { SKILLS, type MistakeId, type SkillId } from "@/lib/engine/types";
 
@@ -194,7 +194,7 @@ describe("training history", () => {
 
 describe("weakness selection", () => {
   const meta = (id: string, difficulty: 1 | 2 | 3, skills: Partial<Record<SkillId, number>>, modes: ScenarioMeta["modes"] = ["simulator", "build_your_bias"]): ScenarioMeta => ({
-    id, title: id, difficulty, type: "valid_setup", instrument: "x", seeded: true, skills, tags: [], modes, noTrade: false,
+    id, title: id, difficulty, type: "valid_setup", instrument: "x", seeded: true, skills, tags: [], modes, noTrade: false, session: "ny_am",
   });
   const catalog = [
     meta("a", 1, { htf_bias: 0.9 }),
@@ -244,5 +244,55 @@ describe("weakness selection", () => {
     expect(recentScenarioIds([
       { scenario_id: "a", created_at: "1" }, { scenario_id: "b", created_at: "2" }, { scenario_id: "a", created_at: "3" },
     ], 5)).toEqual(["a", "b"]);
+  });
+});
+
+describe("smarter rotation", () => {
+  const meta = (id: string, difficulty: 1 | 2 | 3, skills: Partial<Record<SkillId, number>>, over: Partial<ScenarioMeta> = {}): ScenarioMeta => ({
+    id, title: id, difficulty, type: "valid_setup", instrument: "x", seeded: true, skills, tags: [], modes: ["simulator", "htf_to_ltf", "confluence", "setup_or_trap"], noTrade: false, session: "ny_am", ...over,
+  });
+  const vector = computeSkillVector(evidence({ ...all(0.8), confluence: 0.4 }, 12));
+  const row = (over: Partial<StoredScenarioAttempt>) => attempt(over);
+
+  it("names a recurring mistake's skill as the one to train, and says why", () => {
+    const attempts = [row({ mistakes: ["AGAINST_HTF_BIAS"] }), row({ mistakes: ["AGAINST_HTF_BIAS"] })];
+    const needs = skillNeeds(computeSkillVector(evidence({ ...all(0.6) }, 12)), attempts);
+    expect(needs[0].skill).toBe("htf_bias");
+    expect(needs[0].why.join(" ")).toMatch(/recently/);
+  });
+
+  it("brings back a scenario answered badly once it is out of the recent window", () => {
+    const catalog = [meta("bad", 2, { confluence: 0.9 }), meta("ok", 2, { confluence: 0.9 }), ...Array.from({ length: 6 }, (_, i) => meta(`fill${i}`, 2, { execution: 0.9 }))];
+    const attempts = [
+      row({ scenario_id: "bad", score: 30 }),
+      row({ scenario_id: "ok", score: 90 }),
+      ...Array.from({ length: 6 }, (_, i) => row({ scenario_id: `fill${i}`, score: 80 })),
+    ];
+    const picks = pickWeaknessScenarios({ vector, attempts, catalog, count: 1, skill: "confluence" });
+    expect(picks[0].scenario.id).toBe("bad");
+    expect(picks[0].reason).toMatch(/last time/);
+  });
+
+  it("leans to no-trade charts when the learner takes trades that aren't there", () => {
+    const catalog = [meta("trade", 2, { confluence: 0.9 }), meta("flat", 2, { confluence: 0.9 }, { noTrade: true, type: "no_trade" })];
+    const attempts = [1, 2, 3].map(() => row({ scenario_id: "x", no_trade_scenario: true, decision: "long" }));
+    expect(tendencies(attempts).takesTooMany).toBe(true);
+    const picks = pickWeaknessScenarios({ vector, attempts, catalog, count: 1, skill: "confluence" });
+    expect(picks[0].scenario.id).toBe("flat");
+  });
+
+  it("does not jump past the next difficulty step", () => {
+    const attempts = [row({ difficulty: 2, score: 80 }), row({ difficulty: 2, score: 80 }), row({ difficulty: 2, score: 80 })];
+    expect(difficultyCeiling(attempts)).toBe(3);
+    const weak = [row({ difficulty: 2, score: 40 }), row({ difficulty: 2, score: 40 }), row({ difficulty: 2, score: 40 })];
+    expect(difficultyCeiling(weak)).toBe(2);
+    expect(difficultyCeiling([])).toBe(3);
+  });
+
+  it("honors exclusions, filters and mode limits", () => {
+    const catalog = [meta("a", 2, { confluence: 0.9 }), meta("b", 2, { confluence: 0.8 }), meta("c", 2, { confluence: 0.7 })];
+    const picks = pickWeaknessScenarios({ vector, attempts: [], catalog, count: 3, skill: "confluence", exclude: ["a"], filter: (m) => m.id !== "c", modes: ["setup_or_trap"] });
+    expect(picks.map((p) => p.scenario.id)).toEqual(["b"]);
+    expect(picks[0].mode).toBe("setup_or_trap");
   });
 });
