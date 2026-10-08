@@ -6,6 +6,33 @@
 
 ---
 
+## Update 2026-10-08: analytics, rotation, guided runs, models, what-next, presets, landing
+
+Built on `demo-mode`, three commits, each with `tsc`, `eslint`, the full suite and a production build. Everything reuses the scenario engine (docs/ENGINE.md → Added 2026-10-08); there is no second scorer, quiz engine or replay.
+
+| # | Task | Status |
+|---|---|---|
+| 1 | Performance analytics | Done (`src/lib/engine/performance.ts`, `train-analytics.tsx`). Eight process parts with sample sizes, confidence vs accuracy, false-positive rate, mistakes, by setup / session / timeframe / difficulty, process over time, plain-English insights. Sections with no data are hidden; rates need 3 attempts, sentences need 5 |
+| 2 | Knowledge vs application | Done (`application.ts`, `knowledge-vs-application.tsx`), on Analytics and the skill tree. Five layers read off the skill vector |
+| 7 | Smarter rotation | Done (`weakness.ts`): skill need (weakness + recurring mistake + overconfidence + staleness), difficulty cap one step above what was handled, retry of badly answered scenarios, no-trade / skip tendencies, repeat penalties. Every factor that moved a pick is named in its reason |
+| 3 | 10-minute review | Done (`/train/ten`, `run.ts`, `/train/run`). 2 concept + 2 chart + 1 execution step from the rotation; summary compares with real earlier attempts only |
+| 5 | Entry model training | **Partly.** One model ships: sweep, displacement, FVG retrace (also the shape of the "2022 model" and of "sweep, displacement, retracement": folded into one rather than duplicated). **Unavailable, shown with the reason:** order block (1 scenario), IFVG continuation and reversal, breaker, unicorn, silver bullet, judas swing, AMD / power of three (1 scenario). They need scenarios authored to their rules (`npm run scenarios -- new`), not tagged guesses |
+| 4 | What happens next | Done. Mode `what_next` on all 25 scenarios; the answer key is derived from the candles (`next-objective.ts`, attached in `buildScenario`), with partial credit for objectives price ran to on the way and for PDH/BSL, PDL/SSL cross answers |
+| 6 | Replay presets | Done (`presets.ts`, quick start on `/train`). Seven presets, all the ordinary Simulator; one hides itself when it has fewer than 4 scenarios (or no measured skill, for "Train my weaknesses") |
+| 8 | Landing repositioning | Done. New headline, a six-step stepped simulator preview built from a real scored attempt on sim-001 (`landing-sample.ts`, not a typed-in score), fourth mode card, honest analytics copy. The hero exercise and "try 3 charts" are unchanged |
+
+**Decisions and limits worth knowing**
+- Training history lives on the device until migration `20261006120000_scenario_attempts.sql` is applied (B4). The demo store has no such table, so the demo user's history is browser storage: analytics sections stay hidden until there are attempts.
+- "By timeframe" is the timeframe the learner did most of their marking on (attempts with no marks are not counted); the engine doesn't record a timeframe per attempt.
+- "By session" is the session of the scenario's decision moment, now stored in the catalog (`session`), rebuilt with `npm run scenarios`.
+- "False-positive rate" = trades taken (long/short) on a chart with no defensible trade, or where the Trade Selection dimension scored under 55, over all trades taken.
+- Setup Recognition and Market Structure are read from skill evidence (the dimensions that imply those skills), not from a dimension of their own.
+- Run plans live in the URL (`/train/play?...&run=&plan=&i=`); a run step's attempts carry the session id `<run>:<index>`.
+- Not done: no run resume after a refresh mid-scenario (replays are stateless, ENGINE.md), no per-step timing for the "10-minute" claim (it is an estimate of five short scenarios).
+- `tests/curriculum.test.ts` still fails as before (MSS v1/v2 re-check, a content call). `tests/sql/integrity.test.ts` timed out once under a full parallel run and passes alone: a load flake, not a regression.
+
+---
+
 ## Update 2026-10-03: growth and learning features (read this, then the older resume point below)
 
 Built on `demo-mode`, one commit per batch, each with `tsc`, `eslint`, the full test suite and a production build. Full detail: [SHARING.md](SHARING.md), [SPACED-REPETITION.md](SPACED-REPETITION.md), [OPERATIONS.md](OPERATIONS.md) (error monitoring), PRD Decision Log 2026-10-03.

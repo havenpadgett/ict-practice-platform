@@ -23,3 +23,8 @@ A running list of non-blocking cosmetic, copy, and layout issues to address in a
 - [ ] **(2026-10-03)** The Experience choice has no arrow-key navigation because it is a group of toggle buttons rather than a radio group; fine to tab through, worth revisiting if more options are added.
 - [ ] **(2026-10-03)** Daily charts repeat once a concept's pool is used (11 to 31 charts per concept). More reviewed Order Block, Premium & Discount and Time-Based Liquidity charts lengthen the cycle.
 - [ ] **(2026-10-03)** The share card's chart has no price axis or time labels (it is a picture of marks, not a chart to read). A faint axis would help a viewer who sees a card with no context.
+
+- What-happens-next review: the reveal reuses the Simulator's completed chart; a "revealed portion" shading after the chosen candle would read better than the "YOU DECIDED" marker.
+- Landing preview: step 4 could animate candles into view instead of swapping charts.
+- Run summary: no per-step link back to each step's full review (open it from the journal).
+- `src/components/sim/review-view.tsx`: the what-next branch left the reference figure's JSX at its old indentation.

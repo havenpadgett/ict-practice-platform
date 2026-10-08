@@ -3,6 +3,8 @@ import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { PrimaryButton } from "@/components/primary-button";
 import { GlossaryText } from "@/components/glossary/glossary-text";
 import { HeroExercise } from "@/components/landing/hero-exercise";
+import { TrainingPreview } from "@/components/landing/training-preview";
+import { buildLandingSample } from "@/lib/landing-sample";
 import { LANDING_EXERCISE_ID } from "@/lib/challenge";
 import { shareableExercise } from "@/lib/challenge-source";
 import { toPublicExercise } from "@/lib/public-exercise";
@@ -58,6 +60,12 @@ const MODES = [
     detail:
       "Play a session forward candle by candle, with no future candles on screen. Graded on your process: a good trade that loses still passes, and a lucky one doesn't.",
   },
+  {
+    eyebrow: "Mode 4",
+    name: "Simulator and training",
+    detail:
+      "Seeded scenarios with a bias, liquidity, entry, stop and target to decide, or no trade at all. Scored on process; sessions are picked from the skills you are weakest at.",
+  },
 ];
 
 const LOOP = [
@@ -75,16 +83,17 @@ const HOW = (real: { human: number; auto: number }) => [
   {
     name: "Adaptive practice",
     detail:
-      "The app tracks accuracy per concept, weighting your recent attempts most, and recommends what to practice next and at what difficulty. It tells you why.",
+      "The app tracks accuracy per concept and seven separate skills, weighting your recent attempts most. It recommends what to practice next, at what difficulty, and tells you why: no AI picking scenarios, the same history gives the same picks.",
   },
   {
     name: "Performance analytics",
     detail:
-      "Accuracy over time, by concept and difficulty, per Guided Entry step, and Free Trade process versus win rate, plus a CSV export for your own analysis.",
+      "Accuracy over time, by concept and difficulty, process scores by setup and session, your most common mistakes, confidence against accuracy, and what you know versus what you can apply. A rate is only shown with its sample size. CSV export for your own analysis.",
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const sample = await buildLandingSample();
   const how = HOW(realApprovalCounts());
   const heroSource = shareableExercise(LANDING_EXERCISE_ID);
   const hero = heroSource ? toPublicExercise(heroSource) : null;
@@ -94,13 +103,14 @@ export default function Home() {
         {/* Hero */}
         <section className="grid items-start gap-x-12 gap-y-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:grid-rows-[auto_1fr]">
           <div className="max-w-xl lg:col-start-1 lg:row-start-1 lg:pt-8">
-            <p className="eyebrow">ICT concepts · NQ-style charts · Practice</p>
+            <p className="eyebrow">ICT training · NQ-style charts · Deliberate practice</p>
             <h1 className="mt-4 text-4xl leading-[1.05] sm:text-6xl">
-              Stop watching setups. Start spotting them.
+              Don&apos;t memorize ICT. Train it.
             </h1>
             <p className="mt-5 text-base sm:mt-6 sm:text-lg">
-              Graded practice for reading ICT concepts on NQ-style price charts. Mark your answer on the chart and get
-              immediate feedback that explains the rule, whether you were right or wrong.
+              Trading concepts don&apos;t become skills until you can find them yourself. Learn the concepts. Read the
+              chart. Execute the model. Try the exercise on the right now: mark it on the chart and see how it&apos;s
+              graded.
             </p>
           </div>
           {/* On a phone the exercise follows the headline directly; the
@@ -128,6 +138,22 @@ export default function Home() {
             </p>
           </div>
         </section>
+
+        {/* The product, in miniature */}
+        {sample && (
+          <section className="mt-24" aria-labelledby="train-heading">
+            <p className="eyebrow">The simulator</p>
+            <h2 id="train-heading" className="mt-3 text-2xl sm:text-3xl">
+              Read it. Mark it. Decide. Watch it play out.
+            </h2>
+            <p className="mt-3 max-w-2xl">
+              Replay a chart with only what was visible at the time, take, wait on or skip the trade, and get scored on how you read and executed it. Then train the part that was weak.
+            </p>
+            <div className="mt-8">
+              <TrainingPreview sample={sample} />
+            </div>
+          </section>
+        )}
 
         {/* The loop */}
         <section className="mt-24" aria-labelledby="loop-heading">
@@ -167,9 +193,9 @@ export default function Home() {
 
         {/* Modes */}
         <section className="mt-24">
-          <p className="eyebrow">Three practice modes</p>
-          <h2 className="mt-3 text-2xl sm:text-3xl">From spotting a pattern to deciding on a trade</h2>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <p className="eyebrow">Four ways to practice</p>
+          <h2 className="mt-3 text-2xl sm:text-3xl">From spotting a pattern to running a model</h2>
+          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {MODES.map((m) => (
               <div key={m.name} className="card">
                 <p className="eyebrow">{m.eyebrow}</p>

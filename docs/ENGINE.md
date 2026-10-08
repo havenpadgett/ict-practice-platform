@@ -154,3 +154,13 @@ Server Functions (`src/app/train/actions.ts`, `placement-actions.ts`) check the 
 ## Not built, on purpose
 
 Leaderboards, friends, private groups, community comparison, premium tiers, XP and levels, speed drills, economic event context, SMT functionality (it's in the skill tree marked *coming later* and excluded from mastery), additional instruments. Also not built: trade management after entry (moving a stop, partials), resuming an interrupted replay after a refresh (the server reveals candles statelessly), and a polished "Train my weaknesses" session flow (the selection logic and a pick list exist).
+
+## Added 2026-10-08
+
+- **Performance** (`performance.ts`): the analytics report, derived from stored attempts and the catalog. Eight process parts (HTF Bias, Liquidity Read, Market Structure, Setup Recognition, POI / Entry Location, Stop, Target, Trade Selection), each with its sample size; "correct" is a score of 80+. Slices by setup, session (`session.ts`, from the decision moment's ET clock), working timeframe, difficulty, and blocks of five over time. Insights are generated only from rates with at least five attempts.
+- **Knowledge vs application** (`application.ts`): five layers over the skill vector (Concept Knowledge = concept recognition; Chart Recognition = market structure; Context Reading = HTF bias + liquidity; Trade Selection = confluence; Execution = entry models + execution). Unmeasured layers say so.
+- **Rotation** (`weakness.ts`): `skillNeeds` ranks skills; `pickWeaknessScenarios` scores candidates and accepts `skills`, `modes`, `filter` and `exclude`, which is how the review, presets and model sessions reuse it. Weights are in `ROTATION`.
+- **Guided runs** (`run.ts`): an ordered list of (scenario, mode) steps in the URL; each step is the ordinary runner with a `<run>:<index>` session id. Used by the 10-minute review, replay presets and entry-model sessions. `summarizeRun` compares only against attempts from before the run.
+- **What happens next** (`next-objective.ts`, mode `what_next`): the key is derived at build time. Pools in view: previous day high/low, the day's high/low so far, the nearest unfilled 5m gap. Pools price travelled 70% of the way to (or touched) count as reached; the draw is the farthest on the side price travelled; reached-on-the-way pools earn 0.75, PDH/BSL and PDL/SSL cross-credit 0.7; consolidation is the answer only when price stayed in a narrow range and reached no previous-day extreme.
+- **Entry models** (`models.ts`): a model is a catalog filter plus a four-step session (valid or not, plan, run it, near miss). It is offered only with at least 4 scenarios, 3 with a trade.
+- **Presets** (`presets.ts`): catalog filters over the Simulator, offered only above a minimum pool.
