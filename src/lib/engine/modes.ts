@@ -318,6 +318,39 @@ export const MODES: Record<ModeId, ModeConfig> = {
     trains: ["concept_recognition", "confluence"],
   },
 
+  what_next: {
+    id: "what_next",
+    name: "What happens next",
+    summary: "Price is shown up to one candle. Name the most likely next objective, then see where it went. Not a next-candle prediction: a read of where price is being drawn.",
+    stages: [
+      {
+        id: "objective",
+        title: "Next objective",
+        prompt: "What is the most likely next objective?",
+        timeframes: ALL_TF,
+        initialTimeframe: "15m",
+        input: {
+          kind: "choice",
+          options: [
+            { value: "bsl", label: "Buy-Side Liquidity" },
+            { value: "ssl", label: "Sell-Side Liquidity" },
+            { value: "pdh", label: "Previous Day High" },
+            { value: "pdl", label: "Previous Day Low" },
+            { value: "fvg", label: "FVG / imbalance repricing" },
+            { value: "consolidation", label: "Consolidation / unclear" },
+          ],
+        },
+        scorer: "answer_set",
+        answerKey: "next_objective",
+        dimension: "liquidity_read",
+        guidance: "minimal",
+      },
+    ],
+    feedback: "end",
+    asksConfidence: true,
+    trains: ["liquidity", "market_structure"],
+  },
+
   placement: {
     id: "placement",
     name: "Placement test",
@@ -329,7 +362,7 @@ export const MODES: Record<ModeId, ModeConfig> = {
   },
 };
 
-export const TRAINING_MODES: ModeId[] = ["simulator", "build_your_bias", "htf_to_ltf", "confluence", "setup_or_trap", "find_everything", "blind_chart", "false_positive"];
+export const TRAINING_MODES: ModeId[] = ["simulator", "build_your_bias", "htf_to_ltf", "confluence", "setup_or_trap", "find_everything", "blind_chart", "false_positive", "what_next"];
 
 export function getMode(id: string): ModeConfig | null {
   return Object.prototype.hasOwnProperty.call(MODES, id) ? MODES[id as ModeId] : null;
@@ -353,5 +386,6 @@ export function supportedModes(s: Pick<Scenario, "reference" | "checkpoints">): 
   if (r.answers.take) out.push("setup_or_trap");
   if (r.annotations.filter((a) => a.role === "key" || a.role === "valid").length >= 2) out.push("find_everything");
   if (r.annotations.filter((a) => a.candidate).length >= 3) out.push("false_positive");
+  if (r.answers.next_objective) out.push("what_next");
   return out;
 }

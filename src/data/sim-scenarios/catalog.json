@@ -30,7 +30,8 @@
    "confluence",
    "setup_or_trap",
    "find_everything",
-   "false_positive"
+   "false_positive",
+   "what_next"
   ],
   "noTrade": false,
   "session": "ny_am"
@@ -67,7 +68,8 @@
    "confluence",
    "setup_or_trap",
    "find_everything",
-   "false_positive"
+   "false_positive",
+   "what_next"
   ],
   "noTrade": false,
   "session": "ny_am"
@@ -98,7 +100,8 @@
    "simulator",
    "blind_chart",
    "confluence",
-   "setup_or_trap"
+   "setup_or_trap",
+   "what_next"
   ],
   "noTrade": true,
   "session": "ny_am"
@@ -133,7 +136,8 @@
    "htf_to_ltf",
    "confluence",
    "setup_or_trap",
-   "find_everything"
+   "find_everything",
+   "what_next"
   ],
   "noTrade": false,
   "session": "ny_am"
@@ -164,7 +168,8 @@
    "blind_chart",
    "confluence",
    "setup_or_trap",
-   "false_positive"
+   "false_positive",
+   "what_next"
   ],
   "noTrade": true,
   "session": "ny_am"
@@ -197,7 +202,8 @@
    "build_your_bias",
    "confluence",
    "setup_or_trap",
-   "false_positive"
+   "false_positive",
+   "what_next"
   ],
   "noTrade": true,
   "session": "ny_am"
@@ -232,7 +238,8 @@
    "confluence",
    "setup_or_trap",
    "find_everything",
-   "false_positive"
+   "false_positive",
+   "what_next"
   ],
   "noTrade": false,
   "session": "ny_am"
@@ -267,7 +274,8 @@
    "confluence",
    "setup_or_trap",
    "find_everything",
-   "false_positive"
+   "false_positive",
+   "what_next"
   ],
   "noTrade": false,
   "session": "ny_am"
@@ -302,7 +310,8 @@
    "htf_to_ltf",
    "confluence",
    "setup_or_trap",
-   "find_everything"
+   "find_everything",
+   "what_next"
   ],
   "noTrade": false,
   "session": "ny_am"
@@ -334,7 +343,8 @@
    "blind_chart",
    "confluence",
    "setup_or_trap",
-   "false_positive"
+   "false_positive",
+   "what_next"
   ],
   "noTrade": true,
   "session": "ny_am"
@@ -367,7 +377,8 @@
    "blind_chart",
    "confluence",
    "setup_or_trap",
-   "false_positive"
+   "false_positive",
+   "what_next"
   ],
   "noTrade": true,
   "session": "ny_am"
@@ -401,7 +412,8 @@
    "htf_to_ltf",
    "confluence",
    "setup_or_trap",
-   "find_everything"
+   "find_everything",
+   "what_next"
   ],
   "noTrade": false,
   "session": "ny_am"
@@ -437,7 +449,8 @@
    "confluence",
    "setup_or_trap",
    "find_everything",
-   "false_positive"
+   "false_positive",
+   "what_next"
   ],
   "noTrade": false,
   "session": "ny_pm"
@@ -471,7 +484,8 @@
    "htf_to_ltf",
    "confluence",
    "setup_or_trap",
-   "find_everything"
+   "find_everything",
+   "what_next"
   ],
   "noTrade": false,
   "session": "ny_am"
@@ -505,7 +519,8 @@
    "confluence",
    "setup_or_trap",
    "find_everything",
-   "false_positive"
+   "false_positive",
+   "what_next"
   ],
   "noTrade": false,
   "session": "ny_am"
@@ -538,7 +553,8 @@
    "blind_chart",
    "confluence",
    "setup_or_trap",
-   "false_positive"
+   "false_positive",
+   "what_next"
   ],
   "noTrade": true,
   "session": "ny_am"
@@ -572,7 +588,8 @@
    "htf_to_ltf",
    "confluence",
    "setup_or_trap",
-   "find_everything"
+   "find_everything",
+   "what_next"
   ],
   "noTrade": false,
   "session": "ny_am"
@@ -607,7 +624,8 @@
    "htf_to_ltf",
    "confluence",
    "setup_or_trap",
-   "find_everything"
+   "find_everything",
+   "what_next"
   ],
   "noTrade": false,
   "session": "ny_am"
@@ -640,7 +658,8 @@
    "blind_chart",
    "confluence",
    "setup_or_trap",
-   "false_positive"
+   "false_positive",
+   "what_next"
   ],
   "noTrade": true,
   "session": "ny_am"
@@ -673,7 +692,8 @@
    "htf_to_ltf",
    "confluence",
    "setup_or_trap",
-   "find_everything"
+   "find_everything",
+   "what_next"
   ],
   "noTrade": false,
   "session": "ny_am"
@@ -708,7 +728,8 @@
    "confluence",
    "setup_or_trap",
    "find_everything",
-   "false_positive"
+   "false_positive",
+   "what_next"
   ],
   "noTrade": false,
   "session": "ny_am"
@@ -740,7 +761,8 @@
    "blind_chart",
    "confluence",
    "setup_or_trap",
-   "false_positive"
+   "false_positive",
+   "what_next"
   ],
   "noTrade": true,
   "session": "ny_pm"
@@ -773,7 +795,8 @@
    "blind_chart",
    "confluence",
    "setup_or_trap",
-   "false_positive"
+   "false_positive",
+   "what_next"
   ],
   "noTrade": true,
   "session": "ny_am"
@@ -809,7 +832,8 @@
    "confluence",
    "setup_or_trap",
    "find_everything",
-   "false_positive"
+   "false_positive",
+   "what_next"
   ],
   "noTrade": false,
   "session": "london"
@@ -845,7 +869,8 @@
    "htf_to_ltf",
    "confluence",
    "setup_or_trap",
-   "find_everything"
+   "find_everything",
+   "what_next"
   ],
   "noTrade": false,
   "session": "ny_am"

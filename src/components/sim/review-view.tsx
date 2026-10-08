@@ -8,13 +8,18 @@ import { Verdict, VerdictInline } from "@/components/verdict";
 import { defensibleValues } from "@/lib/engine/accept";
 import { fromRow, seriesAt, supportedTimeframes, type TimeframeData } from "@/lib/engine/candles";
 import { KIND_DEFINITION, type ExplanationTier } from "@/lib/engine/kind-definitions";
+import { OBJECTIVE_LABEL, type Objective } from "@/lib/engine/next-objective";
 import { MISTAKE_LABEL, MISTAKE_TIP } from "@/lib/engine/review";
 import { fmtPrice } from "@/lib/engine/scoring";
 import { TIMEFRAME_LABEL, type Timeframe } from "@/lib/engine/time";
 import { describeOutcome } from "@/lib/engine/trade";
-import { DIMENSION_LABEL, type Annotation, type AnnotationKind, type AttemptResponse, type AttemptResult, type Order, type RefAnnotation, type Scenario } from "@/lib/engine/types";
+import { DIMENSION_LABEL, type Annotation, type AnnotationKind, type AttemptResponse, type AttemptResult, type Order, type RefAnnotation, type Scenario, type StageResponse } from "@/lib/engine/types";
 
 const noop = () => {};
+
+function objectiveLabel(r: StageResponse | undefined): string {
+  return r?.kind === "choice" ? (OBJECTIVE_LABEL[r.value as Objective] ?? r.value) : "no answer";
+}
 
 function userMarks(response: AttemptResponse): Annotation[] {
   const out: Annotation[] = [];
@@ -128,6 +133,7 @@ export function ReviewView({
     return prices;
   }, [refMarks]);
 
+  const nextOnly = result.modeId === "what_next";
   const userBias = userChoice(response, "bias", "replay");
   const yourDecision = placed?.decision ?? Object.values(response.stages).map((r) => (r.kind === "replay" || r.kind === "trade" ? r.decision : r.kind === "choice" && ["long", "short", "wait", "no_trade", "take", "skip"].includes(r.value) ? r.value : null)).find(Boolean) ?? null;
   const t = ref.trade;
@@ -184,9 +190,9 @@ export function ReviewView({
             ))}
           </div>
         </div>
-        <div className="mt-3 grid gap-4 lg:grid-cols-2">
+        <div className={`mt-3 grid gap-4 ${nextOnly ? "" : "lg:grid-cols-2"}`}>
           <figure className="min-w-0">
-            <figcaption className="mb-1 text-xs text-muted">What you did (solid)</figcaption>
+            <figcaption className="mb-1 text-xs text-muted">{nextOnly ? "Where you answered, and what price did after it" : "What you did (solid)"}</figcaption>
             <div className="overflow-hidden rounded-lg border border-line bg-surface p-2">
               <ScenarioChart
                 series={series}
@@ -211,6 +217,7 @@ export function ReviewView({
               />
             </div>
           </figure>
+          {!nextOnly && (
           <figure className="min-w-0">
             <figcaption className="mb-1 text-xs text-muted">One defensible reading (dashed). Alternatives are labelled &ldquo;also valid&rdquo;.</figcaption>
             <div className="overflow-hidden rounded-lg border border-line bg-surface p-2">
@@ -249,6 +256,7 @@ export function ReviewView({
               ))}
             </ol>
           </figure>
+          )}
         </div>
       </section>
 
@@ -257,12 +265,20 @@ export function ReviewView({
           You against the reference
         </h2>
         <dl className="mt-2 divide-y divide-line rounded-lg border border-line bg-surface px-4">
-          <Row k="Bias">
-            {userBias ?? "none declared"} <span className="text-muted">· defensible: {defensibleValues(ref.bias).join(", ")} on the {TIMEFRAME_LABEL[ref.biasTimeframe]}</span>
-          </Row>
-          <Row k="Decision">
-            {String(yourDecision ?? "none").replace("_", " ")} <span className="text-muted">· defensible: {defensibleValues(ref.decision).map((d) => d.replace("_", " ")).join(", ")}</span>
-          </Row>
+          {result.modeId === "what_next" ? (
+            <Row k="Next objective">
+              {objectiveLabel(response.stages.objective)} <span className="text-muted">· defensible: {defensibleValues(ref.answers.next_objective).map((v) => OBJECTIVE_LABEL[v as Objective] ?? v).join(", ")}</span>
+            </Row>
+          ) : (
+            <>
+              <Row k="Bias">
+                {userBias ?? "none declared"} <span className="text-muted">· defensible: {defensibleValues(ref.bias).join(", ")} on the {TIMEFRAME_LABEL[ref.biasTimeframe]}</span>
+              </Row>
+              <Row k="Decision">
+                {String(yourDecision ?? "none").replace("_", " ")} <span className="text-muted">· defensible: {defensibleValues(ref.decision).map((d) => d.replace("_", " ")).join(", ")}</span>
+              </Row>
+            </>
+          )}
           {result.marks && (
             <Row k="Markings">
               {result.marks.matched.filter((m) => m.ref.role !== "invalidating").length} on structure that mattered

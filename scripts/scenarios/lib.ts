@@ -12,6 +12,7 @@
 
 import { fromRow, resample, toRow, type SimCandle } from "../../src/lib/engine/candles";
 import { atr, fvgs, swings } from "../../src/lib/engine/structure";
+import { deriveNextObjective } from "../../src/lib/engine/next-objective";
 import { bucketStart, etFields, etMinutes, TIMEFRAME_MINUTES, type Timeframe } from "../../src/lib/engine/time";
 import type { AcceptableRange, AcceptableSet, AnnotationKind, Checkpoints, ConfluenceRef, Order, RefAnnotation, RefRole, Scenario } from "../../src/lib/engine/types";
 
@@ -477,6 +478,9 @@ export function buildScenario(spec: ScenarioSpec): Built {
     provenance: { kind: "seeded", note: "Constructed price path, not market history.", generator: "scripts/scenarios/lib.ts" },
     data: { streamTimeframe: "1m", history, stream: stream.map(toRow) },
   };
+  // The "what happens next" answer is read off the candles, never typed in.
+  const next = scenario.reference?.answers ? deriveNextObjective(scenario) : null;
+  if (next) scenario.reference.answers.next_objective = next.set;
   return { scenario, all, ctx, streamStart: anchorIdx };
 }
 

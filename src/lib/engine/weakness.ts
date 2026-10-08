@@ -42,9 +42,9 @@ export type Seen = {
 /** Modes best suited to train a skill, in order of preference. */
 export const MODES_FOR_SKILL: Record<SkillId, ModeId[]> = {
   htf_bias: ["build_your_bias", "htf_to_ltf", "simulator"],
-  liquidity: ["build_your_bias", "find_everything", "simulator"],
+  liquidity: ["build_your_bias", "what_next", "find_everything", "simulator"],
   concept_recognition: ["false_positive", "find_everything"],
-  market_structure: ["find_everything", "false_positive", "simulator"],
+  market_structure: ["find_everything", "what_next", "false_positive", "simulator"],
   entry_models: ["htf_to_ltf", "simulator", "blind_chart"],
   confluence: ["confluence", "setup_or_trap", "false_positive"],
   execution: ["simulator", "htf_to_ltf", "setup_or_trap", "blind_chart"],
@@ -274,7 +274,7 @@ export function pickWeaknessScenarios(args: {
         scenario,
         mode,
         factors,
-        reason: `${MODES[mode].name} on ${scenario.title}. ${factors[0]}${factors.length > 1 ? `; ${factors.slice(1).join("; ")}` : ""}.`,
+        reason: `${factors[0]}${factors.length > 1 ? `; ${factors.slice(1).join("; ")}` : ""}.`,
       });
     }
   }

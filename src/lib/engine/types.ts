@@ -339,6 +339,7 @@ export type ModeId =
   | "find_everything"
   | "blind_chart"
   | "false_positive"
+  | "what_next"
   | "placement";
 
 export type InputSpec =

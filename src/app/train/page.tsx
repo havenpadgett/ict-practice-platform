@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { PresetGrid } from "@/components/train/preset-grid";
+import { useTraining } from "@/hooks/use-training";
 import { LoadingState } from "@/components/loading-state";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { MODES, TRAINING_MODES } from "@/lib/engine/modes";
@@ -14,6 +16,7 @@ import type { StoredScenarioAttempt } from "@/lib/engine/attempt-row";
 export default function TrainPage() {
   const { user, loading } = useRequireAuth();
   const [history, setHistory] = useState<StoredScenarioAttempt[] | null>(null);
+  const training = useTraining();
 
   useEffect(() => {
     if (!user) return;
@@ -40,6 +43,9 @@ export default function TrainPage() {
         <Link href="/train/placement" className="btn-link">
           Placement test
         </Link>
+        <Link href="/train/models" className="btn-link">
+          Entry models
+        </Link>
         <Link href="/train/ten" className="btn-link">
           10-minute review
         </Link>
@@ -57,7 +63,10 @@ export default function TrainPage() {
         </Link>
       </nav>
 
-      <ul className="mt-8 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+      {training.vector && <PresetGrid vector={training.vector} attempts={history} />}
+
+      <h2 className="eyebrow mt-10">All modes</h2>
+      <ul className="mt-3 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
         {TRAINING_MODES.map((id) => {
           const mode = MODES[id];
           const pool = scenariosForMode(id);

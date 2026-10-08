@@ -12,6 +12,7 @@ import { isModeId } from "@/lib/engine/modes";
 import { MISTAKE_LABEL } from "@/lib/engine/review";
 import { scenarioMeta, type ScenarioMeta } from "@/lib/engine/store";
 import { computeSkillVector, evidenceFromAttempts } from "@/lib/engine/skills";
+import { MODEL_SLOTS } from "@/lib/engine/models";
 import { pickWeaknessScenarios, skillNeeds, type Seen } from "@/lib/engine/weakness";
 import type { SkillVector } from "@/lib/engine/skills";
 
@@ -165,5 +166,6 @@ export function summarizeRun(args: { run: string; steps: RunStep[]; attempts: St
 /** The role shown for a step re-read from a URL. */
 export function roleFor(step: PlanStep, kind: RunKind | null, index: number): string {
   if (kind === "ten" && step.slot !== undefined && REVIEW_SLOTS[step.slot]) return REVIEW_SLOTS[step.slot].role;
+  if (kind === "model" && step.slot !== undefined && MODEL_SLOTS[step.slot]) return MODEL_SLOTS[step.slot].role;
   return `Scenario ${index + 1}`;
 }
