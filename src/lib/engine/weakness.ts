@@ -186,6 +186,9 @@ export function pickWeaknessScenarios(args: {
   count?: number;
   /** Restrict to one skill ("Train HTF Bias"). */
   skill?: SkillId;
+  /** Restrict to a set of skills (a review slot). A skill not measured yet is
+   * still eligible, since practising it is how it gets measured. */
+  skills?: SkillId[];
   /** How many recent scenarios to avoid. */
   recentWindow?: number;
   /** Scenario ids that must not be picked (already in this session). */
@@ -198,7 +201,12 @@ export function pickWeaknessScenarios(args: {
   const { vector, attempts, count = 3, recentWindow = 6 } = args;
   const catalog = args.filter ? args.catalog.filter(args.filter) : args.catalog;
   const needs = skillNeeds(vector, attempts);
-  const ranked: SkillNeed[] = args.skill ? [needs.find((n) => n.skill === args.skill) ?? { skill: args.skill, need: 0, why: [`${SKILL_LABEL[args.skill]} is the skill you chose`] }] : needs.slice(0, 3);
+  const unmeasured = (skill: SkillId): SkillNeed => ({ skill, need: 0.5, why: [`${SKILL_LABEL[skill]} isn't measured yet`] });
+  const ranked: SkillNeed[] = args.skill
+    ? [needs.find((n) => n.skill === args.skill) ?? { skill: args.skill, need: 0, why: [`${SKILL_LABEL[args.skill]} is the skill you chose`] }]
+    : args.skills
+      ? args.skills.map((s) => needs.find((n) => n.skill === s) ?? unmeasured(s)).sort((a, b) => b.need - a.need || a.skill.localeCompare(b.skill)).slice(0, 3)
+      : needs.slice(0, 3);
   if (ranked.length === 0) return [];
 
   const done = practice(attempts);

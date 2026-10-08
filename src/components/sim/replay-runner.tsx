@@ -25,7 +25,7 @@ const END_PROMPT = "The scenario has ended and you haven't entered. Finish it as
  * is named for you (guidance); everything else (markup, timeframe switching
  * at one timestamp, the trade ticket, the outcome that stays hidden until
  * the stop or target is hit) is the same code. */
-export function ReplayRunner({ scenario, mode, tier, nextHref, againHref }: { scenario: PublicScenario; mode: ModeConfig; tier?: ExplanationTier; nextHref: string; againHref: string }) {
+export function ReplayRunner({ scenario, mode, tier, nextHref, againHref, sessionId: runSession, nextLabel }: { scenario: PublicScenario; mode: ModeConfig; tier?: ExplanationTier; nextHref: string; againHref: string; /** Set when this scenario is a step of a guided run. */ sessionId?: string; nextLabel?: string }) {
   const stage = mode.stages[0];
   const input = stage.input.kind === "replay" ? stage.input : { kind: "replay" as const, playback: true };
   const playback = input.playback;
@@ -35,7 +35,7 @@ export function ReplayRunner({ scenario, mode, tier, nextHref, againHref }: { sc
   const firstTf = stage.initialTimeframe;
   const replay = useReplay(scenario, firstTf);
   const { state, dispatch, series } = replay;
-  const [sessionId] = useState(() => `sim_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`);
+  const [sessionId] = useState(() => runSession ?? `sim_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`);
   const [startedAt] = useState(() => Date.now());
   const grading = useGrading(sessionId);
   const [noteDraft, setNoteDraft] = useState<{ price: number; t: number } | null>(null);
@@ -102,11 +102,13 @@ export function ReplayRunner({ scenario, mode, tier, nextHref, againHref }: { sc
           actions={
             <>
               <Link href={nextHref} className="btn-primary">
-                Next scenario
+                {nextLabel ?? "Next scenario"}
               </Link>
-              <Link href={againHref} className="btn-secondary">
-                Try this one again
-              </Link>
+              {!runSession && (
+                <Link href={againHref} className="btn-secondary">
+                  Try this one again
+                </Link>
+              )}
               <Link href="/train" className="btn-link">
                 Back to Train
               </Link>

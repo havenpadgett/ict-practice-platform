@@ -13,6 +13,7 @@ import { useTraining } from "@/hooks/use-training";
 import { explanationTier } from "@/lib/engine/tier";
 import { getMode } from "@/lib/engine/modes";
 import { nextScenarioFor } from "@/lib/engine/pick";
+import { doneHref, encodePlan, parsePlan, playHref, roleFor, runKindOf, runSessionId } from "@/lib/engine/run";
 import { scenarioMeta } from "@/lib/engine/store";
 import type { PublicScenario } from "@/lib/engine/types";
 import { fetchScenarioAttempts } from "@/lib/scenario-attempts";
@@ -66,16 +67,33 @@ function Play() {
   }
   if (!scenario) return <LoadingState />;
 
-  const nextHref = `/train/play?mode=${mode.id}&scenario=${nextId ?? scenarioId}`;
+  // Inside a guided run the next step is the next one in the plan, then the summary.
+  const run = params.get("run");
+  const plan = parsePlan(params.get("plan"));
+  const index = Number(params.get("i"));
+  const inRun = run !== null && Number.isInteger(index) && plan[index]?.scenarioId === scenarioId && plan[index]?.mode === mode.id;
+  const planParam = encodePlan(plan);
+  const nextHref = inRun
+    ? index + 1 < plan.length
+      ? playHref(plan[index + 1], run, planParam, index + 1)
+      : doneHref(run, planParam)
+    : `/train/play?mode=${mode.id}&scenario=${nextId ?? scenarioId}`;
+  const nextLabel = inRun ? (index + 1 < plan.length ? `Next: ${index + 2} of ${plan.length}` : "Finish and see summary") : undefined;
+  const sessionId = inRun ? runSessionId(run, index) : undefined;
   const againHref = `/train/play?mode=${mode.id}&scenario=${scenarioId}`;
   const replayLike = mode.stages.length === 1 && mode.stages[0].input.kind === "replay";
 
   return (
     <main className="mx-auto w-full max-w-7xl px-4 pt-6 pb-16 sm:px-6 sm:pt-8">
+      {inRun && (
+        <p className="mb-3 text-xs text-muted tabular-nums" aria-label="Progress through this run">
+          Step {index + 1} of {plan.length} · {roleFor(plan[index], runKindOf(run), index)}
+        </p>
+      )}
       {replayLike ? (
-        <ReplayRunner key={`${scenario.id}-${attempt}`} scenario={scenario} mode={mode} tier={tier} nextHref={nextHref} againHref={againHref} />
+        <ReplayRunner key={`${scenario.id}-${attempt}`} scenario={scenario} mode={mode} tier={tier} nextHref={nextHref} againHref={againHref} sessionId={sessionId} nextLabel={nextLabel} />
       ) : (
-        <StagedRunner key={`${scenario.id}-${attempt}`} scenario={scenario} mode={mode} tier={tier} nextHref={nextHref} againHref={againHref} />
+        <StagedRunner key={`${scenario.id}-${attempt}`} scenario={scenario} mode={mode} tier={tier} nextHref={nextHref} againHref={againHref} sessionId={sessionId} nextLabel={nextLabel} />
       )}
     </main>
   );

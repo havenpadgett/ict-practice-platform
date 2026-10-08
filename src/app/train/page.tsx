@@ -40,6 +40,9 @@ export default function TrainPage() {
         <Link href="/train/placement" className="btn-link">
           Placement test
         </Link>
+        <Link href="/train/ten" className="btn-link">
+          10-minute review
+        </Link>
         <Link href="/train/weakness" className="btn-link">
           Train my weaknesses
         </Link>

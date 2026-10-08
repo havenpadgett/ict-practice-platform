@@ -46,10 +46,10 @@ export function useCandles(scenario: PublicScenario, needed: number): { candles:
  * Confluence Trainer, Setup or Trap, Find Everything and "Does it matter?".
  * One runner, driven entirely by the mode's stage list. Feedback comes at the
  * end only, so a later stage can't be answered with hindsight. */
-export function StagedRunner({ scenario, mode, tier, nextHref, againHref }: { scenario: PublicScenario; mode: ModeConfig; tier?: ExplanationTier; nextHref: string; againHref: string }) {
+export function StagedRunner({ scenario, mode, tier, nextHref, againHref, sessionId: runSession, nextLabel }: { scenario: PublicScenario; mode: ModeConfig; tier?: ExplanationTier; nextHref: string; againHref: string; /** Set when this scenario is a step of a guided run. */ sessionId?: string; nextLabel?: string }) {
   const { level } = useExperience();
   const resolvedTier: ExplanationTier = tier ?? (level === "beginner" ? "define" : "relate");
-  const [sessionId] = useState(() => `stg_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`);
+  const [sessionId] = useState(() => runSession ?? `stg_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`);
   const [startedAt] = useState(() => Date.now());
   const grading = useGrading(sessionId);
 
@@ -73,11 +73,13 @@ export function StagedRunner({ scenario, mode, tier, nextHref, againHref }: { sc
           actions={
             <>
               <Link href={nextHref} className="btn-primary">
-                Next scenario
+                {nextLabel ?? "Next scenario"}
               </Link>
-              <Link href={againHref} className="btn-secondary">
-                Try this one again
-              </Link>
+              {!runSession && (
+                <Link href={againHref} className="btn-secondary">
+                  Try this one again
+                </Link>
+              )}
               <Link href="/train" className="btn-link">
                 Back to Train
               </Link>
