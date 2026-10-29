@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
-import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { LoadingState } from "@/components/loading-state";
 import { useAuth } from "@/contexts/auth-context";
 
@@ -34,7 +33,6 @@ export default function LoginPage() {
   return (
     <div className="flex flex-1 flex-col">
       <LoginRedirectGuard />
-      <DisclaimerFooter />
     </div>
   );
 }

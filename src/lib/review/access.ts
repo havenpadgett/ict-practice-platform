@@ -36,6 +36,3 @@ export async function getReviewer(): Promise<Reviewer | null> {
   const access = await getAccess();
   return access.kind === "ok" && (access.role === "reviewer" || access.role === "admin") ? { email: access.email } : null;
 }
-
-export const ROLE_SETUP_HINT =
-  "Access comes from your role in the database (profiles.role). Apply supabase/migrations/20260927120000_roles.sql, then grant it in the Supabase SQL editor — see docs/SECURITY-AUDIT.md → Roles.";

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ChallengeRunner } from "@/components/challenge/challenge-runner";
-import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { challengePath } from "@/lib/challenge";
 import { shareableExercise } from "@/lib/challenge-source";
 import { conceptDisplayName } from "@/lib/concepts";
@@ -42,7 +41,6 @@ export default async function ChallengePage({ params }: { params: Promise<Params
         <p className="mt-2 mb-6 text-sm text-muted">Mark your answer on the chart. The correct answer stays hidden until you submit.</p>
         <ChallengeRunner exercise={exercise} source="challenge" sharePath={challengePath(e.exercise_id)} />
       </div>
-      <DisclaimerFooter />
     </div>
   );
 }

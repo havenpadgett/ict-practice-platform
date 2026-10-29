@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { GlossaryText } from "@/components/glossary/glossary-text";
 import { LoadingState } from "@/components/loading-state";
 import { RecognitionExercise, type RecognitionReveal } from "@/components/practice/recognition-exercise";
@@ -214,7 +213,6 @@ export default function TryPage() {
           )
         )}
       </div>
-      <DisclaimerFooter />
     </div>
   );
 }

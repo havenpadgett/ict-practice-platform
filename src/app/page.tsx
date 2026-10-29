@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { PrimaryButton } from "@/components/primary-button";
 import { GlossaryText } from "@/components/glossary/glossary-text";
 import { HeroExercise } from "@/components/landing/hero-exercise";
@@ -232,7 +231,6 @@ export default async function Home() {
         </section>
       </div>
 
-      <DisclaimerFooter />
     </div>
   );
 }

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { PasswordField } from "@/components/auth/password-field";
-import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { LoadingState } from "@/components/loading-state";
 import { useAuth } from "@/contexts/auth-context";
 import { authErrorMessage, MIN_PASSWORD_LENGTH } from "@/lib/auth-errors";
@@ -86,7 +85,6 @@ export default function ResetPasswordPage() {
           </form>
         )}
       </div>
-      <DisclaimerFooter />
     </div>
   );
 }

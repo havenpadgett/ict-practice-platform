@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { PrimaryButton } from "@/components/primary-button";
 import { realApprovalCounts } from "@/lib/real-data-provenance";
 
@@ -124,7 +123,6 @@ export default function AboutPage() {
           </Link>
         </div>
       </div>
-      <DisclaimerFooter />
     </div>
   );
 }

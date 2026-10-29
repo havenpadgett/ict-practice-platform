@@ -7,12 +7,13 @@
 // role again themselves (is_admin(), redefined in 20260927120000_roles.sql).
 
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { resolveReports } from "@/app/admin/actions";
 import { StatCard } from "@/components/stat-card";
 import { CONCEPTS, type Concept } from "@/lib/concepts";
 import { reviewProgress, type RuleProgress } from "@/lib/admin/review-progress";
 import { reasonLabel } from "@/lib/report-reasons";
-import { getAccess, ROLE_SETUP_HINT } from "@/lib/review/access";
+import { getAccess } from "@/lib/review/access";
 import { listScenarios, readReviewLog, staleFor } from "@/lib/review/store";
 import { FLAG_MIN_ATTEMPTS, FLAG_MIN_GAP, FLAG_MIN_REPORTS } from "@/lib/review/use-flags";
 import { createClient } from "@/lib/supabase/server";
@@ -109,6 +110,23 @@ async function loadReports(): Promise<ReportsState> {
   };
 }
 
+type ErrorLogRow = { id: string; message: string; stack: string | null; page: string | null; source: string; user_id: string | null; created_at: string };
+type ErrorsState = { kind: "ok"; rows: ErrorLogRow[] } | { kind: "not_applied" } | { kind: "error"; message: string };
+
+const MAX_ERRORS = 100;
+
+// public.errors (20261029120000_launch_readiness.sql): readable by admins only.
+async function loadErrors(): Promise<ErrorsState> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("errors")
+    .select("id, message, stack, page, source, user_id, created_at")
+    .order("created_at", { ascending: false })
+    .limit(MAX_ERRORS);
+  if (error) return error.code === "42P01" || error.code === "PGRST205" ? { kind: "not_applied" } : { kind: "error", message: error.message };
+  return { kind: "ok", rows: data as ErrorLogRow[] };
+}
+
 function pct(x: number | null | undefined): string {
   return x === null || x === undefined ? "—" : `${Math.round(Number(x) * 100)}%`;
 }
@@ -156,15 +174,9 @@ async function loadReview(): Promise<{ rows: RuleProgress[]; error: string | nul
 
 export default async function AdminPage() {
   const access = await getAccess();
-  if (access.kind !== "ok" || access.role !== "admin") {
-    return (
-      <div className="page">
-        <h1 className="page-title">Admin</h1>
-        <p className="page-lede">Not authorized. {ROLE_SETUP_HINT}</p>
-      </div>
-    );
-  }
-  const [db, review, reports] = await Promise.all([loadDb(), loadReview(), loadReports()]);
+  if (access.kind === "signed_out") redirect("/login?next=/admin");
+  if (access.kind !== "ok" || access.role !== "admin") redirect("/dashboard");
+  const [db, review, reports, errors] = await Promise.all([loadDb(), loadReview(), loadReports(), loadErrors()]);
 
   return (
     <div className="page max-w-5xl">
@@ -174,6 +186,8 @@ export default async function AdminPage() {
       <DbSections state={db.state} />
 
       <ReportSections state={reports} />
+
+      <ErrorSections state={errors} />
 
       <section className="mt-section">
         <p className="eyebrow">Real scenario review</p>
@@ -480,5 +494,63 @@ function ReportSections({ state }: { state: ReportsState }) {
         )}
       </section>
     </>
+  );
+}
+
+function ErrorSections({ state }: { state: ErrorsState }) {
+  return (
+    <section className="mt-section">
+      <p className="eyebrow">Errors</p>
+      <p className="mt-1 text-xs text-muted">
+        Newest first, the last {MAX_ERRORS}. Client, error-boundary and server errors, from public.errors.
+      </p>
+      {state.kind !== "ok" ? (
+        <div className="card mt-3 text-sm" role="status">
+          <p className={state.kind === "error" ? "text-danger" : "text-muted"}>
+            {state.kind === "error"
+              ? `Couldn't load errors: ${state.message}`
+              : "The error log needs supabase/migrations/20261029120000_launch_readiness.sql applied."}
+          </p>
+        </div>
+      ) : state.rows.length === 0 ? (
+        <p className="mt-3 text-sm text-muted">No errors logged.</p>
+      ) : (
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full min-w-[720px] text-left text-sm">
+            <thead className="text-xs text-muted">
+              <tr>
+                <th className="py-2 pr-3 font-medium">When (UTC)</th>
+                <th className="py-2 pr-3 font-medium">Source</th>
+                <th className="py-2 pr-3 font-medium">Page</th>
+                <th className="py-2 pr-3 font-medium">User</th>
+                <th className="py-2 pr-3 font-medium">Message</th>
+              </tr>
+            </thead>
+            <tbody>
+              {state.rows.map((r) => (
+                <tr key={r.id} className="border-t border-line align-top">
+                  <td className="py-2 pr-3 whitespace-nowrap tabular-nums text-muted">
+                    {new Date(r.created_at).toISOString().slice(0, 19).replace("T", " ")}
+                  </td>
+                  <td className="py-2 pr-3 text-muted">{r.source}</td>
+                  <td className="py-2 pr-3 font-mono text-xs">{r.page ?? "—"}</td>
+                  <td className="py-2 pr-3 font-mono text-xs text-muted">{r.user_id ? r.user_id.slice(0, 8) : "—"}</td>
+                  <td className="py-2 pr-3">
+                    {r.stack ? (
+                      <details>
+                        <summary className="cursor-pointer break-words">{r.message}</summary>
+                        <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap text-xs text-muted">{r.stack}</pre>
+                      </details>
+                    ) : (
+                      <span className="break-words">{r.message}</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 }

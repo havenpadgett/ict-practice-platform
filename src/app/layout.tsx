@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { DemoBanner } from "@/components/demo-banner";
+import { DesktopOnlyNotice } from "@/components/desktop-only-notice";
+import { DisclaimerFooter } from "@/components/disclaimer-footer";
+import { ErrorListener } from "@/components/error-listener";
 import { GlossaryScope } from "@/components/glossary/term";
 import { TopNav } from "@/components/top-nav";
 import { AuthProvider } from "@/contexts/auth-context";
@@ -54,6 +57,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
+        <DesktopOnlyNotice />
+        <ErrorListener />
         <DemoBanner />
         <AuthProvider>
           <ExperienceProvider>
@@ -61,6 +66,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <main id="main" className="flex flex-1 flex-col">
               <GlossaryScope>{children}</GlossaryScope>
             </main>
+            <DisclaimerFooter />
           </ExperienceProvider>
         </AuthProvider>
       </body>

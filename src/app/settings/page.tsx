@@ -2,6 +2,7 @@
 
 import { ExperienceChoice } from "@/components/experience/experience-choice";
 import { useExperience } from "@/contexts/experience-context";
+import { DeleteAccount } from "@/app/settings/delete-account";
 
 export default function SettingsPage() {
   const { level, chosen } = useExperience();
@@ -24,6 +25,8 @@ export default function SettingsPage() {
           <ExperienceChoice />
         </div>
       </section>
+
+      <DeleteAccount />
     </div>
   );
 }

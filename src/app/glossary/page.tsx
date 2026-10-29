@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { GlossaryBrowser } from "@/components/glossary/glossary-browser";
 import { GLOSSARY } from "@/data/glossary";
 
@@ -27,7 +26,6 @@ export default function GlossaryPage() {
           <GlossaryBrowser />
         </div>
       </div>
-      <DisclaimerFooter />
     </div>
   );
 }

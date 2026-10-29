@@ -114,3 +114,46 @@ describe("roles (S1) and graded attempts (S3)", () => {
     expect(await q(`select is_correct from attempts where user_id = '${A}'`)).toEqual([{ is_correct: true }]);
   });
 });
+
+describe("launch readiness: errors log and account deletion", () => {
+  it("every public table has RLS on", async () => {
+    expect(await q(`select relname from pg_class c join pg_namespace n on n.oid = c.relnamespace
+      where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity`)).toEqual([]);
+  });
+
+  it("errors: anyone can write, only admins can read", async () => {
+    await db.exec(`grant insert on errors to anon`);
+    await db.exec(`set role anon`);
+    try {
+      expect(await affected(`insert into errors (message, page) values ('boom', '/')`)).toBe(1);
+      await expect(q(`insert into errors (message, user_id) values ('x', '${A}')`)).rejects.toThrow(/row-level security/);
+    } finally {
+      await db.exec(`reset role`);
+    }
+    expect(await asUser(db, A, () => affected(`insert into errors (message, user_id) values ('mine', '${A}')`))).toBe(1);
+    await expect(asUser(db, A, () => q(`insert into errors (message, user_id) values ('x', '${B}')`))).rejects.toThrow(/row-level security/);
+    expect(await asUser(db, A, () => q(`select 1 from errors`))).toEqual([]);
+    await db.exec(`update profiles set role = 'admin' where id = '${A}'`);
+    expect((await asUser(db, A, () => q(`select message from errors order by created_at`))).length).toBe(2);
+    await db.exec(`update profiles set role = 'user' where id = '${A}'`);
+  });
+
+  it("delete_own_account removes the caller and their rows, nobody else's", async () => {
+    const C = "00000000-0000-0000-0000-00000000000c";
+    await db.exec(`insert into auth.users (id, email) values ('${C}', 'c@example.com'); insert into profiles (id) values ('${C}');`);
+    await seed(db, [{ user: C, correct: true, session: "sc", at: at(3) }]);
+    await asUser(db, C, () => q(`insert into errors (message, user_id) values ('c', '${C}')`));
+    await asUser(db, C, () => q(`select public.delete_own_account()`));
+    expect(await q(`select 1 from auth.users where id = '${C}'`)).toEqual([]);
+    expect(await q(`select 1 from profiles where id = '${C}'`)).toEqual([]);
+    expect(await q(`select 1 from attempts where user_id = '${C}'`)).toEqual([]);
+    expect(await q(`select user_id from errors where message = 'c'`)).toEqual([{ user_id: null }]);
+    expect((await q(`select count(*)::int as n from auth.users where id = '${A}'`))[0].n).toBe(1);
+    await db.exec(`set role anon`);
+    try {
+      await expect(q(`select public.delete_own_account()`)).rejects.toThrow();
+    } finally {
+      await db.exec(`reset role`);
+    }
+  });
+});

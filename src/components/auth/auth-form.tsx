@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
@@ -170,6 +171,19 @@ export function AuthForm() {
         <button type="submit" disabled={submitting} aria-busy={submitting} className="w-full btn-primary">
           {submitting ? copy.busy : copy.submit}
         </button>
+        {mode === "sign_up" && (
+          <p className="-mt-2 text-xs text-muted">
+            By signing up you agree to the{" "}
+            <Link href="/terms" className="underline underline-offset-4 hover:text-foreground">
+              Terms
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="underline underline-offset-4 hover:text-foreground">
+              Privacy Policy
+            </Link>
+            . Educational only, not financial advice.
+          </p>
+        )}
       </form>
 
       {GOOGLE_AUTH_ENABLED && mode !== "reset" && (

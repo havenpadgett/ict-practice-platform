@@ -10,11 +10,12 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { promises as fs } from "fs";
 import path from "path";
 import { ReviewQueue, type QueueGroup } from "@/app/review/review-queue";
 import { invalidRealScenarios, reviewTexts, type RealScenario } from "@/data/real-scenarios";
-import { getReviewer, ROLE_SETUP_HINT } from "@/lib/review/access";
+import { getAccess, getReviewer } from "@/lib/review/access";
 import { canWrite, listScenarios, readReviewLog, staleFor } from "@/lib/review/store";
 import { DEFINITIONS, definitionsForRule, splitSections } from "@/lib/curriculum";
 import { loadUseFlags } from "@/lib/review/use-flags";
@@ -59,14 +60,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
   const requested = (await searchParams).view;
   const view: View = VIEWS.find((v) => v.id === requested)?.id ?? "pending";
   const reviewer = await getReviewer();
-  if (!reviewer) {
-    return (
-      <div className="page">
-        <h1 className="page-title">Scenario review</h1>
-        <p className="page-lede">Not authorized. {ROLE_SETUP_HINT}</p>
-      </div>
-    );
-  }
+  if (!reviewer) redirect((await getAccess()).kind === "signed_out" ? "/login?next=/review" : "/dashboard");
 
   const [{ scenarios, broken }, log, sections] = await Promise.all([listScenarios(), readReviewLog(), curriculumSections()]);
   const useFlags = await loadUseFlags(new Set(scenarios.filter((s) => s.provenance.auto_approved).map((s) => s.exercise_id)));

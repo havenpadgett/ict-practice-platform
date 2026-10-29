@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { LoadingState } from "@/components/loading-state";
 import { ConceptPicker, type ActiveSessionInfo } from "@/components/practice/concept-picker";
 import { FreeTradeExercise, type FreeTradeAttempt, type FreeTradeGradeResponse } from "@/components/practice/free-trade-exercise";
@@ -417,7 +416,6 @@ export default function PracticePage() {
     return (
       <div className="flex flex-1 flex-col">
         <LoadingState />
-        <DisclaimerFooter />
       </div>
     );
   }
@@ -448,7 +446,6 @@ export default function PracticePage() {
             error={adaptiveError}
           />
         </div>
-        <DisclaimerFooter />
       </div>
     );
   }
@@ -466,7 +463,6 @@ export default function PracticePage() {
             }}
           />
         </div>
-        <DisclaimerFooter />
       </div>
     );
   }
@@ -475,7 +471,6 @@ export default function PracticePage() {
     return (
       <div className="flex flex-1 flex-col">
         <div className="page" />
-        <DisclaimerFooter />
       </div>
     );
   }
@@ -506,7 +501,6 @@ export default function PracticePage() {
             onAdaptive={() => void handleStartAdaptive()}
           />
         </div>
-        <DisclaimerFooter />
       </div>
     );
   }
@@ -531,7 +525,6 @@ export default function PracticePage() {
         ) : (
           <LoadingState />
         )}
-        <DisclaimerFooter />
       </div>
     );
   }
@@ -571,7 +564,6 @@ export default function PracticePage() {
             </button>
           </div>
         </div>
-        <DisclaimerFooter />
       </div>
     );
   }
@@ -914,7 +906,6 @@ export default function PracticePage() {
         </GlossaryScope>
       </div>
 
-      <DisclaimerFooter />
     </div>
   );
 }

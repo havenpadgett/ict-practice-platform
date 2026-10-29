@@ -61,6 +61,10 @@ export function sentryOptions() {
  * off. For errors the app catches and shows a message for; uncaught ones
  * reach Sentry on their own (instrumentation-client.ts, instrumentation.ts). */
 export function reportError(error: unknown, context?: Record<string, string>): void {
+  // The app's own log (src/lib/error-log.ts) hears about it either way.
+  if (typeof window !== "undefined") {
+    void import("@/lib/error-log").then(({ logClientError }) => logClientError(error, context?.boundary ? "boundary" : "client"));
+  }
   if (!monitoringEnabled()) return;
   void import("@sentry/nextjs")
     .then((Sentry) => Sentry.captureException(error, context ? { tags: context } : undefined))

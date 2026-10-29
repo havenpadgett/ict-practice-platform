@@ -15,6 +15,11 @@ export async function register() {
 
 /** Errors thrown while rendering, in Server Functions and in route handlers. */
 export const onRequestError: Instrumentation.onRequestError = async (error, request, context) => {
+  // The app's own log (src/lib/error-log-server.ts), Sentry or not.
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    const { logServerError } = await import("@/lib/error-log-server");
+    await logServerError(error, request);
+  }
   if (!monitoringEnabled()) return;
   const Sentry = await import("@sentry/nextjs");
   Sentry.captureRequestError(error, request, context);

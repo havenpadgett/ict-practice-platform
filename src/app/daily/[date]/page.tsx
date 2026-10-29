@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DailyChallenge } from "@/components/daily/daily-challenge";
-import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { shareableExercise } from "@/lib/challenge-source";
 import { conceptDisplayName } from "@/lib/concepts";
 import { dailyExerciseId, dailyPath, isDateKey, utcDateKey } from "@/lib/daily";
@@ -61,7 +60,6 @@ export default async function DailyPage({ params }: { params: Promise<Params> })
             </Link>
           </div>
         </div>
-        <DisclaimerFooter />
       </div>
     );
   }
@@ -77,7 +75,6 @@ export default async function DailyPage({ params }: { params: Promise<Params> })
         <p className="mt-2 mb-6 text-sm text-muted">One chart a day, the same for everyone. No account needed; the answer stays hidden until you submit.</p>
         <DailyChallenge exercise={exercise} date={date} today={today} />
       </div>
-      <DisclaimerFooter />
     </div>
   );
 }
